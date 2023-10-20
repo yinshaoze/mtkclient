@@ -5,7 +5,6 @@ requires = [
     "pyusb",
     "pycryptodome",
     "colorama",
-    "usb",
     "shiboken6", 
     "pyside6",
     "mock"
