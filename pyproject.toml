@@ -2,6 +2,11 @@
 requires = [
     "setuptools>=42",
     "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+dependencies = [
     "pyusb",
     "pycryptodome",
     "colorama",
@@ -9,4 +14,3 @@ requires = [
     "pyside6",
     "mock"
 ]
-build-backend = "setuptools.build_meta"
