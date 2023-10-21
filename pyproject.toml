@@ -6,6 +6,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
+name="mtkclient"
+version="1.6.3"
 dependencies = [
     "pyusb",
     "pycryptodome",
