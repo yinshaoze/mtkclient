@@ -2,8 +2,6 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='mtkclient',
-    version='1.6.3',
     packages=find_packages(),
     long_description=open("README.md").read(),
     scripts=['mtk','stage2'],
