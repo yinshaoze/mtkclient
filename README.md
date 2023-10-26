@@ -10,9 +10,9 @@ vol up + power or vol down + power and connect the phone. Once detected by the t
 release the buttons.
 
 ## Unsupported chipsets
-- MT6781, MT6983, MT6895, MT6886, MT698x
-- These chipsets use a new protocol and the bootrom is patched. There is currently NO support for these chipsets (due to the way these loaders are implemented)
-- If you want support, consider donating so that I can afford one of these devices (such as the Gigaset GX4) in order to start researching them
+- MT678x, MT689x, MT688x, MT698x
+- These chipsets use a new protocol called V6 and the bootrom is patched. There is currently NO support for these chipsets (due to the way these loaders are implemented)
+- If you want support, consider donating so that I can afford one of these devices in order to start researching them
 
 ## Credits
 - kamakiri [xyzz]
