@@ -424,15 +424,16 @@ class usb_class(DeviceClass):
         wMaxPacketSize = self.EP_IN.wMaxPacketSize
         extend = res.extend
         buffer = None
+        buflen=min(resplen,wMaxPacketSize)
         if self.fast:
-            buffer = self.buffer[:resplen]
+            buffer = self.buffer[:buflen]
         while len(res) < resplen:
             try:
                 if self.fast:
                     rlen = epr(buffer, timeout)
                     extend(buffer[:rlen])
                 else:
-                    extend(epr(resplen))
+                    extend(epr(buflen))
             except usb.core.USBError as e:
                 error = str(e.strerror)
                 if "timed out" in error:
@@ -453,7 +454,6 @@ class usb_class(DeviceClass):
             if self.loglevel == logging.DEBUG:
                 self.verify_data(res[:resplen], "RX:")
         return res[:resplen]
-
 
     def usbxmlread(self, maxtimeout=100):
         res = bytearray()
