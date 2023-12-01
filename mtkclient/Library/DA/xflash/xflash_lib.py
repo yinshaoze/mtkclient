@@ -795,10 +795,10 @@ class DAXFlash(metaclass=LogBase):
                                 self.mtk.daloader.progress.show_progress("Read", total, total, display)
                             rq.put(None)
                             worker.join(60)
-                            return b""
+                            return True
                 rq.put(None)
                 worker.join(60)
-                return bytearray()
+                return False
             else:
                 buffer = bytearray()
                 while length > 0:
