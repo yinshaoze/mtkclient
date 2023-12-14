@@ -55,16 +55,14 @@ yay -S python python-pip git libusb
 ```
 git clone https://github.com/bkerler/mtkclient
 cd mtkclient
-pip3 install -r requirements.txt
-python3 setup.py build
-python3 setup.py install
+pip3 install .
 ```
 
 #### Install rules
 ```
 sudo usermod -a -G plugdev $USER
 sudo usermod -a -G dialout $USER
-sudo cp Setup/Linux/*.rules /etc/udev/rules.d
+sudo cp mtkclient/Setup/Linux/*.rules /etc/udev/rules.d
 sudo udevadm control -R
 ```
 Make sure to reboot after adding the user to dialout/plugdev. If the device
@@ -76,7 +74,7 @@ the "/etc/modprobe.d/blacklist.conf".
 ### Windows
 
 #### Install python + git
-- Install python 3.9 and git
+- Install python >= 3.9 and git
 - If you install python from microsoft store, "python setup.py install" will fail, but that step isn't required.
 - WIN+R ```cmd```
 

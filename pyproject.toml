@@ -6,8 +6,15 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name="mtkclient"
-version="1.6.3"
+name = "mtkclient"
+description = "Mediatek reverse engineering and flashing tools"
+maintainers = [
+    {name = "Bjoern Kerler", email = "info@revskills.de"}
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+version = "1.6.3"
+requires-python = ">= 3.8"
 dependencies = [
     "pyusb",
     "pycryptodome",
@@ -16,3 +23,21 @@ dependencies = [
     "pyside6",
     "mock"
 ]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GPLv3 License",
+  "Operating System :: OS Independent",
+]
+keywords = ["mediatek", "mtk", "flashing", "reverse engineering", "firmware"]
+
+[project.urls]
+Repository = "https://github.com/bkerler/mtkclient.git"
+Issues = "https://github.com/bkerler/mtkclient/issues"
+
+[project.scripts]
+mtk = "mtk:main"
+stage2 = "stage2:main"
+
+[project.gui-scripts]
+mtk_gui = "mtk_gui:main"
