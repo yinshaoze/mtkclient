@@ -1085,12 +1085,12 @@ class dxcc(metaclass=LogBase):
             res = self.write32(0x10001088, 0x8000000)
         return res
 
-    def generate_itrustee_fbe(self, key_sz=32):
+    def generate_itrustee_fbe(self, key_sz=32, appid:bytes=b""):
         fdekey = b""
         dstaddr = self.da_payload_addr - 0x300
         self.tzcc_clk(1)
         for ctr in range(0, key_sz // 16):
-            itrustee = b"TrustedCorekeymaster" + b"\x07" * 0x10
+            itrustee = b"TrustedCorekeymaster" + b"\x07" * 0x10 + appid
             seed = itrustee + pack("<B", ctr)
             paddr = self.SBROM_AesCmac(1, 0x0, seed, 0x0, len(seed), dstaddr)
             for field in self.read32(paddr, 4):

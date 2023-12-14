@@ -777,6 +777,17 @@ class sej(metaclass=LogBase):
         return dec
 
     def generate_hw_meta(self, otp=None, encrypt=False, data=b""):
+        """
+        WR8                                                                         mt65
+        LR9     CRC                 RC4                     AES128-CBC              SBC=OFF
+        LR11    CRC                 RC4                     AES128-CBC              SBC=ON
+        LR12    CRC                 AES128-ECB              AES128-CBC              mt6750/6797
+        LR12A   MD5                 AES128-ECB              AES128-CBC              mt6761/6765/6771/6777/6778/6779
+        LR13    MD5                 AES128-ECB              AES128-CBC              mt6781/mt6785
+        NR15    MD5                 AES128-ECB              AES128-CBC              mt6877/6889/6833
+        NR16    MD5/HMAC-SHA256     AES128-CBC/AES256-CBC   AES128-CBC/AES256-CBC   mt6895
+        NR17    MD5/HMAC-SHA256     AES128-CBC/AES256-CBC   AES128-CBC/AES256-CBC
+        """
         if otp is not None:
             self.sej_set_otp(otp)
         seed = (CustomSeed[2] << 16) | (CustomSeed[1] << 8) | CustomSeed[0] | (CustomSeed[3] << 24)

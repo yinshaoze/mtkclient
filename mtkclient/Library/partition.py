@@ -5,6 +5,7 @@ import logging
 
 from mtkclient.Library.utils import LogBase, logsetup
 from mtkclient.Library.gpt import gpt
+from mtkclient.Library.pmt import pmt
 
 
 class Partition(metaclass=LogBase):
@@ -27,7 +28,43 @@ class Partition(metaclass=LogBase):
                 return data
         return b""
 
-    def get_gpt(self, gpt_settings, parttype="user") -> tuple:
+    def get_pmt(self, backup: bool = False, parttype: str = "user") -> tuple:
+        pt = pmt()
+        blocksize = self.mtk.daloader.daconfig.pagesize
+        if not backup:
+            addr = self.mtk.daloader.daconfig.flashsize - (2 * blocksize)
+        else:
+            addr = self.mtk.daloader.daconfig.flashsize - (2 * blocksize) + blocksize
+        data = self.readflash(addr=addr, length=2 * self.config.pagesize, filename="", parttype=parttype, display=False)
+        magic = int.from_bytes(data[:4],'little')
+        if magic in [b"PTv3", b"MPT3"]:
+            partdata = data[8:]
+            partitions = []
+            for partpos in range(128):
+                partinfo = pt.pt_resident(partdata[partpos * 96:(partpos * 96) + 96])
+                if partinfo[:4] == b"\x00\x00\x00\x00":
+                    break
+                class partf:
+                    unique = b""
+                    first_lba = 0
+                    last_lba = 0
+                    flags = 0
+                    sector = 0
+                    sectors = 0
+                    type = b""
+                    name = ""
+
+                pm = partf()
+                pm.name = partinfo.name.rstrip(b"\x00").decode('utf-8')
+                pm.sector = partinfo.offset // self.config.pagesize
+                pm.sectors = partinfo.size // self.config.pagesize
+                pm.type = 1
+                pm.flags = partinfo.mask_flags
+                partitions.add(pm)
+            return data, partitions
+        return b"", None
+
+    def get_gpt(self, gpt_settings, parttype: str = "user") -> tuple:
         data = self.readflash(addr=0, length=2 * self.config.pagesize, filename="", parttype=parttype, display=False)
         if data[:4] == b"BPI\x00":
             guid_gpt = gpt(
@@ -77,7 +114,8 @@ class Partition(metaclass=LogBase):
         guid_gpt.parse(data, self.config.pagesize)
         return data, guid_gpt
 
-    def get_backup_gpt(self, lun, gpt_num_part_entries, gpt_part_entry_size, gpt_part_entry_start_lba, parttype="user") -> bytearray:
+    def get_backup_gpt(self, lun, gpt_num_part_entries, gpt_part_entry_size, gpt_part_entry_start_lba,
+                       parttype="user") -> bytearray:
         data = self.readflash(addr=0, length=2 * self.config.pagesize, filename="", parttype=parttype, display=False)
         if data == b"":
             return data

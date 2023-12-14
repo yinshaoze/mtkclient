@@ -23,6 +23,8 @@ class Mtk_Config(metaclass=LogBase):
         self.cid = None
         self.vid = -1
         self.var1 = 0xA
+        self.auth = None
+        self.cert = None
         self.is_brom = False
         self.skipwdt = False
         self.interface = -1
@@ -203,6 +205,8 @@ class Mtk_Config(metaclass=LogBase):
                 return [wdt, 0x22000000]
             elif wdt == 0xC0000000:
                 return [wdt, 0x2264]
+            elif wdt == 0xA0030000:
+                return [wdt, 0x2200]
             elif wdt == 0x2200:
                 if self.hwcode == 0x6276 or self.hwcode == 0x8163:
                     return [wdt, 0x610C0000]
@@ -252,8 +256,8 @@ class Mtk_Config(metaclass=LogBase):
         elif hwcode in [0x6572]:
             if self.daconfig.flashtype == "nand":
                 bmtflag = 0
-                bmtpartsize = 0xA00000
-                bmtblockcount = 0x50
+                bmtpartsize = 0x1500000
+                bmtblockcount = 0xA8
             elif self.daconfig.flashtype == "emmc":
                 bmtflag = 0
                 bmtpartsize = 0xA8

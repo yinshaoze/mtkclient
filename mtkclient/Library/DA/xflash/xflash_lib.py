@@ -1,11 +1,15 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # (c) B.Kerler 2018-2023 GPLv3 License
+import array
 import logging
+import sys
 import time
 import os
 from binascii import hexlify
 from struct import pack, unpack
+
+import usb
 
 from mtkclient.Library.DA.xflash.xflash_flash_param import NandExtension
 from mtkclient.Library.DA.xflash.xflash_param import Cmd, ChecksumAlgorithm, FtSystemOSE, DataType
@@ -55,6 +59,19 @@ class DAXFlash(metaclass=LogBase):
         if self.generatekeys:
             self.patch = True
         self.xft = xflashext(self.mtk, self, loglevel)
+
+        try:
+            from mtkclient.Library.Exploit.kamakiri_pl import Kamakiri_Pl
+            self.kamakiri_pl = Kamakiri_Pl(self.mtk, loglevel)
+            #self.kamakiri_pl = None
+        except:
+            self.kamakiri_pl = None
+
+        try:
+            from mtkclient.Library.Exploit.carbonara import Carbonara
+            self.carbonara = Carbonara(self.mtk, loglevel)
+        except:
+            self.carbonara = None
 
     def usleep(self, usec):
         time.sleep(usec / 100000)
@@ -131,7 +148,7 @@ class DAXFlash(metaclass=LogBase):
         return status
 
     def read_pmt(self) -> tuple:
-        return b"", []
+        return self.partition.get_pmt()
 
     def send_param(self, params):
         if isinstance(params, bytes):
@@ -247,22 +264,22 @@ class DAXFlash(metaclass=LogBase):
                 if self.usbwrite(data[pos:pos + 64]):
                     pos += 64
                     bytestowrite -= 64
-            status = self.status()
+            status = self.status() # 0xC0070004
             if status == 0x0:
                 return True
             else:
                 self.error(f"Error on sending data: {self.eh.status(status)}")
                 return False
 
-    def boot_to(self, at_address, da, display=True, timeout=0.5):  # =0x40000000
+    def boot_to(self, addr, da, display=True, timeout=0.5):  # =0x40000000
         if self.xsend(self.Cmd.BOOT_TO):
             if self.status() == 0:
-                param = pack("<QQ", at_address, len(da))
+                param = pack("<QQ", addr, len(da))
                 pkt1 = pack("<III", self.Cmd.MAGIC, self.DataType.DT_PROTOCOL_FLOW, len(param))
                 if self.usbwrite(pkt1):
                     if self.usbwrite(param):
                         if self.send_data(da):
-                            if at_address == 0x68000000:
+                            if addr == 0x68000000:
                                 self.info(f"Extensions were accepted. Jumping to extensions...")
                             else:
                                 self.info(f"Upload data was accepted. Jumping to stage 2...")
@@ -676,6 +693,17 @@ class DAXFlash(metaclass=LogBase):
         else:
             return 0
 
+    def get_partition_table_category(self):
+        res = self.send_devctrl(self.Cmd.GET_PARTITION_TBL_CATA)
+        if res != b"":
+            value = unpack("<I", res)[0]
+            if value == 0x64:
+                return "GPT"
+            elif value == 0x65:
+                return "PMT"
+        else:
+            return 0
+
     def get_packet_length(self):
         resp = self.send_devctrl(self.Cmd.GET_PACKET_LENGTH)
         if resp != b"":
@@ -795,10 +823,10 @@ class DAXFlash(metaclass=LogBase):
                                 self.mtk.daloader.progress.show_progress("Read", total, total, display)
                             rq.put(None)
                             worker.join(60)
-                            return True
+                            return b""
                 rq.put(None)
                 worker.join(60)
-                return False
+                return b"ACK"
             else:
                 buffer = bytearray()
                 while length > 0:
@@ -973,17 +1001,20 @@ class DAXFlash(metaclass=LogBase):
             da2sig_len = self.daconfig.da_loader.region[2].m_sig_len
             bootldr.seek(da2offset)
             da2 = bootldr.read(self.daconfig.da_loader.region[2].m_len)
-
-            hashaddr, hashmode, hashlen = self.mtk.daloader.compute_hash_pos(da1, da2, da2sig_len)
-            if hashaddr is not None:
-                da1 = self.xft.patch_da1(da1)
-                da2 = self.xft.patch_da2(da2)
-                da1 = self.mtk.daloader.fix_hash(da1, da2, hashaddr, hashmode, hashlen)
-                self.patch = True
-                self.daconfig.da2 = da2[:hashlen]
+            if self.patch:
+                hashaddr, hashmode, hashlen = self.mtk.daloader.compute_hash_pos(da1, da2, da1sig_len, da2sig_len,self.daconfig.da_loader.v6)
+                if hashaddr is not None:
+                    da1 = self.xft.patch_da1(da1)
+                    da2 = self.xft.patch_da2(da2)
+                    da1 = self.mtk.daloader.fix_hash(da1, da2, hashaddr, hashmode, hashlen)
+                    self.patch = True
+                    self.daconfig.da2 = da2[:hashlen]
+                else:
+                    self.patch = False
+                    self.daconfig.da2 = da2[:-da2sig_len]
             else:
+                self.patch = False
                 self.daconfig.da2 = da2[:-da2sig_len]
-
             if self.mtk.preloader.send_da(da1address, da1size, da1sig_len, da1):
                 self.info("Successfully uploaded stage 1, jumping ..")
                 if self.mtk.preloader.jump_da(da1address):
@@ -993,6 +1024,8 @@ class DAXFlash(metaclass=LogBase):
                         return False
                     else:
                         self.sync()
+                        #if self.kamakiri_pl is not None:
+                        #    self.kamakiri_pl.bypass2ndDA()
                         self.setup_env()
                         self.setup_hw_init()
                         res = self.xread()
@@ -1008,7 +1041,6 @@ class DAXFlash(metaclass=LogBase):
         return False
 
     def reinit(self, display=False):
-        self.config.hwparam = hwparam(self.config.meid, self.config.hwparam_path)
         self.config.sram, self.config.dram = self.get_ram_info()
         self.emmc = self.get_emmc_info(display)
         self.nand = self.get_nand_info(display)
@@ -1055,6 +1087,9 @@ class DAXFlash(metaclass=LogBase):
             self.config.set_gui_status(self.config.tr("Connected to stage2 with higher speed"))
 
     def upload_da(self):
+        if not self.mtk.daloader.patch:
+            if self.kamakiri_pl is not None:
+                self.kamakiri_pl.initbrom()
         if self.upload_da1():
             self.get_expire_date()
             self.set_reset_key(0x68)
@@ -1109,21 +1144,24 @@ class DAXFlash(metaclass=LogBase):
                 self.info("Uploading stage 2...")
                 with open(self.daconfig.loader, 'rb') as bootldr:
                     stage = stage + 1
-                    loaded = self.boot_to(self.daconfig.da_loader.region[stage].m_start_addr, self.daconfig.da2)
+                    if not self.mtk.daloader.patch:
+                        loaded = self.boot_to(self.daconfig.da_loader.region[stage].m_start_addr, self.daconfig.da2)
+                    else:
+                        loaded = self.boot_to(self.daconfig.da_loader.region[stage].m_start_addr, self.daconfig.da2)
                     if loaded:
                         self.info("Successfully uploaded stage 2")
                         self.reinit(True)
-                        self.config.hwparam.writesetting("hwcode", hex(self.config.hwcode))
-
                         daextdata = self.xft.patch()
                         if daextdata is not None:
                             self.daext = False
-                            if self.boot_to(at_address=0x68000000, da=daextdata):
+                            if self.boot_to(addr=0x68000000, da=daextdata):
                                 ret = self.send_devctrl(XCmd.CUSTOM_ACK)
                                 status = self.status()
                                 if status == 0x0 and unpack("<I", ret)[0] == 0xA1A2A3A4:
                                     self.info("DA Extensions successfully added")
                                     self.daext = True
+                                    self.config.hwparam = hwparam(self.mtk.config.meid,self.mtk.config.hwparam_path)
+                                    self.config.hwparam.writesetting("hwcode", hex(self.config.hwcode))
                             if not self.daext:
                                 self.warning("DA Extensions failed to enable")
 

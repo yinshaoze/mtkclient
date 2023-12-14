@@ -60,6 +60,12 @@ class META(metaclass=LogBase):
                             while resp==b"READY":
                                 resp = bytearray(EP_IN(maxinsize))
                             if resp in [b"ATEMEVDX",b"TOOBTSAF",b"ATEMATEM",b"TCAFTCAF",b"MYROTCAF"]:
+                                if resp == b"ATEMATEM":
+                                    EP_OUT(b"\x04\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\xC0")
+                                    EP_OUT(b"\x04\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\xC0")
+                                    EP_OUT(b"\x06\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\xC0\x00\x80\x00\x00")
+                                    info = EP_IN(13) #!READYATEM
+                                    EP_OUT(b"DISCONNECT")
                                 return True
                             self.warning(resp)
                 else:

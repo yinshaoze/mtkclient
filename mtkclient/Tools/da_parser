@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 #(c) B.Kerler 2021 MIT License
 import os
+import sys
 from struct import unpack
 from mtkclient.config.payloads import pathconfig
 from mtkclient.Library.utils import read_object
-
+from mtkclient.Library.utils import find_binary
 entry_region = [
     ('m_buf', 'I'),
     ('m_len', 'I'),
@@ -68,15 +69,30 @@ def main():
                 startaddr=da[3]["m_start_addr"]
                 with open(loader,"rb") as rf:
                     rf.seek(mbuf)
-                    data=rf.read(m_len)
+                    da2data=rf.read(m_len)
                     fname=os.path.join("loaders",hex(da[0]["hw_code"])[2:]+"_"+hex(startaddr)[2:]+os.path.basename(loader))
-                    open(fname,"wb").write(data)
+                    open(fname,"wb").write(da2data)
                 mbuf=da[2]["m_buf"]
                 m_len=da[2]["m_len"]
                 startaddr=da[2]["m_start_addr"]
+                sys.stdout.flush()
                 with open(loader,"rb") as rf:
                     rf.seek(mbuf)
                     data=rf.read(m_len)
+                    hashidx=data.find(int.to_bytes(0xC0070004,4,'little'))
+                    if hashidx!=-1:
+                        print("Hash check found.")
+                    else:
+                        hashidx = data.find(b"\xCC\xF2\x07\x09") # => b"\x4F\xF0\x00\x09""
+                        if hashidx != -1:
+                            print("Hash check 2 found.")
+                        else:
+                            hashidx = find_binary(data,b"\x14\x2C\xF6.\xFE\xE7")  # => b"\x14\x2C\xF6\xD1\x00\x00"
+                            if hashidx is not None:
+                                print("Hash check 3 found.")
+                            else:
+                                print("HASH ERROR !!!!")
+
                     fname=os.path.join("loaders",hex(da[0]["hw_code"])[2:]+"_"+hex(startaddr)[2:]+os.path.basename(loader))
                     open(fname,"wb").write(data)
                 print(f"Offset: {hex(mbuf)}")

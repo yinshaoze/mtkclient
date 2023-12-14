@@ -102,7 +102,7 @@ class hwcrypto(metaclass=LogBase):
             elif mode == "mirpmb":
                 return self.dxcc.generate_rpmb_mitee()
             elif mode == "itrustee":
-                return self.dxcc.generate_itrustee_fbe()
+                return self.dxcc.generate_itrustee_fbe(appid=data)
             elif mode == "prov":
                 return self.dxcc.generate_provision_key()
             elif mode == "sha256":

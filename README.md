@@ -9,10 +9,11 @@ Once the mtk script is running, boot into brom mode by powering off device, pres
 vol up + power or vol down + power and connect the phone. Once detected by the tool,
 release the buttons.
 
-## Unsupported chipsets
-- MT678x, MT689x, MT688x, MT698x
-- These chipsets use a new protocol called V6 and the bootrom is patched. There is currently NO support for these chipsets (due to the way these loaders are implemented)
-- If you want support, consider donating so that I can afford one of these devices in order to start researching them
+## MT678x, MT689x, MT688x, MT698x
+- These chipsets use a new protocol called V6 and the bootrom is patched, thus you need a valid da via --loader option. 
+- On some devices, preloader is deactivated, but you still use it by running "adb reboot edl".
+- This only works with UNFUSED devices currently.
+- For all devices with DAA, SLA and Remote-Auth activated no public solution currently exists (for various reasons).
 
 ## Credits
 - kamakiri [xyzz]

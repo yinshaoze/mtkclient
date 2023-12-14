@@ -10,7 +10,7 @@ from mtkclient.Library.pltools import PLTools
 from mtkclient.Library.mtk_preloader import Preloader
 from mtkclient.Library.DA.mtk_daloader import DAloader
 from mtkclient.Library.Port import Port
-from mtkclient.Library.utils import LogBase, logsetup
+from mtkclient.Library.utils import LogBase, logsetup, find_binary
 from mtkclient.Library.error import ErrorHandler
 
 
@@ -47,18 +47,29 @@ class Mtk(metaclass=LogBase):
             ("5072656C6F61646572205374617274","50617463686564204C205374617274", "Patched loader msg"),
             ("F0B58BB002AE20250C460746","002070470000000000205374617274", "sec_img_auth"),
             ("FFC0F3400008BD","FF4FF0000008BD","get_vfy_policy"),
-            ("040007C0","00000000","hash_check")
+            ("040007C0","00000000","hash_check"),
+            ("CCF20709", "4FF00009", "hash_check2"),
+            (b"\x14\x2C\xF6.\xFE\xE7",b"\x00\x00\x00\x00\x00\x00","hash_check3")
         ]
         i = 0
         for patchval in patches:
-            pattern = bytes.fromhex(patchval[0])
-            idx = data.find(pattern)
-            if idx != -1:
-                patch = bytes.fromhex(patchval[1])
-                data[idx:idx + len(patch)] = patch
-                self.info(f"Patched \"{patchval[2]}\" in preloader")
-                patched = True
-                # break
+            if type(patchval[0])==bytes:
+                idx = find_binary(data,patchval[0])
+                if idx is None:
+                    idx = -1
+                else:
+                    data[idx:idx + len(patch)] = patch
+                    self.info(f"Patched \"{patchval[2]}\" in preloader")
+                    patched = True
+            else:
+                pattern = bytes.fromhex(patchval[0])
+                idx = data.find(pattern)
+                if idx != -1:
+                    patch = bytes.fromhex(patchval[1])
+                    data[idx:idx + len(patch)] = patch
+                    self.info(f"Patched \"{patchval[2]}\" in preloader")
+                    patched = True
+                    # break
             i += 1
         if not patched:
             self.warning(f"Failed to patch preloader security")

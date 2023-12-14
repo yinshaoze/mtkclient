@@ -4,7 +4,7 @@
 import argparse
 from mtkclient.Library.mtk_main import Main, metamodes
 
-info = "MTK Flash/Exploit Client V1.6.3 (c) B.Kerler 2018-2023"
+info = "MTK Flash/Exploit Client Public V2.0.0 Beta (c) B.Kerler 2018-2023"
 
 cmds = {
     "printgpt": "Print GPT Table information",
@@ -94,49 +94,79 @@ if __name__ == '__main__':
 
     parser_da = subparsers.add_parser("da", help="Run da special commands")
     da_cmds = parser_da.add_subparsers(dest='subcmd', help='Commands: peek poke keys unlock memdump seccfg rpmb efuse')
+
     da_efuse = da_cmds.add_parser("efuse", help="Read efuses")
     da_efuse.add_argument('--preloader', help='Set the preloader filename for dram config')
-    da_peek = da_cmds.add_parser("peek", help="Read memory")
-    da_peek.add_argument('--preloader', help='Set the preloader filename for dram config')
-    da_dump = da_cmds.add_parser("memdump", help="Dump whole memory areas")
-    da_poke = da_cmds.add_parser("poke", help="Write memory")
-    da_poke.add_argument('--preloader', help='Set the preloader filename for dram config')
+    da_efuse.add_argument('--loader', type=str, help='Use specific loader, disable autodetection')
+
     da_keys = da_cmds.add_parser("generatekeys", help="Generate keys")
     da_keys.add_argument('--preloader', help='Set the preloader filename for dram config')
-    da_unlock = da_cmds.add_parser("seccfg", help="Unlock device / Configure seccfg")
-    da_unlock.add_argument('--preloader', help='Set the preloader filename for dram config')
-    da_rpmb = da_cmds.add_parser("rpmb", help="RPMB Tools")
-    da_rpmb.add_argument('--preloader', help='Set the preloader filename for dram config')
+    da_keys.add_argument('--loader', type=str, help='Use specific loader, disable autodetection')
+
     da_meta = da_cmds.add_parser("meta", help="MetaMode Tools")
     da_meta.add_argument('--preloader', help='Set the preloader filename for dram config')
-
     da_meta.add_argument("metamode", type=str, help="metamode to use [off,usb,uart]")
+
+    da_rpmb = da_cmds.add_parser("rpmb", help="RPMB Tools")
 
     da_rpmb_cmds = da_rpmb.add_subparsers(dest='rpmb_subcmd', help='Commands: r w')
     da_rpmb_r = da_rpmb_cmds.add_parser("r", help="Read rpmb")
     da_rpmb_r.add_argument('--filename', type=str, help="Filename to write data into")
     da_rpmb_r.add_argument('--preloader', help='Set the preloader filename for dram config')
+    da_rpmb_r.add_argument('--loader', type=str, help='Use specific loader, disable autodetection')
+    da_rpmb_r.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    da_rpmb_r.add_argument('--cert', type=str, help="Use cert file")
 
     da_rpmb_w = da_rpmb_cmds.add_parser("w", help="Write rpmb")
     da_rpmb_w.add_argument('filename', type=str, help="Filename to write from")
     da_rpmb_w.add_argument('--preloader', help='Set the preloader filename for dram config')
+    da_rpmb_w.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    da_rpmb_w.add_argument('--cert', type=str, help="Use cert file")
+    da_rpmb_w.add_argument('--loader', type=str, help='Use specific loader, disable autodetection')
 
     da_rpmb_e = da_rpmb_cmds.add_parser("e", help="Erase rpmb")
     da_rpmb_e.add_argument('--preloader', help='Set the preloader filename for dram config')
+    da_rpmb_e.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    da_rpmb_e.add_argument('--cert', type=str, help="Use cert file")
+    da_rpmb_e.add_argument('--loader', type=str, help='Use specific loader, disable autodetection')
 
+    da_peek = da_cmds.add_parser("peek", help="Read memory")
+    da_peek.add_argument('--preloader', help='Set the preloader filename for dram config')
     da_peek.add_argument('address', type=str, help="Address to read from (hex value)")
     da_peek.add_argument('length', type=str, help="Length to read")
+    da_peek.add_argument('--loader', type=str, help='Use specific loader, disable autodetection')
     da_peek.add_argument('--filename', type=str, help="Filename to write data into")
+    da_peek.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    da_peek.add_argument('--cert', type=str, help="Use cert file")
 
+    da_dump = da_cmds.add_parser("memdump", help="Dump whole memory areas")
     da_dump.add_argument('directory', type=str, help="Directory to dump ram dump files")
     da_dump.add_argument('--preloader', help='Set the preloader filename for dram config')
     da_dump.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
+    da_dump.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    da_dump.add_argument('--cert', type=str, help="Use cert file")
 
+    da_dumpbrom = da_cmds.add_parser("dumpbrom", help="Dump whole memory areas")
+    da_dumpbrom.add_argument('--preloader', help='Set the preloader filename for dram config')
+    da_dumpbrom.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
+    da_dumpbrom.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    da_dumpbrom.add_argument('--cert', type=str, help="Use cert file")
+
+    da_poke = da_cmds.add_parser("poke", help="Write memory")
+    da_poke.add_argument('--preloader', help='Set the preloader filename for dram config')
     da_poke.add_argument('address', type=str, help="Address to read from (hex value)")
     da_poke.add_argument('data', type=str, help="Data to write")
+    da_poke.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
     da_poke.add_argument('--filename', type=str, help="Filename to read data from")
+    da_poke.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    da_poke.add_argument('--cert', type=str, help="Use cert file")
 
+    da_unlock = da_cmds.add_parser("seccfg", help="Unlock device / Configure seccfg")
+    da_unlock.add_argument('--preloader', help='Set the preloader filename for dram config')
     da_unlock.add_argument('flag', type=str, help="Needed flag (unlock,lock)")
+    da_unlock.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
+    da_unlock.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    da_unlock.add_argument('--cert', type=str, help="Use cert file")
 
     parser_script.add_argument('script', help='Text script to run')
     parser_script.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
@@ -161,7 +191,8 @@ if __name__ == '__main__':
     parser_script.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_script.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_script.add_argument('--socid', help='Read Soc ID')
-
+    parser_script.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_script.add_argument('--cert', type=str, help="Use cert file")
 
     parser_printgpt.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
     parser_printgpt.add_argument('--vid', type=str, help='Set usb vendor id used for MTK Preloader')
@@ -185,6 +216,8 @@ if __name__ == '__main__':
     parser_printgpt.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_printgpt.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_printgpt.add_argument('--socid', help='Read Soc ID')
+    parser_printgpt.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_printgpt.add_argument('--cert', type=str, help="Use cert file")
 
     parser_gpt.add_argument('directory', help='Filename to store gpt files')
     parser_gpt.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
@@ -212,6 +245,8 @@ if __name__ == '__main__':
                                                '\t\tUFS: [lu0, lu1, lu2, lu0_lu1]')
     parser_gpt.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_gpt.add_argument('--socid', help='Read Soc ID')
+    parser_gpt.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_gpt.add_argument('--cert', type=str, help="Use cert file")
 
     parser_r.add_argument('partitionname', help='Partitions to read (separate by comma for multiple partitions)')
     parser_r.add_argument('filename', help='Filename to store files (separate by comma for multiple filenames)')
@@ -240,6 +275,8 @@ if __name__ == '__main__':
                                              '\t\tUFS: [lu0, lu1, lu2, lu0_lu1]')
     parser_r.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_r.add_argument('--socid', help='Read Soc ID')
+    parser_r.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_r.add_argument('--cert', type=str, help="Use cert file")
 
     parser_rl.add_argument('directory', help='Directory to write dumped partitions into')
     parser_rl.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
@@ -268,6 +305,8 @@ if __name__ == '__main__':
     parser_rl.add_argument('--filename', help='Optional filename')
     parser_rl.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_rl.add_argument('--socid', help='Read Soc ID')
+    parser_rl.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_rl.add_argument('--cert', type=str, help="Use cert file")
 
     parser_rf.add_argument('filename', help='Filename to store flash file')
     parser_rf.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
@@ -299,6 +338,8 @@ if __name__ == '__main__':
     parser_rf.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_rf.add_argument('--socid', help='Read Soc ID')
     parser_rf.add_argument('--iot', help='Use special mode for iot MT6261/2301', action="store_true", default=False)
+    parser_rf.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_rf.add_argument('--cert', type=str, help="Use cert file")
 
     parser_rs.add_argument('startsector', help='Sector to start reading (int or hex)')
     parser_rs.add_argument('sectors', help='Sector count')
@@ -331,6 +372,8 @@ if __name__ == '__main__':
     parser_rs.add_argument('--filename', help='Optional filename')
     parser_rs.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_rs.add_argument('--socid', help='Read Soc ID')
+    parser_rs.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_rs.add_argument('--cert', type=str, help="Use cert file")
 
     parser_ro.add_argument('offset', help='Offset to start reading (int or hex)')
     parser_ro.add_argument('length', help='Length to read (int or hex)')
@@ -360,6 +403,8 @@ if __name__ == '__main__':
                                               '\t\tEMMC: [user, boot1, boot2, gp1, gp2, gp3, gp4, rpmb]' +
                                               '\t\tUFS: [lu0, lu1, lu2, lu0_lu1]')
     parser_ro.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
+    parser_ro.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_ro.add_argument('--cert', type=str, help="Use cert file")
 
     parser_w.add_argument('partitionname', help='Partition to write (separate by comma for multiple partitions)')
     parser_w.add_argument('filename', help='Filename for writing (separate by comma for multiple filenames)')
@@ -391,6 +436,8 @@ if __name__ == '__main__':
     parser_w.add_argument('--filename', help='Optional filename')
     parser_w.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_w.add_argument('--socid', help='Read Soc ID')
+    parser_w.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_w.add_argument('--cert', type=str, help="Use cert file")
 
     parser_wf.add_argument('filename', help='Filename to write to flash')
     parser_wf.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
@@ -419,6 +466,8 @@ if __name__ == '__main__':
                                               '\t\tUFS: [lu0, lu1, lu2, lu0_lu1]')
     parser_wf.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_wf.add_argument('--socid', help='Read Soc ID')
+    parser_wf.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_wf.add_argument('--cert', type=str, help="Use cert file")
 
     parser_wl.add_argument('directory', help='Directory with partition filenames to write to flash')
     parser_wl.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
@@ -448,6 +497,8 @@ if __name__ == '__main__':
     parser_wl.add_argument('--filename', help='Optional filename')
     parser_wl.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_wl.add_argument('--socid', help='Read Soc ID')
+    parser_wl.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_wl.add_argument('--cert', type=str, help="Use cert file")
 
     parser_wo.add_argument('offset', help='Offset to start writing (int or hex)')
     parser_wo.add_argument('length', help='Length to write (int or hex)')
@@ -479,6 +530,8 @@ if __name__ == '__main__':
     parser_wo.add_argument('--filename', help='Optional filename')
     parser_wo.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_wo.add_argument('--socid', help='Read Soc ID')
+    parser_wo.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_wo.add_argument('--cert', type=str, help="Use cert file")
 
     parser_e.add_argument('partitionname', help='Partitionname to erase from flash')
     parser_e.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
@@ -508,6 +561,8 @@ if __name__ == '__main__':
     parser_e.add_argument('--filename', help='Optional filename')
     parser_e.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_e.add_argument('--socid', help='Read Soc ID')
+    parser_e.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_e.add_argument('--cert', type=str, help="Use cert file")
 
     parser_es.add_argument('partitionname', help='Partitionname to erase from flash')
     parser_es.add_argument('sectors', help='Sectors to erase')
@@ -538,6 +593,8 @@ if __name__ == '__main__':
     parser_es.add_argument('--filename', help='Optional filename')
     parser_es.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_es.add_argument('--socid', help='Read Soc ID')
+    parser_es.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_es.add_argument('--cert', type=str, help="Use cert file")
 
     parser_ess.add_argument('startsector', help='Startsector to erase')
     parser_ess.add_argument('sectors', help='Sectors to erase')
@@ -568,6 +625,8 @@ if __name__ == '__main__':
     parser_ess.add_argument('--filename', help='Optional filename')
     parser_ess.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_ess.add_argument('--socid', help='Read Soc ID')
+    parser_ess.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_ess.add_argument('--cert', type=str, help="Use cert file")
 
     parser_footer.add_argument('filename', help='Filename to store footer')
     parser_footer.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
@@ -595,6 +654,8 @@ if __name__ == '__main__':
     parser_footer.add_argument('--filename', help='Optional filename')
     parser_footer.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_footer.add_argument('--socid', help='Read Soc ID')
+    parser_footer.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_footer.add_argument('--cert', type=str, help="Use cert file")
 
     parser_dumpbrom.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
     parser_dumpbrom.add_argument('--vid', type=str, help='Set usb vendor id used for MTK Preloader')
@@ -614,7 +675,8 @@ if __name__ == '__main__':
     parser_dumpbrom.add_argument('--filename', help='Optional filename')
     parser_dumpbrom.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_dumpbrom.add_argument('--socid', help='Read Soc ID')
-
+    parser_dumpbrom.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_dumpbrom.add_argument('--cert', type=str, help="Use cert file")
 
     parser_dumpsram.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
     parser_dumpsram.add_argument('--vid', type=str, help='Set usb vendor id used for MTK Preloader')
@@ -634,6 +696,8 @@ if __name__ == '__main__':
     parser_dumpsram.add_argument('--filename', help='Optional filename')
     parser_dumpsram.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_dumpsram.add_argument('--socid', help='Read Soc ID')
+    parser_dumpsram.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_dumpsram.add_argument('--cert', type=str, help="Use cert file")
 
     parser_dumppreloader.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
     parser_dumppreloader.add_argument('--vid', type=str, help='Set usb vendor id used for MTK Preloader')
@@ -653,6 +717,8 @@ if __name__ == '__main__':
     parser_dumppreloader.add_argument('--filename', help='Optional filename')
     parser_dumppreloader.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_dumppreloader.add_argument('--socid', help='Read Soc ID')
+    parser_dumppreloader.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_dumppreloader.add_argument('--cert', type=str, help="Use cert file")
 
     parser_payload.add_argument('--payload', type=str, help='Payload filename (optional)')
     parser_payload.add_argument('--metamode', type=str, default=None, help='metamode to use ' + metamodes)
@@ -673,11 +739,15 @@ if __name__ == '__main__':
                                      '("amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
     parser_payload.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_payload.add_argument('--socid', help='Read Soc ID')
+    parser_payload.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_payload.add_argument('--cert', type=str, help="Use cert file")
 
     parser_crash.add_argument('--vid', type=str, help='Set usb vendor id used for MTK Preloader')
     parser_crash.add_argument('--pid', type=str, help='Set usb product id used for MTK Preloader')
     parser_crash.add_argument('--debugmode', action='store_true', default=False, help='Enable verbose mode')
     parser_crash.add_argument('--mode', help='Set a crash mode (0=dasend1,1=dasend2,2=daread)')
+    parser_crash.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_crash.add_argument('--cert', type=str, help="Use cert file")
 
     parser_brute.add_argument('--loader', type=str, help='Use specific loader, disable autodetection')
     parser_brute.add_argument('--vid', type=str, help='Set usb vendor id used for MTK Preloader')
@@ -696,20 +766,29 @@ if __name__ == '__main__':
     parser_brute.add_argument('--filename', help='Optional filename')
     parser_brute.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_brute.add_argument('--socid', help='Read Soc ID')
+    parser_brute.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_brute.add_argument('--cert', type=str, help="Use cert file")
 
     parser_logs.add_argument('--vid', type=str, help='Set usb vendor id used for MTK Preloader')
     parser_logs.add_argument('--pid', type=str, help='Set usb product id used for MTK Preloader')
     parser_logs.add_argument('--debugmode', action='store_true', default=False, help='Enable verbose mode')
     parser_logs.add_argument('--filename', help='Optional filename to write dumped data')
+    parser_logs.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_logs.add_argument('--cert', type=str, help="Use cert file")
 
     parser_meta.add_argument('--vid', type=str, help='Set usb vendor id used for MTK Preloader')
     parser_meta.add_argument('--pid', type=str, help='Set usb product id used for MTK Preloader')
     parser_meta.add_argument('--debugmode', action='store_true', default=False, help='Enable verbose mode')
     parser_meta.add_argument('metamode', type=str, default=None, help='metamode to use ' + metamodes)
+    parser_meta.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_meta.add_argument('--cert', type=str, help="Use cert file")
+
     parser_gettargetconfig.add_argument('--vid', type=str, help='Set usb vendor id used for MTK Preloader')
     parser_gettargetconfig.add_argument('--pid', type=str, help='Set usb product id used for MTK Preloader')
     parser_gettargetconfig.add_argument('--debugmode', action='store_true', default=False, help='Enable verbose mode')
     parser_gettargetconfig.add_argument('--socid', help='Read Soc ID')
+    parser_gettargetconfig.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_gettargetconfig.add_argument('--cert', type=str, help="Use cert file")
 
     parser_peek.add_argument('address', help='Address to read from memory')
     parser_peek.add_argument('length', help='Bytes to read from memory')
@@ -731,6 +810,8 @@ if __name__ == '__main__':
     parser_peek.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_peek.add_argument('--socid', help='Read Soc ID')
     parser_peek.add_argument('--preloader', help='Set the preloader filename for dram config')
+    parser_peek.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_peek.add_argument('--cert', type=str, help="Use cert file")
 
     parser_stage.add_argument('--payload', type=str, help='Payload filename (optional)')
     parser_stage.add_argument('--stage2', help='Set stage2 filename')
@@ -753,6 +834,8 @@ if __name__ == '__main__':
     parser_stage.add_argument('--filename', help='Optional filename')
     parser_stage.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_stage.add_argument('--socid', help='Read Soc ID')
+    parser_stage.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_stage.add_argument('--cert', type=str, help="Use cert file")
 
     parser_plstage.add_argument('--payload', type=str, help='Payload filename (optional)')
     parser_plstage.add_argument('--pl', help='pl stage filename (optional)')
@@ -779,6 +862,8 @@ if __name__ == '__main__':
     parser_plstage.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_plstage.add_argument('--socid', help='Read Soc ID')
     parser_plstage.add_argument('--startpartition', help='Option for plstage - Boot to (lk, tee1)')
+    parser_plstage.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
+    parser_plstage.add_argument('--cert', type=str, help="Use cert file")
 
     parser_printgpt.add_argument('--generatekeys', action="store_true", help='Option for deriving hw keys')
     parser_footer.add_argument('--generatekeys', action="store_true", help='Option for deriving hw keys')
@@ -845,6 +930,15 @@ if __name__ == '__main__':
     da_poke.add_argument('--uartloglevel', help='Set uart log level (0=Trace, 2=Normal)')
     da_dump.add_argument('--uartloglevel', help='Set uart log level (0=Trace, 2=Normal)')
     da_rpmb.add_argument('--uartloglevel', help='Set uart log level (0=Trace, 2=Normal)')
+
+    parser_script.add_argument('--appid', help='Use app id (hexstring)')
+    parser_printgpt.add_argument('--appid', help='Use app id (hexstring)')
+    parser_rs.add_argument('--appid', help='Use app id (hexstring)')
+    parser_rf.add_argument('--appid', help='Use app id (hexstring)')
+    parser_rl.add_argument('--appid', help='Use app id (hexstring)')
+    parser_gpt.add_argument('--appid', help='Use app id (hexstring)')
+    parser_r.add_argument('--appid', help='Use app id (hexstring)')
+    da_keys.add_argument('--appid', help='Use app id (hexstring)')
 
     args = parser.parse_args()
     cmd = args.cmd

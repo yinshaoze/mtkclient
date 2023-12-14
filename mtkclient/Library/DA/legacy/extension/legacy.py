@@ -1,4 +1,5 @@
 import os
+import sys
 from struct import unpack, pack
 
 from mtkclient.Library.settings import hwparam
@@ -219,6 +220,31 @@ class legacyext(metaclass=LogBase):
         return None
 
     def generate_keys(self):
+        if self.config.hwcode in [0x2601,0x6572]:
+            base = 0x11141000
+        elif self.config.hwcode==0x6261:
+            base = 0x70000000
+        elif self.config.hwcode in [0x8172,0x8176]:
+            base = 0x122000
+        else:
+            base = 0x100000
+        data = b"".join([pack("<I", val) for val in self.readmem(0x111418EC, 0x20000 // 4)])
+        print(data.hex())
+        sys.stdout.flush()
+        if self.config.meid is None:
+            try:
+                data = b"".join([pack("<I", val) for val in self.readmem(base+0x8EC, 0x16 // 4)])
+                self.config.meid = data
+                self.config.set_meid(data)
+            except:
+                return
+        if self.config.socid is None:
+            try:
+                data = b"".join([pack("<I", val) for val in self.readmem(base+0x934, 0x20 // 4)])
+                self.config.socid = data
+                self.config.set_socid(data)
+            except:
+                return
         hwc = self.cryptosetup()
         retval = {}
         retval["hwcode"] = hex(self.config.hwcode)
@@ -233,8 +259,6 @@ class legacyext(metaclass=LogBase):
         if meid is not None:
             self.info("MEID        : " + hexlify(meid).decode('utf-8'))
             retval["meid"] = hexlify(meid).decode('utf-8')
-            if self.config.hwparam is None:
-                self.config.hwparam = hwparam(meid, self.config.hwparam_path)
             self.config.hwparam.writesetting("meid", hexlify(meid).decode('utf-8'))
         if socid is not None:
             self.info("SOCID       : " + hexlify(socid).decode('utf-8'))
@@ -252,7 +276,7 @@ class legacyext(metaclass=LogBase):
             self.info("Generating dxcc rpmbkey2...")
             rpmb2key = hwc.aes_hwcrypt(btype="dxcc", mode="rpmb2")
             self.info("Generating dxcc km key...")
-            ikey = hwc.aes_hwcrypt(btype="dxcc", mode="itrustee")
+            ikey = hwc.aes_hwcrypt(btype="dxcc", mode="itrustee", data=self.config.hwparam.appid)
             # self.info("Generating dxcc platkey + provkey key...")
             # platkey, provkey = hwc.aes_hwcrypt(btype="dxcc", mode="prov")
             # self.info("Provkey     : " + hexlify(provkey).decode('utf-8'))
@@ -335,3 +359,6 @@ class legacyext(metaclass=LogBase):
                     retval["mtee2"] = hexlify(mtee2).decode('utf-8')
         self.config.hwparam.writesetting("hwcode", retval["hwcode"])
         return retval
+
+    def custom_read_reg(self, addr:int, length:int) -> bytes:
+        return self.custom_read(addr,length)

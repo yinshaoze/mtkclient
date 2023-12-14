@@ -124,7 +124,7 @@ def find_binary(data, strf, pos=0):
                             rt += 1
                             continue
                         rt += 1
-                        prep = data[rt:].find(t[i])
+                        prep = data[pos+rt:].find(t[i])
                         if prep != 0:
                             error = 1
                             break

@@ -1,4 +1,5 @@
 import os
+import sys
 from struct import unpack, pack
 
 from mtkclient.config.payloads import pathconfig
@@ -67,9 +68,10 @@ class xflashext(metaclass=LogBase):
         daextensions = os.path.join(self.pathconfig.get_payloads_path(), "da_x.bin")
         if os.path.exists(daextensions):
             daextdata = bytearray(open(daextensions, "rb").read())
-            # open("out" + hex(self.da2address) + ".da", "wb").write(da2)
-            register_cmd = find_binary(self.da2, b"\x38\xB5\x05\x46\x0C\x20")
-            # sec_enc_seccfg = find_binary(self.da2, b"\x0E\x4B\x70\xB5\x06\x46")
+
+            register_devctrl = find_binary(self.da2, b"\x38\xB5\x05\x46\x0C\x20")
+
+            ####################### EMMC ##########################################
             mmc_get_card = find_binary(self.da2, b"\x4B\x4F\xF4\x3C\x72")
             if mmc_get_card is not None:
                 mmc_get_card -= 1
@@ -92,24 +94,24 @@ class xflashext(metaclass=LogBase):
             if mmc_rpmb_send_command is None:
                 mmc_rpmb_send_command = find_binary(self.da2, b"\x2D\xE9\xF0\x41\x4F\xF6\xFD\x74")
 
-            register_ptr = daextdata.find(b"\x11\x11\x11\x11")
-            mmc_get_card_ptr = daextdata.find(b"\x22\x22\x22\x22")
-            mmc_set_part_config_ptr = daextdata.find(b"\x33\x33\x33\x33")
-            mmc_rpmb_send_command_ptr = daextdata.find(b"\x44\x44\x44\x44")
-            ufshcd_queuecommand_ptr = daextdata.find(b"\x55\x55\x55\x55")
-            ufshcd_get_free_tag_ptr = daextdata.find(b"\x66\x66\x66\x66")
-            ptr_g_ufs_hba_ptr = daextdata.find(b"\x77\x77\x77\x77")
-
+            ####################### UFS ##########################################
+            # ptr is right after ufshcd_probe_hba and at the beginning
             g_ufs_hba = None
             ptr_g_ufs_hba = find_binary(self.da2, b"\x20\x46\x0B\xB0\xBD\xE8\xF0\x83\x00\xBF")
-            if ptr_g_ufs_hba is None:
-                ptr_g_ufs_hba = find_binary(self.da2, b"\x21\x46\x02\xF0\x02\xFB\x1B\xE6\x00\xBF")
-                if ptr_g_ufs_hba is not None:
-                    g_ufs_hba = int.from_bytes(self.da2[ptr_g_ufs_hba + 10 + 0x8:ptr_g_ufs_hba + 10 + 0x8 + 4],
-                                               'little')
-            else:
+            if ptr_g_ufs_hba is not None:
                 g_ufs_hba = int.from_bytes(self.da2[ptr_g_ufs_hba + 10:ptr_g_ufs_hba + 10 + 4], 'little')
-            # open("da2_"+hex(self.da2address)+".bin","wb").write(self.da2)
+            else:
+                # 6833 -> ufshcd_probe_hba
+                ptr_g_ufs_hba = find_binary(self.da2, b"\x20\x46\x0D\xB0\xBD\xE8\xF0\x83")
+                if ptr_g_ufs_hba is not None:
+                    g_ufs_hba = int.from_bytes(self.da2[ptr_g_ufs_hba + 8:ptr_g_ufs_hba + 8 + 4], 'little')
+                else:
+                    ptr_g_ufs_hba = find_binary(self.da2, b"\x21\x46\x02\xF0\x02\xFB\x1B\xE6\x00\xBF")
+                    if ptr_g_ufs_hba is not None:
+                        g_ufs_hba = int.from_bytes(self.da2[ptr_g_ufs_hba + 10 + 0x8:ptr_g_ufs_hba + 10 + 0x8 + 4],
+                                                   'little')
+
+
             if ptr_g_ufs_hba is not None:
                 ufshcd_get_free_tag = find_binary(self.da2, b"\xB5.\xB1\x90\xF8")
                 ufshcd_queuecommand = find_binary(self.da2, b"\x2D\xE9\xF8\x43\x01\x27")
@@ -118,11 +120,19 @@ class xflashext(metaclass=LogBase):
                 ufshcd_get_free_tag = None
                 ufshcd_queuecommand = None
 
+            register_ptr = daextdata.find(b"\x11\x11\x11\x11")
+            mmc_get_card_ptr = daextdata.find(b"\x22\x22\x22\x22")
+            mmc_set_part_config_ptr = daextdata.find(b"\x33\x33\x33\x33")
+            mmc_rpmb_send_command_ptr = daextdata.find(b"\x44\x44\x44\x44")
+            ufshcd_queuecommand_ptr = daextdata.find(b"\x55\x55\x55\x55")
+            ufshcd_get_free_tag_ptr = daextdata.find(b"\x66\x66\x66\x66")
+            ptr_g_ufs_hba_ptr = daextdata.find(b"\x77\x77\x77\x77")
+
             if register_ptr != -1 and mmc_get_card_ptr != -1:
-                if register_cmd:
-                    register_cmd = register_cmd + self.da2address | 1
+                if register_devctrl:
+                    register_devctrl = register_devctrl + self.da2address | 1
                 else:
-                    register_cmd = 0
+                    register_devctrl = 0
                 if mmc_get_card:
                     mmc_get_card = mmc_get_card + self.da2address | 1
                 else:
@@ -150,7 +160,7 @@ class xflashext(metaclass=LogBase):
                     g_ufs_hba = 0
 
                 # Patch the addr
-                daextdata[register_ptr:register_ptr + 4] = pack("<I", register_cmd)
+                daextdata[register_ptr:register_ptr + 4] = pack("<I", register_devctrl)
                 daextdata[mmc_get_card_ptr:mmc_get_card_ptr + 4] = pack("<I", mmc_get_card)
                 daextdata[mmc_set_part_config_ptr:mmc_set_part_config_ptr + 4] = pack("<I", mmc_set_part_config)
                 daextdata[mmc_rpmb_send_command_ptr:mmc_rpmb_send_command_ptr + 4] = pack("<I", mmc_rpmb_send_command)
@@ -187,6 +197,14 @@ class xflashext(metaclass=LogBase):
         self.info("Patching da2 ...")
         # open("da2.bin","wb").write(da2)
         da2patched = bytearray(da2)
+        # Patch oppo security
+        oppo = 0
+        pos = 0
+        while oppo is not None:
+            oppo = find_binary(da2, b"\x01\x3B\x01\x2B\x08\xD9", pos)
+            if oppo is not None:
+                da2patched[oppo:oppo + 4] = b"\x01\x20\x08\xBD"
+                pos = oppo + 1
         # Patch security
         is_security_enabled = find_binary(da2, b"\x01\x23\x03\x60\x00\x20\x70\x47")
         if is_security_enabled != -1:
@@ -194,9 +212,9 @@ class xflashext(metaclass=LogBase):
         else:
             self.warning("Security check not patched.")
         # Patch hash check
-        authaddr = find_binary(da2, b"\x04\x00\x07\xC0")
+        authaddr = find_binary(da2, int.to_bytes(0xC0070004,4, 'little'))
         if authaddr:
-            da2patched[authaddr:authaddr + 4] = b"\x00\x00\x00\x00"
+            da2patched[authaddr:authaddr + 4] = int.to_bytes(0,4,'little')
         elif authaddr is None:
             authaddr = find_binary(da2, b"\x4F\xF0\x04\x09\xCC\xF2\x07\x09")
             if authaddr:
@@ -207,6 +225,11 @@ class xflashext(metaclass=LogBase):
                     da2patched[authaddr:authaddr + 14] = b"\x4F\xF0\x00\x09\x32\x46\x01\x98\x03\x99\x4F\xF0\x00\x09"
                 else:
                     self.warning("Hash check not patched.")
+        # Disable da anti rollback version check
+        antirollback = find_binary(da2, int.to_bytes(0xC0020053,4,'little'))
+        if antirollback:
+            da2patched[antirollback:antirollback + 4] = int.to_bytes(0, 4, 'little')
+            self.info("DA version anti-rollback patched")
         # Patch write not allowed
         # open("da2.bin","wb").write(da2patched)
         idx = 0
@@ -555,6 +578,8 @@ class xflashext(metaclass=LogBase):
             hwcode = self.mtk.config.hwcode
             efuseconfig = efuse(base, hwcode)
             addr = efuseconfig.efuses[idx]
+            if addr < 0x1000:
+                return int.to_bytes(addr,4,'little')
             data = bytearray(self.mtk.daloader.peek(addr=addr, length=4))
             return data
         return None
@@ -575,10 +600,44 @@ class xflashext(metaclass=LogBase):
             data = []
             for idx in range(len(efuseconfig.efuses)):
                 addr = efuseconfig.efuses[idx]
-                data.append(bytearray(self.mtk.daloader.peek(addr=addr, length=4)))
+                if addr < 0x1000:
+                    data.append(int.to_bytes(addr, 4, 'little'))
+                else:
+                    data.append(bytearray(self.mtk.daloader.peek(addr=addr, length=4)))
             return data
 
+    def custom_read_reg(self, addr:int, length:int) -> bytes:
+        data=bytearray()
+        for pos in range(addr,addr+length,4):
+            tmp=self.custom_readregister(pos)
+            if tmp==b"":
+                break
+            data.extend(tmp.to_bytes(4,'little'))
+        return data
+
     def generate_keys(self):
+        if self.config.hwcode in [0x2601,0x6572]:
+            base = 0x11141000
+        elif self.config.hwcode==0x6261:
+            base = 0x70000000
+        elif self.config.hwcode in [0x8172,0x8176]:
+            base = 0x122000
+        else:
+            base = 0x100000
+        if self.config.meid is None:
+            try:
+                data = b"".join([pack("<I", val) for val in self.readmem(base+0x8EC, 0x16 // 4)])
+                self.config.meid = data
+                self.config.set_meid(data)
+            except:
+                return
+        if self.config.socid is None:
+            try:
+                data = b"".join([pack("<I", val) for val in self.readmem(base+0x934, 0x20 // 4)])
+                self.config.socid = data
+                self.config.set_socid(data)
+            except:
+                return
         hwc = self.cryptosetup()
         meid = self.config.get_meid()
         socid = self.config.get_socid()
@@ -592,8 +651,8 @@ class xflashext(metaclass=LogBase):
         pubk=self.read_pubk()
         if pubk is not None:
             retval["pubkey"]=pubk.hex()
-        self.info("PUBK        : " + pubk.hex())
-        self.config.hwparam.writesetting("pubkey", pubk.hex())
+            self.info("PUBK        : " + pubk.hex())
+            self.config.hwparam.writesetting("pubkey", pubk.hex())
         if meid is not None:
             self.info("MEID        : " + meid.hex())
             retval["meid"] = meid.hex()
@@ -619,7 +678,7 @@ class xflashext(metaclass=LogBase):
             self.info("Generating dxcc rpmbkey2...")
             rpmb2key = hwc.aes_hwcrypt(btype="dxcc", mode="rpmb2")
             self.info("Generating dxcc km key...")
-            ikey = hwc.aes_hwcrypt(btype="dxcc", mode="itrustee")
+            ikey = hwc.aes_hwcrypt(btype="dxcc", mode="itrustee", data=self.config.hwparam.appid)
             # self.info("Generating dxcc platkey + provkey key...")
             # platkey, provkey = hwc.aes_hwcrypt(btype="dxcc", mode="prov")
             # self.info("Provkey     : " + provkey.hex())

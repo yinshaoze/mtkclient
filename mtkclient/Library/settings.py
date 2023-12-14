@@ -5,10 +5,12 @@ from binascii import hexlify
 class hwparam:
     paramsetting = None
     hwcode = None
+    appid = b""
 
     def __init__(self, meid:str, path:str="logs"):
         self.paramfile = "hwparam.json"
         self.hwparampath = path
+        self.appid = b""
         if isinstance(meid,bytearray) or isinstance(meid,bytes):
             meid=hexlify(meid).decode('utf-8')
         if meid is None:

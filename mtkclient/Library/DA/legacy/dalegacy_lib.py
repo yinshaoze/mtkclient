@@ -72,6 +72,9 @@ class DALegacy(metaclass=LogBase):
             self.patch = True
         self.lft = legacyext(self.mtk, self, loglevel)
 
+    def boot_to(self, addr, data, display=True, timeout=0.5):
+        pass
+
     def get_fat_info(self, addr: int, dwords: int):
         if self.usbwrite(self.Cmd.GET_FAT_INFO_CMD):  # 0xF0
             self.usbwrite(pack(">I", addr))
@@ -209,12 +212,22 @@ class DALegacy(metaclass=LogBase):
             return True
         return False
 
-    def recheck(self):  # If Preloader is needed
+    def sec_usb_recheck(self):  # If Preloader is needed
+        # toDo / sha1 hash
         sec_info_len = 0
         cmd = self.Cmd.SECURE_USB_RECHECK_CMD + pack(">I", sec_info_len)  # B4
         status = unpack(">I", self.mtk.port.mtk_cmd(cmd, 1))[0]
         if status == 0x1799:
-            return False  # S-USBDL disabled
+            self.info("S-USBDL disabled")
+            return True
+        elif status == 0x179A:
+            self.info("S-USBDL enabled")
+        buffer1=bytearray()
+        buffer2=bytearray()
+        for i in range(0x100):
+            buffer1.append(self.rbyte(1))
+        for i in range(0x5):
+            buffer2.append(self.rbyte(1))
         return True
 
     def set_stage2_config(self, hwcode):
@@ -274,6 +287,8 @@ class DALegacy(metaclass=LogBase):
             self.error("Didn't receive Stage2 dram info, please check usb cable/hub and retry.")
             return False
         errorcode = int.from_bytes(buffer,'big')
+        if errorcode == 0x0:
+            return True
         if errorcode != 0xBC3:
             self.error(self.eh.status(errorcode))
             return False
@@ -303,7 +318,7 @@ class DALegacy(metaclass=LogBase):
             if len(returnval)!=4:
                 self.error("Didn't get a response on dram read")
                 return False
-            errorval = errorcode = int.from_bytes(returnval,'big')
+            errorval = int.from_bytes(returnval,'big')
             if errorval != 0xBC4:
                 self.error(self.eh.status(errorval))
                 return False
@@ -382,8 +397,47 @@ class DALegacy(metaclass=LogBase):
                     return False
         return True
 
+    def set_speed_iot(self):
+        self.usbwrite(b"\x59")
+        ack = self.usbread(1)
+        self.usbwrite(b"\xF0")
+        ret = self.usbread(28)
+        self.usbwrite(self.Cmd.SPEED_CMD+b"\x01\x01")
+        ack = self.usbread(1)
+        if ack != b"\x5A":
+            return False
+        self.usbwrite(b"\x5A")
+        #try:
+        #    self.mtk.port.cdc.setcontrollinestate(RTS=True,DTR=True)
+        #except:
+        #    pass
+        try:
+            self.mtk.port.cdc.setLineCoding(baudrate=921600, parity=0, databits=8, stopbits=1)
+        except Exception as err:
+            print(err)
+            pass
+
+        time.sleep(0.1)
+        for i in range(10):
+            self.usbwrite(b"\xC0")
+            ack = self.usbread(1)
+            if ack == b"\xC0":
+                break
+            time.sleep(0.02)
+        self.usbwrite(b"\x5A")
+        ack = self.usbread(1)
+        if ack == b"\x5A":
+            for i in range(256):
+                loop_val = pack(">B", i)
+                self.usbwrite(loop_val)
+                if self.usbread(1) != loop_val:
+                    return False
+        else:
+            return False
+        return True
+
     def set_speed(self):
-        self.usbwrite(DALegacy.Cmd.SPEED_CMD)
+        self.usbwrite(self.Cmd.SPEED_CMD)
         self.usbwrite(int.to_bytes(921600, 4, 'big'))
         ack = self.usbread(1)
         if ack != b"\x5A":
@@ -485,7 +539,7 @@ class DALegacy(metaclass=LogBase):
                 bootldr.seek(da2offset)
                 da2 = bootldr.read(self.daconfig.da_loader.region[2].m_len)
                 if self.mtk.config.is_brom or not self.mtk.config.target_config["sbc"]:
-                    hashaddr, hashmode, hashlen = self.mtk.daloader.compute_hash_pos(da1, da2, da2sig_len)
+                    hashaddr, hashmode, hashlen = self.mtk.daloader.compute_hash_pos(da1, da2, da1sig_len, da2sig_len,self.daconfig.da_loader.v6)
                     if hashaddr is not None:
                         da2patched = self.lft.patch_da2(da2)
                         if da2patched != da2:
@@ -602,7 +656,6 @@ class DALegacy(metaclass=LogBase):
                 da3sig_len = self.daconfig.da_loader.region[stage1 + 2].m_sig_len
                 bootldr.seek(da3offset)
                 da3 = bootldr.read(da3size)
-
             if self.mtk.preloader.send_da(da1address, da1size, da1sig_len, da1):
                 if self.mtk.preloader.send_da(da2address, da2size, da2sig_len, da2):
                     if self.mtk.preloader.jump_da(da1address):
@@ -645,7 +698,6 @@ class DALegacy(metaclass=LogBase):
             i = 0
             while bytestosend > 0:
                 data = da3[i:i + 0x24]
-                print(data.hex())
                 self.usbwrite(data)
                 i += 0x24
                 bytestosend -= 0x24
@@ -679,6 +731,7 @@ class DALegacy(metaclass=LogBase):
                         self.daconfig.flashsize = self.sdc.m_sdmmc_ua_size
                 elif self.daconfig.flashtype == "nor":
                     self.daconfig.flashsize = self.nor.m_nor_flash_size
+                self.set_speed_iot()
                 return True
 
             return False
@@ -1000,7 +1053,7 @@ class DALegacy(metaclass=LogBase):
             self.daconfig.readsize = self.daconfig.flashsize // self.daconfig.pagesize * (
                     self.daconfig.pagesize + self.daconfig.sparesize)
         elif self.daconfig.flashtype == "nor":
-            packetsize = 0x400
+            packetsize = 0x1000
             self.usbwrite(self.Cmd.READ_CMD)  # D6
             if not self.config.iot:
                 self.usbwrite(b"\x0C")  # Host:Linux, 0x0B=Windows
@@ -1026,24 +1079,27 @@ class DALegacy(metaclass=LogBase):
             worker = Thread(target=writedata, args=(filename, rq), daemon=True)
             worker.start()
             bytestoread = length
+            curpos = 0
             while bytestoread > 0:
                 size = bytestoread
                 if bytestoread > packetsize:
                     size = packetsize
-                rq.put(self.usbread(size))
+                tmp = self.usbread(size)
+                rq.put(tmp[:size])
                 bytestoread -= size
-                checksum = unpack(">H", self.usbread(1) + self.usbread(1))[0]
+                curpos+=size
+                checksum = unpack(">H", self.usbread(2))[0]
                 self.debug("Checksum: %04X" % checksum)
-                self.usbwrite(self.Rsp.ACK)
                 if length > bytestoread:
                     rpos = length - bytestoread
                 else:
                     rpos = 0
+                self.usbwrite(self.Rsp.ACK)
                 self.mtk.daloader.progress.show_progress("Read", rpos, length, display)
             self.mtk.daloader.progress.show_progress("Read", length, length, display)
             rq.put(None)
             worker.join(60)
-            return True
+            return b""
         else:
             buffer = bytearray()
             bytestoread = length

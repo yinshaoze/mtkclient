@@ -153,7 +153,7 @@ class DAconfig(metaclass=LogBase):
             loaders = []
             for root, dirs, files in os.walk(self.pathconfig.get_loader_path(), topdown=False):
                 for file in files:
-                    if "MTK_AllInOne_DA" in file:
+                    if "MTK_AllInOne_DA" in file or "MTK_DA" in file:
                         loaders.append(os.path.join(root, file))
             loaders = sorted(loaders)[::-1]
             for loader in loaders:
@@ -217,14 +217,19 @@ class DAconfig(metaclass=LogBase):
             with open(loader, 'rb') as bootldr:
                 # data = bootldr.read()
                 # self.debug(hexlify(data).decode('utf-8'))
-                bootldr.seek(0x68)
+                hdr = bootldr.read(0x68)
                 count_da = unpack("<I", bootldr.read(4))[0]
+                if b"MTK_DA_v6" in hdr:
+                    v6 = True
+                else:
+                    v6 = False
                 for i in range(0, count_da):
                     bootldr.seek(0x6C + (i * 0xDC))
                     da = DA(bootldr.read(0xDC))
                     da.setfilename(loader)
-                    if da.hw_code == 0x8127 and "5.1824" not in loader:
-                        continue
+                    da.v6 = v6
+                    #if da.hw_code == 0x8127 and "5.1824" not in loader:
+                    #    continue
                     if da.hw_code not in self.dasetup:
                         if da.hw_code!=0:
                             self.dasetup[da.hw_code] = [da]

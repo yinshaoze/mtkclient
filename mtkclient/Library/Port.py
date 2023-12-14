@@ -47,6 +47,82 @@ class Port(metaclass=LogBase):
         else:
             self.__logger.setLevel(logging.INFO)
 
+    def run_serial_handshake(self):
+        EP_OUT = None
+        try:  # Support for serial port where EP_OUT is unknown
+            if hasattr(self.cdc, 'EP_OUT'):
+                EP_OUT = self.cdc.EP_OUT.write
+                maxinsize = self.cdc.EP_IN.wMaxPacketSize
+            else:
+                EP_OUT = self.cdc.write
+        except:
+            EP_OUT = self.cdc.write
+        try:
+            if hasattr(self.cdc, 'EP_IN'):
+                EP_IN = self.cdc.EP_IN.read
+            else:
+                EP_IN = self.cdc.read
+        except:
+            EP_IN = self.cdc.read
+
+        i = 0
+        startcmd = b"\xa0\x0a\x50\x05"
+        length = len(startcmd)
+        try:
+            while i < length:
+                if EP_OUT(int.to_bytes(startcmd[i], 1, 'little')):
+                    v = EP_IN(1, timeout=20) # Do not wait 1 sec, bootloader is only active for 0.3 sec.
+                    if len(v) == 1 and v[0] == ~(startcmd[i]) & 0xFF:
+                        i += 1
+                    else:
+                        i = 0
+            self.info("Device detected :)")
+            return True
+        except Exception as serr:
+            self.debug(str(serr))
+            time.sleep(0.005)
+        return False
+
+    def serial_handshake(self, maxtries=None, loop=0):
+        counter = 0
+        if not self.cdc.connected:
+            self.cdc.connected = self.cdc.connect()
+        while 1:  # Workaround for serial port
+            try:
+                if maxtries is not None and counter == maxtries:
+                    break
+                counter += 1
+                #self.cdc.connected = self.cdc.connect()
+                if self.cdc.connected and self.run_serial_handshake():
+                    self.info("Handshake successful.")
+                    return True
+                else:
+                    if loop == 5:
+                        sys.stdout.write('\n')
+                        self.info("Hint:\n\nPower off the phone before connecting.\n" + \
+                                  "For brom mode, press and hold vol up, vol dwn, or all hw buttons and " + \
+                                  "connect usb.\n" +
+                                  "For preloader mode, don't press any hw button and connect usb.\n"
+                                  "If it is already connected and on, hold power for 10 seconds to reset.\n")
+                        sys.stdout.write('\n')
+                    if loop >= 10:
+                        sys.stdout.write('.')
+                    if loop >= 20:
+                        sys.stdout.write('\n')
+                        loop = 0
+                    loop += 1
+                    time.sleep(0.1)
+                    sys.stdout.flush()
+
+
+            except Exception as serr:
+                print("Handshake: " + str(serr))
+                if "access denied" in str(serr):
+                    self.warning(str(serr))
+                self.debug(str(serr))
+                pass
+        return False
+
     def run_handshake(self):
         EP_OUT = self.cdc.EP_OUT.write
         EP_IN = self.cdc.EP_IN.read

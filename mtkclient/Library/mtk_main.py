@@ -58,6 +58,11 @@ class ArgHandler(metaclass=LogBase):
         except:
             pass
         try:
+            if args.appid is not None:
+                config.appid = bytes.fromhex(args.appid)
+        except:
+            pass
+        try:
             if args.loader is not None:
                 config.loader = args.loader
         except AttributeError:
@@ -354,6 +359,16 @@ class Main(metaclass=LogBase):
             config.iot = iot
         except:
             pass
+        try:
+            auth = self.args.auth
+            config.auth = auth
+        except:
+            pass
+        try:
+            cert = self.args.cert
+            config.cert = cert
+        except:
+            pass
         mtk = Mtk(config=config, loglevel=loglevel, serialportname=serialport)
         config.set_peek(mtk.daloader.peek)
         if mtk.config.debugmode:
@@ -415,6 +430,8 @@ class Main(metaclass=LogBase):
                     self.warning("We couldn't enter preloader.")
                 plt = PLTools(rmtk, self.__logger.level)
                 data, filename = plt.run_dump_preloader(self.args.ptype)
+                if filename is None:
+                    filename = "preloader.bin"
                 if data is not None:
                     if filename == "":
                         if self.args.filename is not None:
