@@ -3,24 +3,24 @@
 # (c) B.Kerler 2018-2022
 import time
 import sys
-
+import logging
 from mtkclient.Library.DA.xml.xml_param import max_xml_data_length
-
+import serial
+import serial.tools.list_ports
+import inspect
+from mtkclient.Library.Connection.devicehandler import DeviceClass
 if sys.platform != "win32":
     import termios
 
+
 def _reset_input_buffer():
     return
+
 
 def _reset_input_buffer_org(self):
     if sys.platform != "win32":
         return termios.tcflush(self.fd, termios.TCIFLUSH)
 
-import serial
-import serial.tools.list_ports
-import inspect
-from mtkclient.Library.utils import *
-from mtkclient.Library.Connection.devicehandler import DeviceClass
 
 class serial_class(DeviceClass):
 
@@ -33,8 +33,8 @@ class serial_class(DeviceClass):
             self.close()
             self.connected = False
         if self.portname is None:
-            devices=self.detectdevices()
-            if len(devices)>0:
+            devices = self.detectdevices()
+            if len(devices) > 0:
                 self.portname = devices[0]
         elif self.portname is not None:
             self.device = serial.Serial(baudrate=115200, bytesize=serial.EIGHTBITS,
@@ -50,7 +50,7 @@ class serial_class(DeviceClass):
                 return True
         return False
 
-    def setportname(self, portname:str):
+    def setportname(self, portname: str):
         self.portname = portname
 
     def set_fast_mode(self, enabled):
@@ -67,7 +67,7 @@ class serial_class(DeviceClass):
         for port in serial.tools.list_ports.comports():
             for usbid in self.portconfig:
                 if port.pid == usbid[1] and port.vid == usbid[0]:
-                    portid = port.location[-1:]
+                    # portid = port.location[-1:]
                     print(f"Detected {hex(port.vid)}:{hex(port.pid)} device at: " + port.device)
                     ids.append(port.device)
         return sorted(ids)
@@ -84,12 +84,11 @@ class serial_class(DeviceClass):
         self.debug("Break set")
 
     def setcontrollinestate(self, RTS=None, DTR=None, isFTDI=False):
-        if RTS==1:
+        if RTS == 1:
             self.device.setRTS(RTS)
-        if DTR==1:
+        if DTR == 1:
             self.device.setDTR(DTR)
         self.debug("Linecoding set")
-
 
     def write(self, command, pktsize=None):
         if pktsize is None:
@@ -128,7 +127,7 @@ class serial_class(DeviceClass):
                     pass
         self.verify_data(bytearray(command), "TX:")
         self.device.flushOutput()
-        timeout = 0
+        # timeout = 0
         time.sleep(0.005)
         """
         while self.device.in_waiting == 0:
@@ -167,8 +166,8 @@ class serial_class(DeviceClass):
         bytestoread = resplen
         while len(res) < bytestoread:
             try:
-                val=epr(bytestoread)
-                if len(val)==0:
+                val = epr(bytestoread)
+                if len(val) == 0:
                     break
                 extend(val)
             except Exception as e:
@@ -204,11 +203,11 @@ class serial_class(DeviceClass):
         bytestoread = max_xml_data_length
         while len(res) < bytestoread:
             try:
-                val=epr(bytestoread)
-                if len(val)==0:
+                val = epr(bytestoread)
+                if len(val) == 0:
                     break
                 extend(val)
-                if res[-1]==b"\x00":
+                if res[-1] == b"\x00":
                     break
             except Exception as e:
                 error = str(e)
@@ -245,5 +244,3 @@ class serial_class(DeviceClass):
         self.device.flush()
         res = self.usbread(resplen)
         return res
-
-

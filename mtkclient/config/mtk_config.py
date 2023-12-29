@@ -76,6 +76,10 @@ class Mtk_Config(metaclass=LogBase):
             self.__logger.setLevel(logging.DEBUG)
         else:
             self.__logger.setLevel(logging.INFO)
+        self.reconnect = True
+        self.uartloglevel = 2
+        self.hwver = 0xca00
+        self.swver = 0
 
     def set_peek(self, peek):
         self.peek = peek

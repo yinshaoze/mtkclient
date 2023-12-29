@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 # (c) B.Kerler 2018-2023 GPLv3 License
 import logging
-
+import os
+import sys
 import usb.core  # pyusb
 import usb.util
 import time
@@ -15,10 +16,10 @@ from struct import pack, calcsize
 from enum import Enum
 from binascii import hexlify
 from ctypes import c_void_p, c_int
-
+from mtkclient.Library.utils import write_object
 from mtkclient.Library.DA.xml.xml_param import max_xml_data_length
-from mtkclient.Library.utils import *
 from mtkclient.Library.Connection.devicehandler import DeviceClass
+
 USB_DIR_OUT = 0  # to device
 USB_DIR_IN = 0x80  # to host
 
@@ -99,7 +100,7 @@ class usb_class(DeviceClass):
             try:
                 self.backend.lib.libusb_set_option.argtypes = [c_void_p, c_int]
                 self.backend.lib.libusb_set_option(self.backend.ctx, 1)
-            except:
+            except Exception:
                 self.backend = None
 
     def set_fast_mode(self, enabled):
@@ -114,7 +115,7 @@ class usb_class(DeviceClass):
             stack_trace = traceback.format_stack(frame)
             td = []
             for trace in stack_trace:
-                if not "verify_data" in trace and not "Port" in trace:
+                if "verify_data" not in trace and "Port" not in trace:
                     td.append(trace)
             self.debug(td[:-1])
 
@@ -126,7 +127,7 @@ class usb_class(DeviceClass):
                         try:
                             self.debug(pre + line.decode('utf-8'))
                             rdata += line + b"\n"
-                        except:
+                        except Exception:
                             v = hexlify(line)
                             self.debug(pre + v.decode('utf-8'))
                     return rdata
@@ -311,7 +312,7 @@ class usb_class(DeviceClass):
                 self.debug("No kernel driver supported: " + str(err))
             try:
                 usb.util.claim_interface(self.device, 0)
-            except:
+            except Exception:
                 return False
 
             self.debug(self.configuration)
@@ -324,7 +325,7 @@ class usb_class(DeviceClass):
             try:
                 if self.interface != 0:
                     usb.util.claim_interface(self.device, self.interface)
-            except:
+            except Exception:
                 return False
 
             self.EP_OUT = EP_OUT
@@ -332,15 +333,13 @@ class usb_class(DeviceClass):
             if EP_OUT == -1:
                 self.EP_OUT = usb.util.find_descriptor(itf,
                                                        # match the first OUT endpoint
-                                                       custom_match=lambda e: \
-                                                           usb.util.endpoint_direction(e.bEndpointAddress) ==
-                                                           usb.util.ENDPOINT_OUT)
+                                                       custom_match=lambda em: usb.util.endpoint_direction(
+                                                               em.bEndpointAddress) == usb.util.ENDPOINT_OUT)
             if EP_IN == -1:
                 self.EP_IN = usb.util.find_descriptor(itf,
                                                       # match the first OUT endpoint
-                                                      custom_match=lambda e: \
-                                                          usb.util.endpoint_direction(e.bEndpointAddress) ==
-                                                          usb.util.ENDPOINT_IN)
+                                                      custom_match=lambda em: usb.util.endpoint_direction(
+                                                          em.bEndpointAddress) == usb.util.ENDPOINT_IN)
             self.connected = True
             return True
         print("Couldn't find CDC interface. Aborting.")
@@ -356,7 +355,7 @@ class usb_class(DeviceClass):
                     if not self.device.is_kernel_driver_active(self.interface):
                         # self.device.attach_kernel_driver(self.interface) #Do NOT uncomment
                         self.device.attach_kernel_driver(0)
-                except:
+                except Exception:
                     pass
             except Exception as err:
                 self.info(str(err))
@@ -365,7 +364,7 @@ class usb_class(DeviceClass):
                     if not self.device.is_kernel_driver_active(0):
                         # self.device.attach_kernel_driver(self.interface) #Do NOT uncomment
                         self.device.attach_kernel_driver(0)
-                except:
+                except Exception:
                     pass
             pass
             usb.util.dispose_resources(self.device)
@@ -424,7 +423,7 @@ class usb_class(DeviceClass):
         wMaxPacketSize = self.EP_IN.wMaxPacketSize
         extend = res.extend
         buffer = None
-        buflen=min(resplen,wMaxPacketSize)
+        buflen = min(resplen, wMaxPacketSize)
         if self.fast:
             buffer = self.buffer[:buflen]
         while len(res) < resplen:
@@ -744,7 +743,7 @@ class Scsi:
             common_cmnd = b"\x16\xf9\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
             lun = 0
             timeout = 5000
-            ret_tag = self.send_mass_storage_command(lun, common_cmnd, USB_DIR_IN, 0x600)
+            self.send_mass_storage_command(lun, common_cmnd, USB_DIR_IN, 0x600)
             if datasize > 0:
                 data = self.usb.read(datasize, timeout)
                 print("DATA: " + hexlify(data).decode('utf-8'))

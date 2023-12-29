@@ -4,8 +4,6 @@
 import os
 import logging
 from binascii import hexlify
-from struct import pack, unpack
-
 from mtkclient.Library.Exploit.amonet import Amonet
 from mtkclient.Library.Exploit.hashimoto import Hashimoto
 from mtkclient.config.payloads import pathconfig
@@ -135,7 +133,7 @@ class PLTools(metaclass=LogBase):
         if loader == "generic_sram_payload.bin":
             length = 0x200000
         pfilename = os.path.join(self.pathconfig.get_payloads_path(), loader)
-        if type(self.exploit)==Kamakiri or type(self.exploit)==Kamakiri2:
+        if type(self.exploit) is Kamakiri or type(self.exploit) is Kamakiri2:
             self.info("Kamakiri / DA Run")
             if self.runpayload(filename=pfilename, ack=0xC1C2C3C4, offset=0):
                 if self.exploit.dump_brom(filename):
@@ -153,7 +151,7 @@ class PLTools(metaclass=LogBase):
 
     def run_dump_preloader(self, filename):
         pfilename = os.path.join(self.pathconfig.get_payloads_path(), "generic_preloader_dump_payload.bin")
-        if type(self.exploit)==Kamakiri or type(self.exploit)==Kamakiri2:
+        if type(self.exploit) is Kamakiri or type(self.exploit) is Kamakiri2:
             self.info("Kamakiri / DA Run")
             if self.runpayload(filename=pfilename, ack=0xC1C2C3C4, offset=0):
                 data, filename = self.exploit.dump_preloader()
@@ -178,4 +176,3 @@ class PLTools(metaclass=LogBase):
             encrypted = self.hwcrypto.aes_hwcrypt(data=data, iv=iv, encrypt=encrypt, btype=btype, otp=otp)
             return encrypted
         return False
-

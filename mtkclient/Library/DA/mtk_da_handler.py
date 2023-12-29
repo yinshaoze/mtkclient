@@ -33,7 +33,7 @@ class DA_handler(metaclass=LogBase):
 
     def dump_preloader_ram(self):
         try:
-            data=(b"".join([pack("<I", val) for val in self.mtk.preloader.read32(0x200000, 0x10000//4)]))
+            data = (b"".join([pack("<I", val) for val in self.mtk.preloader.read32(0x200000, 0x10000 // 4)]))
             idx = data.find(b"\x4D\x4D\x4D\x01\x38\x00\x00\x00")
             if idx != -1:
                 data = data[idx:]
@@ -49,7 +49,7 @@ class DA_handler(metaclass=LogBase):
                         idx = idx + (16 * multiplier)
                         # sys.stdout.write("\r"+str(length-(idx-startidx)))
                         # sys.stdout.flush()                        sys.stdout.write("\r"+str(length-(idx-startidx)))
-                        if ((idx - startidx) > length):
+                        if (idx - startidx) > length:
                             # done reading
                             break
                     except Exception as err:
@@ -66,7 +66,7 @@ class DA_handler(metaclass=LogBase):
                                 with open(filename, "wb") as wf:
                                     wf.write(preloader)
                                     print(f"Successfully extracted preloader for this device to: {filename}")
-                            except:
+                            except Exception:
                                 pass
                 return preloader
         except Exception as err:
@@ -81,7 +81,7 @@ class DA_handler(metaclass=LogBase):
             if mtk.serialportname is not None:
                 mtk.preloader.init()
             if mtk.port.cdc.connected and os.path.exists(".state"):
-                info = mtk.daloader.reinit()
+                mtk.daloader.reinit()
                 return mtk
         if mtk.config.target_config is None:
             self.info("Please disconnect, start mtkclient and reconnect.")
@@ -101,22 +101,32 @@ class DA_handler(metaclass=LogBase):
                 if not mtk.config.loader:
                     if not mtk.config.is_brom:
                         self.mtk.preloader.reset_to_brom()
-            except:
+            except Exception:
                 pass
             if mtk.config.is_brom and not mtk.config.iot:
                 self.info("Device is in BROM-Mode. Bypassing security.")
+                mtk.daloader.patch = False
+                hassecurity = (self.mtk.config.target_config["sla"] or self.mtk.config.target_config["daa"]
+                               or self.mtk.config.target_config["sbc"])
+                if not hassecurity:
+                    mtk.daloader.patch = True
                 mtk = mtk.bypass_security()  # Needed for dumping preloader
                 if mtk is not None:
                     self.mtk = mtk
                     if preloader is None:
-                        self.warning(
-                            "Device is in BROM mode. No preloader given, trying to dump preloader from ram.")
-                        preloader = self.dump_preloader_ram()
-                        if preloader is None:
-                            self.error("Failed to dump preloader from ram.")
-                            mtk.daloader.patch = False
+                        if self.mtk.config.chipconfig.damode != 6 and hassecurity:
+                            self.warning(
+                                "Device is in BROM mode. No preloader given, trying to dump preloader from ram.")
+                            preloader = self.dump_preloader_ram()
+                            if preloader is None:
+                                self.error("Failed to dump preloader from ram, provide a valid one " +
+                                           "via --preloader option")
+                                mtk.daloader.patch = False
+                            else:
+                                mtk.daloader.patch = True
                         else:
-                            mtk.daloader.patch = True
+                            self.error("Failed to dump preloader from ram, provide a valid one " +
+                                       "via --preloader option")
             elif not mtk.config.is_brom:
                 self.info("Device is in Preloader-Mode.")
                 mtk.daloader.patch = False
@@ -137,7 +147,7 @@ class DA_handler(metaclass=LogBase):
         if directory is None:
             directory = ""
 
-        sfilename = os.path.join(directory, f"gpt.bin")
+        sfilename = os.path.join(directory, "gpt.bin")
         data, guid_gpt = self.mtk.daloader.get_gpt()
         if guid_gpt is None:
             self.error("Error reading gpt")
@@ -147,7 +157,7 @@ class DA_handler(metaclass=LogBase):
                 wf.write(data)
 
             print(f"Dumped GPT from to {sfilename}")
-            sfilename = os.path.join(directory, f"gpt_backup.bin")
+            sfilename = os.path.join(directory, "gpt_backup.bin")
             with open(sfilename, "wb") as wf:
                 wf.write(data[self.mtk.daloader.daconfig.pagesize:])
             print(f"Dumped Backup GPT to {sfilename}")
@@ -194,9 +204,9 @@ class DA_handler(metaclass=LogBase):
                         for rpartition in gpttable:
                             self.info(rpartition.name)
             if countDump > 1 and countDump == len(filenames):
-                self.info(f"All partitions were dumped")
+                self.info("All partitions were dumped")
             elif countDump > 1 and countDump != len(filenames):
-                self.info(f"Failed to dump some partitions")
+                self.info("Failed to dump some partitions")
         else:
             i = 0
             for partfilename in filenames:
@@ -221,11 +231,11 @@ class DA_handler(metaclass=LogBase):
             storedir = directory
             if not os.path.exists(storedir):
                 os.mkdir(storedir)
-            sfilename = os.path.join(storedir, f"gpt.bin")
+            sfilename = os.path.join(storedir, "gpt.bin")
             with open(sfilename, "wb") as wf:
                 wf.write(data)
 
-            sfilename = os.path.join(storedir, f"gpt_backup.bin")
+            sfilename = os.path.join(storedir, "gpt_backup.bin")
             with open(sfilename, "wb") as wf:
                 wf.write(data[self.config.pagesize * 2:])
 
@@ -252,9 +262,9 @@ class DA_handler(metaclass=LogBase):
 
             partitionsForRead = len(guid_gpt.partentries) - len(skip)
             if countGPT == partitionsForRead:
-                self.info(f"All Dumped partitions success.")
+                self.info("All Dumped partitions success.")
             else:
-                self.error(f"Failed to dump all partitions")
+                self.error("Failed to dump all partitions")
 
     def da_rf(self, filename, parttype):
         if self.mtk.daloader.daconfig.flashtype == "ufs":
@@ -270,7 +280,7 @@ class DA_handler(metaclass=LogBase):
             length = self.mtk.daloader.daconfig.flashsize
         print(f"Dumping sector 0 with flash size {hex(length)} as {filename}.")
         sys.stdout.flush()
-        if self.mtk.daloader.readflash(addr=0, length=length, filename=filename, parttype=parttype)==b"ACK":
+        if self.mtk.daloader.readflash(addr=0, length=length, filename=filename, parttype=parttype) == b"ACK":
             print(f"Dumped sector 0 with flash size {hex(length)} as {filename}.")
         else:
             print(f"Failed to dump sector 0 with flash size {hex(length)} as {filename}.")
@@ -311,7 +321,7 @@ class DA_handler(metaclass=LogBase):
                             wf.write(data)
                             print(f"Dumped footer from {partition.name} as {filename}.")
                             return
-        self.error(f"Error: Couldn't detect footer partition.")
+        self.error("Error: Couldn't detect footer partition.")
 
     def da_write(self, parttype: str, filenames: list, partitions: list):
         if len(partitions) != len(filenames):
@@ -453,9 +463,9 @@ class DA_handler(metaclass=LogBase):
                     for rpartition in res[1]:
                         self.info(rpartition.name)
         if countFP == len(partitions) and countFP > 1:
-            print(f"All partitions formatted.")
+            print("All partitions formatted.")
         elif countFP != len(partitions) and countFP > 1:
-            print(f"Failed to format all partitions.")
+            print("Failed to format all partitions.")
 
     def da_ess(self, sector: int, sectors: int, parttype: str):
         if parttype == "user" or parttype is None:
@@ -500,7 +510,7 @@ class DA_handler(metaclass=LogBase):
                                    rpartition.sectors * self.config.pagesize)
                     if sectors > rsectors:
                         self.error(f"Partition {partition} only has {rsectors}, you were using {sectors}. " +
-                                   f"Aborting")
+                                   "Aborting")
                         continue
                     wipedata = b"\x00" * 0x200000
                     error = False
@@ -565,7 +575,7 @@ class DA_handler(metaclass=LogBase):
                     data = bytearray(self.mtk.daloader.peek(addr=addr, length=4))
                 self.info(f"EFuse Idx {hex(idx)}: {data.hex()}")
 
-    def da_brom(self, filename:str):
+    def da_brom(self, filename: str):
         return self.mtk.daloader.dump_brom(filename)
 
     def da_peek(self, addr: int, length: int, filename: str):
@@ -592,7 +602,7 @@ class DA_handler(metaclass=LogBase):
                 pos += len(data)
                 bytesread += len(data)
                 bytestoread -= len(data)
-            except Exception as err:
+            except Exception:
                 pass
         pg.show_progress("Dump:", 100, 100)
         if filename is not None:

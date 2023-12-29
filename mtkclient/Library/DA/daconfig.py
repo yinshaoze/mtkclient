@@ -92,7 +92,7 @@ class entry_region:
 
     def __repr__(self):
         return f"Buf:{hex(self.m_buf)},Len:{hex(self.m_len)},Addr:{hex(self.m_start_addr)}," + \
-               f"Offset:{hex(self.m_start_offset)},Sig:{hex(self.m_sig_len)}"
+            f"Offset:{hex(self.m_start_offset)},Sig:{hex(self.m_sig_len)}"
 
 
 class DA:
@@ -167,7 +167,6 @@ class DAconfig(metaclass=LogBase):
 
     def m_extract_emi(self, data):
         idx = data.find(b"\x4D\x4D\x4D\x01\x38\x00\x00\x00")
-        siglen = 0
         if idx != -1:
             data = data[idx:]
             mlen = unpack("<I", data[0x20:0x20 + 4])[0]
@@ -196,7 +195,7 @@ class DAconfig(metaclass=LogBase):
     def extract_emi(self, preloader=None) -> bytearray:
         if preloader is None:
             self.emi = None
-            return b""
+            return bytearray()
         if isinstance(preloader, bytearray) or isinstance(preloader, bytes):
             data = bytearray(preloader)
         elif isinstance(preloader, str):
@@ -208,7 +207,7 @@ class DAconfig(metaclass=LogBase):
                 exit(1)
         try:
             self.emiver, self.emi = self.m_extract_emi(data)
-        except:
+        except Exception:
             self.emiver = 0
             self.emi = None
 
@@ -228,10 +227,10 @@ class DAconfig(metaclass=LogBase):
                     da = DA(bootldr.read(0xDC))
                     da.setfilename(loader)
                     da.v6 = v6
-                    #if da.hw_code == 0x8127 and "5.1824" not in loader:
+                    # if da.hw_code == 0x8127 and "5.1824" not in loader:
                     #    continue
                     if da.hw_code not in self.dasetup:
-                        if da.hw_code!=0:
+                        if da.hw_code != 0:
                             self.dasetup[da.hw_code] = [da]
                     else:
                         for ldr in self.dasetup[da.hw_code]:
