@@ -27,6 +27,7 @@ class serial_class(DeviceClass):
     def __init__(self, loglevel=logging.INFO, portconfig=None, devclass=-1):
         super().__init__(loglevel, portconfig, devclass)
         self.is_serial = True
+        self.device = None
 
     def connect(self, EP_IN=-1, EP_OUT=-1):
         if self.connected:
@@ -39,11 +40,14 @@ class serial_class(DeviceClass):
         elif self.portname is not None:
             self.device = serial.Serial(baudrate=115200, bytesize=serial.EIGHTBITS,
                                         parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,
-                                        timeout=50,
-                                        xonxoff=False, dsrdtr=True, rtscts=True)
+                                        timeout=500,
+                                        xonxoff=False, dsrdtr=False, rtscts=False)
             self.device._reset_input_buffer = _reset_input_buffer
             self.device.setPort(port=self.portname)
-            self.device.open()
+            try:
+                self.device.open()
+            except Exception:
+                pass
             self.device._reset_input_buffer = _reset_input_buffer_org
             self.connected = self.device.is_open
             if self.connected:
@@ -56,10 +60,26 @@ class serial_class(DeviceClass):
     def set_fast_mode(self, enabled):
         pass
 
+    def changeBaud(self):
+        print("Changing Baudrate")
+        self.write(b'\xD2' + b'\x02' + b'\x01')
+        self.read(1)
+        self.write(b'\x5a')
+        # self.read(1)
+        self.device.baudrate = 460800
+        time.sleep(0.2)
+        for i in range(10):
+            self.write(b'\xc0')
+            self.read(1)
+            time.sleep(0.02)
+        self.write(b'\x5a')
+        self.read(1)
+
     def close(self, reset=False):
         if self.connected:
             self.device.close()
             del self.device
+            self.device = None
             self.connected = False
 
     def detectdevices(self):
@@ -148,18 +168,36 @@ class serial_class(DeviceClass):
         if self.xmlread:
             if length > self.device.in_waiting:
                 length = self.device.in_waiting
-        return self.usbread(length, timeout)
+        return self.usbread(resplen=length, maxtimeout=timeout)
+
+    def getDevice(self):
+        return self.device
+
+    def get_read_packetsize(self):
+        return 0x200
+
+    def get_write_packetsize(self):
+        return 0x200
 
     def flush(self):
+        if self.getDevice() is not None:
+            self.device.flushOutput()
         return self.device.flush()
 
-    def usbread(self, resplen=None, timeout=0):
+    def usbread(self, resplen=None, maxtimeout=0, timeout=0):
+        # print("Reading {} bytes".format(resplen))
+        if timeout == 0 and maxtimeout != 0:
+            timeout = maxtimeout / 1000  # Some code calls this with ms delays, some with seconds.
+        if timeout < 0.02:
+            timeout = 0.02
         if resplen is None:
             resplen = self.device.in_waiting
         if resplen <= 0:
             self.info("Warning !")
         res = bytearray()
         loglevel = self.loglevel
+        if self.device is None:
+            return b""
         self.device.timeout = timeout
         epr = self.device.read
         extend = res.extend

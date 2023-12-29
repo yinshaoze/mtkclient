@@ -3,18 +3,19 @@
 
 import logging
 from emu_config.payload_config import br
+from unicorn import (Uc, UC_MEM_WRITE, UC_MEM_READ, UC_MEM_FETCH, UC_MEM_READ_UNMAPPED,
+                     UC_HOOK_CODE, UC_MEM_WRITE_UNMAPPED, UC_MEM_FETCH_UNMAPPED, UC_MEM_WRITE_PROT,
+                     UC_MEM_FETCH_PROT, UC_MEM_READ_AFTER, UC_HOOK_MEM_INVALID, UC_HOOK_MEM_READ,
+                     UC_HOOK_MEM_WRITE, UC_ARCH_ARM, UC_MODE_THUMB)
+from unicorn.arm_const import (UC_ARM_REG_PC, UC_ARM_REG_LR, UC_ARM_REG_R0)
+import os
+from struct import pack
+from binascii import hexlify
 
 logger = logging.getLogger(__name__)
 # debuglevel=logging.DEBUG
 debuglevel = logging.INFO
 logging.basicConfig(format='%(funcName)20s:%(message)s', level=debuglevel)
-
-from unicorn import *
-from unicorn.arm_const import *
-import os
-from struct import pack, unpack
-from binascii import hexlify
-
 debug = False
 
 
@@ -43,7 +44,7 @@ data = ""
 
 def hook_mem_read(uc, access, address, size, value, user_data):
     global data
-    pc = uc.reg_read(UC_ARM_REG_PC)
+    # pc = uc.reg_read(UC_ARM_REG_PC)
     # if address<0xF000000:
     #    #print("READ of 0x%x at 0x%X, data size = %u" % (address, pc, size))
     #    #return True
@@ -84,7 +85,7 @@ def hook_mem_read(uc, access, address, size, value, user_data):
         print("UART1 R")
         return True
     elif 0x102000 > address >= 0x100FF0:
-        val = unpack("<I", uc.mem_read(address, 4))[0]
+        # val = unpack("<I", uc.mem_read(address, 4))[0]
         # print("RHeap: %08X A:%08X V:%08X" % (pc,address,val))
         return True
 
@@ -92,7 +93,7 @@ def hook_mem_read(uc, access, address, size, value, user_data):
 def hook_mem_write(uc, access, address, size, value, user_data):
     global buffer
     global data
-    pc = uc.reg_read(UC_ARM_REG_PC)
+    # pc = uc.reg_read(UC_ARM_REG_PC)
     if 0x100A00 + 0x20000 > address >= 0x100A00 + 0x10000:  # hide stack
         return True
     if address == 0x10007000:
@@ -146,7 +147,7 @@ def hook_mem_write(uc, access, address, size, value, user_data):
     else:
         print("Write : %08X - %08X" % (address, value))
     if address >= 0x100FF0:
-        val = unpack("<I", uc.mem_read(address, 4))[0]
+        # val = unpack("<I", uc.mem_read(address, 4))[0]
         # print("WHeap: %08X A:%08X V:%08X" % (pc,address,val))
         return True
     elif address == 0x1027DC:
@@ -249,11 +250,11 @@ def main():
         try:
             mu.mem_map(0x10000000, 0x1000000)  # Map WD
             mu.mem_map(0x11000000, 0x1000000)  # Map Uart+SEC_REG
-        except:
+        except Exception:
             pass
         try:
             mu.mem_map(brom_base, brom_base + 0x400000)
-        except:
+        except Exception:
             pass
 
         mu.mem_write(0x100A00, payload)
@@ -265,7 +266,7 @@ def main():
         logger.info("Emulating EDL")
         try:
             mu.emu_start(0x100A00, -1, 0, 0)  # handle_xml
-        except:
+        except Exception:
             pass
         cpu = field.replace(".bin", "")
         val1 = hexlify(pack("<I", brom_base + br[field][0])).decode('utf-8').upper()

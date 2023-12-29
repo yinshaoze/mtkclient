@@ -39,6 +39,12 @@ class DeviceClass(metaclass=LogBase):
             fh = logging.FileHandler(logfilename, encoding='utf-8')
             self.__logger.addHandler(fh)
 
+    def get_read_packetsize(self):
+        raise NotImplementedError()
+
+    def get_write_packetsize(self):
+        raise NotImplementedError()
+
     def connect(self, EP_IN=-1, EP_OUT=-1):
         raise NotImplementedError()
 
