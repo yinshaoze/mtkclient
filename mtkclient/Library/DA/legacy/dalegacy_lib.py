@@ -19,7 +19,9 @@ from mtkclient.Library.DA.daconfig import DaStorage, EMMC_PartitionType
 from mtkclient.Library.partition import Partition
 from mtkclient.config.payloads import pathconfig
 from mtkclient.Library.DA.legacy.extension.legacy import legacyext
-from mtkclient.Library.thread_handling import writedata, Thread, Queue
+from mtkclient.Library.thread_handling import writedata
+from queue import Queue
+from threading import Thread
 
 rq = Queue()
 

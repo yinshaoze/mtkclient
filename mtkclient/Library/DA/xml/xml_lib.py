@@ -11,7 +11,9 @@ from mtkclient.Library.error import ErrorHandler
 from mtkclient.Library.DA.daconfig import EMMC_PartitionType, UFS_PartitionType, DaStorage
 from mtkclient.Library.partition import Partition
 from mtkclient.config.payloads import pathconfig
-from mtkclient.Library.thread_handling import writedata, Queue, Thread
+from mtkclient.Library.thread_handling import writedata
+from queue import Queue
+from threading import Thread
 from mtkclient.Library.DA.xml.xml_cmd import XMLCmd, BootModes
 from mtkclient.Library.DA.xml.extension.v6 import xmlflashext
 

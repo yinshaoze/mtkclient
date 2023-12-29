@@ -15,7 +15,9 @@ from mtkclient.Library.partition import Partition
 from mtkclient.config.payloads import pathconfig
 from mtkclient.Library.DA.xflash.extension.xflash import xflashext, XCmd
 from mtkclient.Library.settings import hwparam
-from mtkclient.Library.thread_handling import writedata, Queue, Thread
+from mtkclient.Library.thread_handling import writedata
+from queue import Queue
+from threading import Thread
 
 rq = Queue()
 
