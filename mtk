@@ -614,12 +614,13 @@ if __name__ == '__main__':
     parser_ess.add_argument('--uart_addr', help='Set payload uart_addr value')
     parser_ess.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_ess.add_argument('--brom_addr', help='Set a specific brom payload addr')
-    parser_ess.add_argument('--ptype', help='Set the payload type ( "amonet","kamakiri",'
-                                            '"kamakiri2","carbonara" kamakiri2/da used by default)')
+    parser_ess.add_argument('--ptype',
+                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
     parser_ess.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_ess.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
-    parser_ess.add_argument('--parttype', help='Partition type\n\t\tEMMC: [user, boot1, boot2, '
-                                               'gp1, gp2, gp3, gp4, rpmb]\t\tUFS: [lu0, lu1, lu2, lu0_lu1]')
+    parser_ess.add_argument('--parttype', help='Partition type\n' +
+                                              '\t\tEMMC: [user, boot1, boot2, gp1, gp2, gp3, gp4, rpmb]' +
+                                              '\t\tUFS: [lu0, lu1, lu2, lu0_lu1]')
     parser_ess.add_argument('--filename', help='Optional filename')
     parser_ess.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_ess.add_argument('--socid', help='Read Soc ID')

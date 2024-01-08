@@ -13,6 +13,7 @@ from Cryptodome.PublicKey import RSA
 
 from mtkclient.Library.utils import LogBase, logsetup
 from mtkclient.Library.error import ErrorHandler
+from mtkclient.config.brom_config import damodes
 
 USBDL_BIT_EN = 0x00000001  # 1: download bit enabled
 USBDL_BROM = 0x00000002  # 0: usbdl by brom; 1: usbdl by bootloader
@@ -267,7 +268,7 @@ class Preloader(metaclass=LogBase):
                 self.send_root_cert(certdata)
             else:
                 self.error(f"Couldn't find cert file {self.config.cert}")
-        if self.config.target_config["sla"]:
+        if self.config.target_config["sla"] and self.config.chipconfig.damode == damodes.XML:
             self.handle_sla(func=None, isbrom=self.config.is_brom)
         return True
 
@@ -1146,6 +1147,8 @@ class Preloader(metaclass=LogBase):
             for key in rsakeys:
                 if self.echo(self.Cmd.SLA.value):
                     status = self.rword()
+                    if status == 0x7017:
+                        return True
                     if status > 0xFF:
                         self.error(f"Send auth error:{self.eh.status(status)}")
                         return False

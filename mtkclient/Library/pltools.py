@@ -77,6 +77,7 @@ class PLTools(metaclass=LogBase):
         ack = self.exploit.runpayload(payload, ack, addr, dontack)
         if ack == ack:
             self.info("Successfully sent payload: " + filename)
+            self.mtk.daloader.patch = True
             return True
         elif ack == b"\xc1\xc2\xc3\xc4":
             if "preloader" in rf.name:

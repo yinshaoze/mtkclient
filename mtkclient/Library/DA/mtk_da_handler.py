@@ -89,9 +89,12 @@ class DA_handler(metaclass=LogBase):
         if mtk.config.target_config["daa"] and mtk.config.is_brom:
             mtk = mtk.bypass_security()
             self.mtk = mtk
-            self.info("Device is protected.")
+            if self.mtk.daloader.patch :
+                self.info("Device was protected. Successfully bypassed security.")
+            else:
+                self.info("Device is protected.")
             if mtk is not None:
-                if mtk.config.is_brom:
+                if mtk.config.is_brom and self.mtk.daloader.patch:
                     self.info("Device is in BROM mode. Trying to dump preloader.")
                     if preloader is None:
                         preloader = self.dump_preloader_ram()
