@@ -419,13 +419,15 @@ class DAXFlash(metaclass=LogBase):
 
     def get_da_version(self):
         data = self.send_devctrl(self.Cmd.GET_DA_VERSION)
-        status = self.status()
-        if status == 0:
-            self.info(f"DA-VERSION      : {data.decode('utf-8')}")
-            return data
-        else:
-            self.error(f"Error on getting chip id: {self.eh.status(status)}")
-            return None
+        if data != b"":
+            status = self.status()
+            if status == 0:
+                self.info(f"DA-VERSION      : {data.decode('utf-8')}")
+                return data
+            else:
+                self.error(f"Error on getting chip id: {self.eh.status(status)}")
+                return None
+        return None
 
     def get_chip_id(self):
         class Chipid:
@@ -437,19 +439,20 @@ class DAXFlash(metaclass=LogBase):
 
         chipid = Chipid
         data = self.send_devctrl(self.Cmd.GET_CHIP_ID)
-        chipid.hw_code, chipid.hw_sub_code, chipid.hw_version, chipid.sw_version, chipid.chip_evolution = unpack(
+        if data != b"":
+            chipid.hw_code, chipid.hw_sub_code, chipid.hw_version, chipid.sw_version, chipid.chip_evolution = unpack(
             "<HHHHH",
             data[:(5 * 2)])
-        status = self.status()
-        if status == 0:
-            self.info("HW-CODE         : 0x%X" % chipid.hw_code)
-            self.info("HWSUB-CODE      : 0x%X" % chipid.hw_sub_code)
-            self.info("HW-VERSION      : 0x%X" % chipid.hw_version)
-            self.info("SW-VERSION      : 0x%X" % chipid.sw_version)
-            self.info("CHIP-EVOLUTION  : 0x%X" % chipid.chip_evolution)
-            return chipid
-        else:
-            self.error(f"Error on getting chip id: {self.eh.status(status)}")
+            status = self.status()
+            if status == 0:
+                self.info("HW-CODE         : 0x%X" % chipid.hw_code)
+                self.info("HWSUB-CODE      : 0x%X" % chipid.hw_sub_code)
+                self.info("HW-VERSION      : 0x%X" % chipid.hw_version)
+                self.info("SW-VERSION      : 0x%X" % chipid.sw_version)
+                self.info("CHIP-EVOLUTION  : 0x%X" % chipid.chip_evolution)
+                return chipid
+            else:
+                self.error(f"Error on getting chip id: {self.eh.status(status)}")
         return None
 
     def get_ram_info(self):
@@ -783,8 +786,10 @@ class DAXFlash(metaclass=LogBase):
     def readflash(self, addr, length, filename, parttype=None, display=True) -> bytes:
         global rq
         partinfo = self.getstorage(parttype, length)
-        if not partinfo:
+        if not partinfo and not filename:
             return b""
+        elif not partinfo:
+            return False
         self.mtk.daloader.progress.clear()
         storage, parttype, length = partinfo
         self.get_packet_length()
@@ -823,10 +828,10 @@ class DAXFlash(metaclass=LogBase):
                                 self.mtk.daloader.progress.show_progress("Read", total, total, display)
                             rq.put(None)
                             worker.join(60)
-                            return b""
+                            return True
                 rq.put(None)
                 worker.join(60)
-                return b"ACK"
+                return True
             else:
                 buffer = bytearray()
                 while length > 0:
@@ -841,7 +846,9 @@ class DAXFlash(metaclass=LogBase):
                 if display:
                     self.mtk.daloader.progress.show_progress("Read", total, total, display)
                 return buffer
-        return b""
+        if not filename:
+            return b""
+        return False
 
     class ShutDownModes:
         NORMAL = 0

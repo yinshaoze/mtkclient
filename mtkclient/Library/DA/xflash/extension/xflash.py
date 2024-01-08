@@ -195,6 +195,11 @@ class xflashext(metaclass=LogBase):
         self.info("Patching da2 ...")
         # open("da2.bin","wb").write(da2)
         da2patched = bytearray(da2)
+        # Patch huawei security, rma state
+        pos = 0
+        huawei = find_binary(da2, b"\x01\x2B\x03\xD1\x01\x23", pos)
+        if huawei is not None:
+            da2patched[huawei:huawei + 4] = b"\x00\x00\x00\x00"
         # Patch oppo security
         oppo = 0
         pos = 0

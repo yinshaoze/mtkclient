@@ -157,13 +157,13 @@ class DAconfig(metaclass=LogBase):
                         loaders.append(os.path.join(root, file))
             loaders = sorted(loaders)[::-1]
             for loader in loaders:
-                self.parse_da_loader(loader)
+                self.parse_da_loader(loader, self.dasetup)
         else:
             if not os.path.exists(loader):
                 self.warning("Couldn't open " + loader)
             else:
                 self.info("Using custom loader: " + loader)
-                self.parse_da_loader(loader)
+                self.parse_da_loader(loader, self.dasetup)
 
     def m_extract_emi(self, data):
         idx = data.find(b"\x4D\x4D\x4D\x01\x38\x00\x00\x00")
@@ -211,7 +211,7 @@ class DAconfig(metaclass=LogBase):
             self.emiver = 0
             self.emi = None
 
-    def parse_da_loader(self, loader):
+    def parse_da_loader(self, loader:str, dasetup:dict):
         try:
             with open(loader, 'rb') as bootldr:
                 # data = bootldr.read()
@@ -229,11 +229,11 @@ class DAconfig(metaclass=LogBase):
                     da.v6 = v6
                     # if da.hw_code == 0x8127 and "5.1824" not in loader:
                     #    continue
-                    if da.hw_code not in self.dasetup:
+                    if da.hw_code not in dasetup:
                         if da.hw_code != 0:
-                            self.dasetup[da.hw_code] = [da]
+                            dasetup[da.hw_code] = [da]
                     else:
-                        for ldr in self.dasetup[da.hw_code]:
+                        for ldr in dasetup[da.hw_code]:
                             found = False
                             if da.hw_version == ldr.hw_version:
                                 if da.sw_version == ldr.sw_version:
@@ -242,7 +242,7 @@ class DAconfig(metaclass=LogBase):
                                         break
                         if not found:
                             if da.hw_code != 0:
-                                self.dasetup[da.hw_code].append(da)
+                                dasetup[da.hw_code].append(da)
                 return True
         except Exception as e:
             self.error("Couldn't open loader: " + loader + ". Reason: " + str(e))

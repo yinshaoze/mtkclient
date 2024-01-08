@@ -1117,7 +1117,7 @@ class DALegacy(metaclass=LogBase):
             self.mtk.daloader.progress.show_progress("Read", length, length, display)
             rq.put(None)
             worker.join(60)
-            return b""
+            return True
         else:
             buffer = bytearray()
             bytestoread = length
