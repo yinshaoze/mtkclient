@@ -86,13 +86,19 @@ class DA_handler(metaclass=LogBase):
         if mtk.config.target_config is None:
             self.info("Please disconnect, start mtkclient and reconnect.")
             return None
-        if mtk.config.target_config["daa"] and mtk.config.is_brom:
+        if mtk.config.target_config["sbc"] and not mtk.config.is_brom and mtk.config.loader is None:
             mtk = mtk.bypass_security()
             self.mtk = mtk
             if self.mtk.daloader.patch :
                 self.info("Device was protected. Successfully bypassed security.")
             else:
-                self.info("Device is protected.")
+                self.info("Device is still protected, trying to boot to brom")
+                try:
+                    if not mtk.config.loader:
+                        if not mtk.config.is_brom:
+                            self.mtk.preloader.reset_to_brom()
+                except Exception:
+                    pass
             if mtk is not None:
                 if mtk.config.is_brom and self.mtk.daloader.patch:
                     self.info("Device is in BROM mode. Trying to dump preloader.")
@@ -100,12 +106,6 @@ class DA_handler(metaclass=LogBase):
                         preloader = self.dump_preloader_ram()
         else:
             self.info("Device is unprotected.")
-            try:
-                if not mtk.config.loader:
-                    if not mtk.config.is_brom:
-                        self.mtk.preloader.reset_to_brom()
-            except Exception:
-                pass
             if mtk.config.is_brom and not mtk.config.iot:
                 self.info("Device is in BROM-Mode. Bypassing security.")
                 mtk.daloader.patch = False
@@ -117,7 +117,7 @@ class DA_handler(metaclass=LogBase):
                 if mtk is not None:
                     self.mtk = mtk
                     if preloader is None:
-                        if self.mtk.config.chipconfig.damode != 6 and hassecurity:
+                        if self.mtk.config.chipconfig.damode != 6 and self.mtk.config.is_brom:
                             self.warning(
                                 "Device is in BROM mode. No preloader given, trying to dump preloader from ram.")
                             preloader = self.dump_preloader_ram()
@@ -183,6 +183,7 @@ class DA_handler(metaclass=LogBase):
                     self.mtk.daloader.readflash(addr=0,
                                                 length=0x16000,
                                                 filename=partfilename, parttype=parttype)
+                    countDump += 1
                     continue
                 else:
                     rpartition = None
