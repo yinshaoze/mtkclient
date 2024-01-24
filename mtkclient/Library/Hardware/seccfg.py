@@ -149,7 +149,7 @@ class seccfgV3(metaclass=LogBase):
         self.org_data = None
         self.hwc = hwc
         self.mtk = mtk
-        self.info = b"AND_SECCFG_v\x00\x00\x00\x00"
+        self.info_header = b"AND_SECCFG_v\x00\x00\x00\x00"
         self.magic = 0x4D4D4D4D
         self.seccfg_ver = 3
         self.seccfg_size = 0x1860
@@ -189,7 +189,7 @@ class seccfgV3(metaclass=LogBase):
         if data[:0x10] != b"AND_SECCFG_v\x00\x00\x00\x00":
             return False
         rf = structhelper_io(BytesIO(bytearray(data)))
-        self.info = rf.bytes(0x10)
+        self.info_header = rf.bytes(0x10)
         self.magic = rf.dword()
         self.seccfg_ver = rf.dword()
         self.seccfg_size = rf.dword()
@@ -252,7 +252,7 @@ class seccfgV3(metaclass=LogBase):
 
         data = bytearray()
         wf = BytesIO(data)
-        wf.write(self.info)
+        wf.write(self.info_header)
         wf.write(int.to_bytes(self.magic, 4, 'little'))
         wf.write(int.to_bytes(self.seccfg_ver, 4, 'little'))
         wf.write(int.to_bytes(self.seccfg_size, 4, 'little'))
