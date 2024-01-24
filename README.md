@@ -342,7 +342,7 @@ python mtk da peek [addr in hex] [length in hex] [optional: -filename filename.b
 
 Poke memory
 ```
-python mtk da peek [addr in hex] [data as hexstring or -filename for reading from file]
+python mtk da poke [addr in hex] [data as hexstring or -filename for reading from file]
 ```
 
 Read rpmb (Only xflash for now)
