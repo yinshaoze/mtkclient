@@ -200,6 +200,10 @@ class xflashext(metaclass=LogBase):
         huawei = find_binary(da2, b"\x01\x2B\x03\xD1\x01\x23", pos)
         if huawei is not None:
             da2patched[huawei:huawei + 4] = b"\x00\x00\x00\x00"
+        # Patch oppo security mt6765
+        oppo = find_binary(da2, b"\x01\x4B\x18\x78\x70\x47")
+        if oppo is not None:
+            da2patched[oppo:oppo + 4] = b"\x4F\xF0\x01\x00"
         # Patch oppo security
         oppo = 0
         pos = 0

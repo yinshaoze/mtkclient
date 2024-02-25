@@ -564,9 +564,9 @@ class DALegacy(metaclass=LogBase):
                         else:
                             self.daconfig.da2 = da2[:hashlen] + da2[hashlen:hashlen + da2sig_len]
                     else:
-                        self.daconfig.da2 = da2[:-da2sig_len]
+                        self.daconfig.da2 = da2
                 else:
-                    self.daconfig.da2 = da2[:-da2sig_len]
+                    self.daconfig.da2 = da2
                 if self.mtk.preloader.send_da(da1address, da1size, da1sig_len, da1):
                     if self.mtk.preloader.jump_da(da1address):
                         sync = self.usbread(1)
@@ -779,7 +779,6 @@ class DALegacy(metaclass=LogBase):
 
     def brom_send(self, dasetup, dadata, stage, packetsize=0x1000):
         # offset = dasetup.da_loader.region[stage].m_buf
-        # dasize = len(dadata)
         size = dasetup.da_loader.region[stage].m_len
         address = dasetup.da_loader.region[stage].m_start_addr
         self.usbwrite(pack(">I", address))
@@ -792,7 +791,7 @@ class DALegacy(metaclass=LogBase):
                 buffer = self.usbread(1)
                 if buffer != self.Rsp.ACK:
                     self.error(
-                        f"Error on sending brom stage {stage} addr {hex(pos)}: " + hexlify(buffer).decode('utf-8'))
+                        f"Error on sending brom stage {stage} addr {hex(address+pos)}: " + hexlify(buffer).decode('utf-8'))
                     self.config.set_gui_status(self.config.tr("Error on sending brom stage"))
                     break
             time.sleep(0.5)

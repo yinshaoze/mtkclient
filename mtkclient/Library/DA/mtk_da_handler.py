@@ -105,7 +105,10 @@ class DA_handler(metaclass=LogBase):
                     if preloader is None:
                         preloader = self.dump_preloader_ram()
         else:
-            self.info("Device is unprotected.")
+            if mtk.config.target_config["sbc"]:
+                self.info("Device is protected.")
+            else:
+                self.info("Device is unprotected.")
             if mtk.config.is_brom and not mtk.config.iot:
                 self.info("Device is in BROM-Mode. Bypassing security.")
                 mtk.daloader.patch = False

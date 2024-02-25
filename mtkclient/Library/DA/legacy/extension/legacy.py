@@ -227,8 +227,8 @@ class legacyext(metaclass=LogBase):
             base = 0x122000
         else:
             base = 0x100000
-        data = b"".join([pack("<I", val) for val in self.readmem(0x111418EC, 0x20000 // 4)])
-        print(data.hex())
+        #data = b"".join([pack("<I", val) for val in self.readmem(0x111418EC, 0x20000 // 4)])
+        #print(data.hex())
         sys.stdout.flush()
         if self.config.meid is None:
             try:
