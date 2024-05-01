@@ -7,6 +7,7 @@ from time import time
 import mmap
 import errno
 import debugpy
+from tempfile import NamedTemporaryFile
 
 class MtkDaFS(LoggingMixIn, Operations):
     def __init__(self, da_handler, rw=False):
@@ -21,7 +22,7 @@ class MtkDaFS(LoggingMixIn, Operations):
             st_atime=time(),
             st_nlink=2)
         self.files['/emmc_user.bin'] = dict(
-            st_mode=(S_IFREG | 0o555),
+            st_mode=(S_IFREG | 0o777) if self.rw else (S_IFREG | 0o555),
             st_ctime=time(),
             st_mtime=time(),
             st_atime=time(),
@@ -36,7 +37,7 @@ class MtkDaFS(LoggingMixIn, Operations):
 
         for part in self.da_handler.mtk.daloader.get_partition_data():
             self.files[f'/partitions/{part.name}'] = dict(
-                st_mode=(S_IFREG | 0o555),
+                st_mode=(S_IFREG | 0o777) if self.rw else (S_IFREG | 0o555),
                 st_ctime=time(),
                 st_mtime=time(),
                 st_atime=time(),
@@ -55,6 +56,22 @@ class MtkDaFS(LoggingMixIn, Operations):
             file_offset = self.files[path]['offset']
         data = self.da_handler.da_ro(start=file_offset+offset, length=size, filename='', parttype=None)
         return bytes(data)
+
+    def write(self, path, data, offset, fh):
+        if not self.rw:
+            return 0
+            
+        if offset+len(data) > self.files[path]['st_size']:
+            return b''
+        
+        file_offset = 0
+        if 'offset' in self.files[path]:
+            file_offset = self.files[path]['offset']
+        
+        with NamedTemporaryFile('rb+', buffering=0) as f_write:
+            f_write.write(data)
+            self.da_handler.da_wo(start=file_offset+offset, length=len(data), filename=f_write.name, parttype=None)
+        return len(data)
 
     def getattr(self, path, fh=None):
         if not self.rw:
