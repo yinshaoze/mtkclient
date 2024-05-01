@@ -6,7 +6,6 @@ from stat import S_IFDIR, S_IFLNK, S_IFREG
 from time import time
 import mmap
 import errno
-import debugpy
 from tempfile import NamedTemporaryFile
 
 class MtkDaFS(LoggingMixIn, Operations):
