@@ -9,6 +9,8 @@ from mtkclient.config.payloads import pathconfig
 from mtkclient.Library.error import ErrorHandler
 from mtkclient.Library.utils import progress
 from mtkclient.config.brom_config import efuse, damodes
+from mtkclient.Library.Filesystem.mtkdafs import MtkDaFS
+from fuse import FUSE
 
 
 class DA_handler(metaclass=LogBase):
