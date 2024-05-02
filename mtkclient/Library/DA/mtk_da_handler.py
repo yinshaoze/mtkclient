@@ -9,6 +9,8 @@ from mtkclient.config.payloads import pathconfig
 from mtkclient.Library.error import ErrorHandler
 from mtkclient.Library.utils import progress
 from mtkclient.config.brom_config import efuse, damodes
+from mtkclient.Library.Filesystem.mtkdafs import MtkDaFS
+from fuse import FUSE
 
 
 class DA_handler(metaclass=LogBase):
@@ -681,6 +683,9 @@ class DA_handler(metaclass=LogBase):
                 print(f"Dumped offset {hex(start)} with length {hex(length)} as {filename}.")
             else:
                 print(f"Failed to dump offset {hex(start)} with length {hex(length)} as {filename}.")
+        elif cmd == "fs":
+            print(f'Mounting FUSE fs at: {args.mountpoint}...')
+            fs = FUSE(MtkDaFS(self, rw=args.rw), mountpoint=args.mountpoint, foreground=True, allow_other=True, nothreads=True)
         elif cmd == "footer":
             filename = args.filename
             self.da_footer(filename=filename)

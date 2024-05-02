@@ -294,6 +294,12 @@ python mtk printgpt
 ```
 
 
+Mount the flash as a filesystem
+
+```
+python mtk fs /mnt/mtk
+```
+
 ### Write flash
 (use --preloader for brom)
 
