@@ -16,8 +16,7 @@ class TimeEstim:
             testimated = (telapsed / cur_iter) * max_iter
             finishtime = starttime + testimated
             finishtime = dt.datetime.fromtimestamp(finishtime).strftime("%H:%M:%S")  # in time
-            lefttime = testimated - telapsed  # in seconds
-            return int(telapsed), int(lefttime), finishtime
+            return int(telapsed), int(testimated - telapsed), finishtime
         else:
             return 0, 0, ""
 
@@ -97,7 +96,7 @@ def convert_size(size_bytes):
     i = int(math.floor(math.log(size_bytes, 1024)))
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
-    return "%s %s" % (s, size_name[i])
+    return f"{s} {size_name[i]}"
 
 
 class asyncThread(QThread):
@@ -116,7 +115,7 @@ class asyncThread(QThread):
         self.function(self, self.parameters)
 
 
-class FDialog():
+class FDialog:
     def __init__(self, parent):
         pc = pathconfig()
         self.parent = parent
