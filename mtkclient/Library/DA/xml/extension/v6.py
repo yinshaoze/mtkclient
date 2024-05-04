@@ -377,7 +377,7 @@ class xmlflashext(metaclass=LogBase):
                         self.error("Couldn't read rpmb.")
                         return False
                     wf.write(data)
-            self.info("Done reading rpmb to " + filename)
+            self.info(f"Done reading rpmb to {filename}")
             return True
         return False
 

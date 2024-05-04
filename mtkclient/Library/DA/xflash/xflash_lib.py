@@ -1119,11 +1119,11 @@ class DAXFlash(metaclass=LogBase):
                 if self.daconfig.emi is None:
                     emmc_info = self.get_emmc_info(False)
                     if emmc_info is not None and emmc_info.user_size != 0:
-                        self.info("DRAM config needed for : " + hexlify(emmc_info.cid[:8]).decode('utf-8'))
+                        self.info(f"DRAM config needed for : {hexlify(emmc_info.cid[:8]).decode('utf-8')}")
                     else:
                         ufs_info = self.get_ufs_info()
                         if ufs_info is not None and ufs_info.block_size != 0:
-                            self.info("DRAM config needed for : " + hexlify(ufs_info.cid).decode('utf-8'))
+                            self.info(f"DRAM config needed for : {hexlify(ufs_info.cid).decode('utf-8')}")
                     self.info("No preloader given. Searching for preloader")
                     found = False
                     for root, dirs, files in os.walk(os.path.join(self.pathconfig.get_loader_path(), 'Preloader')):
@@ -1188,7 +1188,7 @@ class DAXFlash(metaclass=LogBase):
                     self.error("Error on booting to da (xflash)")
                     return False
             else:
-                self.error("Didn't get brom connection, got instead: " + hexlify(connagent).decode('utf-8'))
+                self.error(f"Didn't get brom connection, got instead: {hexlify(connagent).decode('utf-8')}")
         return False
 
 
