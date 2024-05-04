@@ -116,7 +116,7 @@ class Partition(metaclass=LogBase):
         return data, guid_gpt
 
     def get_backup_gpt(self, lun, gpt_num_part_entries, gpt_part_entry_size, gpt_part_entry_start_lba,
-                       parttype="user") -> bytearray:
+                       parttype="user") -> bytes:
         data = self.readflash(addr=0, length=2 * self.config.pagesize, filename="", parttype=parttype, display=False)
         if data == b"":
             return data
