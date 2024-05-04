@@ -218,10 +218,7 @@ class DAconfig(metaclass=LogBase):
                 # self.debug(hexlify(data).decode('utf-8'))
                 hdr = bootldr.read(0x68)
                 count_da = unpack("<I", bootldr.read(4))[0]
-                if b"MTK_DA_v6" in hdr:
-                    v6 = True
-                else:
-                    v6 = False
+                v6 = b"MTK_DA_v6" in hdr
                 for i in range(0, count_da):
                     bootldr.seek(0x6C + (i * 0xDC))
                     da = DA(bootldr.read(0xDC))

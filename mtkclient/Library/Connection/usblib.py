@@ -143,10 +143,7 @@ class usb_class(DeviceClass):
                 self.backend = None
 
     def set_fast_mode(self, enabled):
-        if enabled:
-            self.fast = True
-        else:
-            self.fast = False
+        self.fast = bool(enabled)
 
     def verify_data(self, data, pre="RX:"):
         if self.__logger.level == logging.DEBUG:
