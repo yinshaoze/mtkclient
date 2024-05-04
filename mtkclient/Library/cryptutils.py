@@ -88,7 +88,7 @@ class cryptutils:
 
         class AES_GCM:
             # Galois/Counter Mode with AES-128 and 96-bit IV
-            '''
+            """
             Example:
             master_key = 0x0ADAABC70895E008147A48C27791F654 #54F69177C2487A1408E09508C7ABDA0A
             init_value = 0x2883B4173F9A838437C1CD86CCFAA5ED #EDA5FACC86CDC13784839A3F17B48328
@@ -122,7 +122,7 @@ class cryptutils:
                         b"\xA0\x62\x9E\xF9\xF4\xE7\xE8\x65"
             my_gcm = AES_GCM(master_key)
             decrypted = my_gcm.decrypt(init_value, ciphertext, auth_tag)
-            '''
+            """
 
             def __init__(self, master_key):
                 self.change_key(master_key)
@@ -248,7 +248,8 @@ class cryptutils:
 
                 return plaintext
 
-        def aes_gcm(self, input, nounce, aes_key, hdr, tag_auth, decrypt=True):
+        @staticmethod
+        def aes_gcm(input, nounce, aes_key, hdr, tag_auth, decrypt=True):
             cipher = AES.new(aes_key, AES.MODE_GCM, nounce)
             if hdr is not None:
                 cipher.update(hdr)
@@ -268,19 +269,22 @@ class cryptutils:
                     ciphertext, tag_auth = cipher.encrypt_and_digest(input)
                     return ciphertext, tag_auth
 
-        def aes_cbc(self, key, iv, data, decrypt=True):
+        @staticmethod
+        def aes_cbc(key, iv, data, decrypt=True):
             if decrypt:
                 return AES.new(key, AES.MODE_CBC, IV=iv).decrypt(data)
             else:
                 return AES.new(key, AES.MODE_CBC, IV=iv).encrypt(data)
 
-        def aes_ecb(self, key, data, decrypt=True):
+        @staticmethod
+        def aes_ecb(key, data, decrypt=True):
             if decrypt:
                 return AES.new(key, AES.MODE_ECB).decrypt(data)
             else:
                 return AES.new(key, AES.MODE_ECB).encrypt(data)
 
-        def aes_ctr(self, key, counter, enc_data, decrypt=True):
+        @staticmethod
+        def aes_ctr(key, counter, enc_data, decrypt=True):
             ctr = Counter.new(128, initial_value=counter)
             # Create the AES cipher object and decrypt the ciphertext, basically this here is just aes ctr 256 :)
             cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
@@ -291,7 +295,8 @@ class cryptutils:
                 data = cipher.encrypt(enc_data)
             return data
 
-        def aes_ccm(self, key, nounce, tag_auth, data, decrypt=True):
+        @staticmethod
+        def aes_ccm(key, nounce, tag_auth, data, decrypt=True):
             cipher = AES.new(key, AES.MODE_CCM, nounce)
             if decrypt:
                 plaintext = cipher.decrypt(data)
@@ -347,12 +352,13 @@ class cryptutils:
             else:
                 print("Test failed.")
 
-        def i2osp(self, x, x_len):
-            '''Converts the integer x to its big-endian representation of length
+        @staticmethod
+        def i2osp(x, x_len):
+            """Converts the integer x to its big-endian representation of length
                x_len.
-            '''
+            """
             if x > 256 ** x_len:
-                raise ("Integer Too Large")
+                raise "Integer Too Large"
             h = hex(x)[2:]
             if h[-1] == 'L':
                 h = h[:-1]
@@ -362,11 +368,10 @@ class cryptutils:
             return b'\x00' * int(x_len - len(x)) + x
 
         def os2ip(self, x):
-            '''Converts the byte string x representing an integer reprented using the
+            """Converts the byte string x representing an integer reprented using the
                big-endian convient to an integer.
-            '''
-            h = hexlify(x)
-            return int(h, 16)
+            """
+            return int(hexlify(x), 16)
 
         # def os2ip(self, X):
         #    return int.from_bytes(X, byteorder='big')
@@ -374,13 +379,14 @@ class cryptutils:
         def mgf1(self, input, length):
             counter = 0
             output = b''
-            while (len(output) < length):
+            while len(output) < length:
                 C = self.i2osp(counter, 4)
                 output += self.hash(input + C)
                 counter += 1
             return output[:length]
 
-        def assert_int(self, var: int, name: str):
+        @staticmethod
+        def assert_int(var: int, name: str):
             if isinstance(var, int):
                 return
             raise TypeError('%s should be an integer, not %s' % (name, var.__class__))
@@ -428,7 +434,8 @@ class cryptutils:
             return self.sign(tosign, D, N, emBits)
             # 6B1EAA2042A5C8DA8B1B4A8320111A70A0CBA65233D1C6E418EF8156E82A8F96BD843F047FF25AB9702A6582C8387298753E628F23448B4580E09CBD2A483C623B888F47C4BD2C5EFF09013C6DFF67DB59BAB3037F0BEE05D5660264D28CC6251631FE75CE106D931A04FA032FEA31259715CE0FAB1AE0E2F8130807AF4019A61B9C060ECE59104F22156FEE8108F17DC80D7C2F8397AFB9780994F7C5A0652F93D1B48010B0B248AB9711235787D797FBA4D10A29BCF09628585D405640A866B15EE9D7526A2703E72A19811EF447F6E5C43F915B3808EBC79EA4BCF78903DBDE32E47E239CFB5F2B5986D0CBBFBE6BACDC29B2ADE006D23D0B90775B1AE4DD
 
-        def ceil_div(self, a, b):
+        @staticmethod
+        def ceil_div(a, b):
             (q, r) = divmod(a, b)
             if r:
                 return q + 1
@@ -494,10 +501,12 @@ class cryptutils:
                     return False
             return maskedDB
 
-        def sha1(self, msg):
+        @staticmethod
+        def sha1(msg):
             return hashlib.sha1(msg).digest()
 
-        def sha256(self, msg):
+        @staticmethod
+        def sha256(msg):
             return hashlib.sha256(msg).digest()
 
 
