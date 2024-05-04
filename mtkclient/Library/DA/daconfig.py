@@ -203,7 +203,7 @@ class DAconfig(metaclass=LogBase):
                 with open(preloader, "rb") as rf:
                     data = rf.read()
             else:
-                self.error("Preloader : " + preloader + " doesn't exist. Aborting.")
+                self.error(f"Preloader : {preloader} doesn't exist. Aborting.")
                 exit(1)
         try:
             self.emiver, self.emi = self.m_extract_emi(data)
@@ -211,7 +211,7 @@ class DAconfig(metaclass=LogBase):
             self.emiver = 0
             self.emi = None
 
-    def parse_da_loader(self, loader:str, dasetup:dict):
+    def parse_da_loader(self, loader: str, dasetup: dict):
         try:
             with open(loader, 'rb') as bootldr:
                 # data = bootldr.read()
@@ -245,7 +245,7 @@ class DAconfig(metaclass=LogBase):
                                 dasetup[da.hw_code].append(da)
                 return True
         except Exception as e:
-            self.error("Couldn't open loader: " + loader + ". Reason: " + str(e))
+            self.error(f"Couldn't open loader: {loader}. Reason: {str(e)}")
         return False
 
     def setup(self):

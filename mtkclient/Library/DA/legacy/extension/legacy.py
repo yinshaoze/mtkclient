@@ -80,7 +80,8 @@ class legacyext(metaclass=LogBase):
             self.warning("Legacy DA2 CMD F0 not patched.")
         return da2patched
 
-    def fix_hash(self, da1, da2, da2sig_len, hashpos, hashmode):
+    @staticmethod
+    def fix_hash(da1, da2, da2sig_len, hashpos, hashmode):
         da1 = bytearray(da1)
         dahash = None
         if hashmode == 1:
@@ -245,8 +246,7 @@ class legacyext(metaclass=LogBase):
             except Exception:
                 return
         hwc = self.cryptosetup()
-        retval = {}
-        retval["hwcode"] = hex(self.config.hwcode)
+        retval = {"hwcode": hex(self.config.hwcode)}
         meid = self.config.get_meid()
         socid = self.config.get_socid()
         hwcode = self.config.get_hwcode()

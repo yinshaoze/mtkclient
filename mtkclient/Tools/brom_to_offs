@@ -104,16 +104,16 @@ def main():
                 pos -= 1
         else:
             pos2 = find_binary(data, "46FFF7", pos + 8)
-            if pos2 != None:
+            if pos2 is not None:
                 if pos2 - pos < 0x20:
                     pos = pos
                 else:
                     pos = pos2 - 1
         posr = -1
         startpos = 0
-        while posr != None:
+        while posr is not None:
             posr = find_binary(data, "2DE9F047", startpos)
-            if posr == None:
+            if posr is None:
                 break
             if data[posr + 7] == 0x46 and data[posr + 8] == 0x92:
                 break

@@ -91,7 +91,7 @@ class DA_handler(metaclass=LogBase):
         if mtk.config.target_config["sbc"] and not mtk.config.is_brom and mtk.config.loader is None:
             mtk = mtk.bypass_security()
             self.mtk = mtk
-            if self.mtk.daloader.patch :
+            if self.mtk.daloader.patch:
                 self.info("Device was protected. Successfully bypassed security.")
             else:
                 self.info("Device is still protected, trying to boot to brom")
@@ -685,7 +685,8 @@ class DA_handler(metaclass=LogBase):
                 print(f"Failed to dump offset {hex(start)} with length {hex(length)} as {filename}.")
         elif cmd == "fs":
             print(f'Mounting FUSE fs at: {args.mountpoint}...')
-            fs = FUSE(MtkDaFS(self, rw=args.rw), mountpoint=args.mountpoint, foreground=True, allow_other=True, nothreads=True)
+            fs = FUSE(MtkDaFS(self, rw=args.rw), mountpoint=args.mountpoint, foreground=True, allow_other=True,
+                      nothreads=True)
         elif cmd == "footer":
             filename = args.filename
             self.da_footer(filename=filename)
