@@ -534,15 +534,6 @@ cmds = {
 info = "MTK Stage2 client (c) B.Kerler 2021"
 
 
-def showcommands():
-    print(info)
-    print("-----------------------------------\n")
-    print("Available commands are:\n")
-    for cmd in cmds:
-        print("%20s" % (cmd) + ":\t" + cmds[cmd])
-    print()
-
-
 def main():
     parser = argparse.ArgumentParser(description=info)
     subparsers = parser.add_subparsers(dest="cmd",
@@ -614,7 +605,7 @@ def main():
     args = parser.parse_args()
     cmd = args.cmd
     if cmd not in cmds:
-        showcommands()
+        parser.print_help()
         exit(0)
 
     if not os.path.exists("logs"):
