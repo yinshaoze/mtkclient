@@ -289,11 +289,7 @@ class cryptutils:
             ctr = Counter.new(128, initial_value=counter)
             # Create the AES cipher object and decrypt the ciphertext, basically this here is just aes ctr 256 :)
             cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
-            data = b""
-            if decrypt:
-                data = cipher.decrypt(enc_data)
-            else:
-                data = cipher.encrypt(enc_data)
+            data = cipher.decrypt(enc_data) if decrypt else cipher.encrypt(enc_data)
             return data
 
         @staticmethod
