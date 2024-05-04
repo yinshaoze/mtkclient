@@ -667,7 +667,7 @@ class GCpu(metaclass=LogBase):
 
     def mtk_crypto_hmac_sha256_by_devkey(self, data: bytearray, seed: bytearray):
         if seed is None:
-            seed = bytearray("\x00" * 16)
+            seed = bytearray(16)
         dev_val = self.get_devinfo_with_index(12)
         seed = xor_data(seed, dev_val, 4)
         dev_val = self.get_devinfo_with_index(13)
