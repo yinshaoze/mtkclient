@@ -95,7 +95,8 @@ class CDC_CMDS:
 
 class usb_class(DeviceClass):
 
-    def load_windows_dll(self):
+    @staticmethod
+    def load_windows_dll():
         if os.name == 'nt':
             windows_dir = None
             try:

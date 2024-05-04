@@ -166,7 +166,8 @@ class Main(metaclass=LogBase):
         if not os.path.exists("logs"):
             os.mkdir("logs")
 
-    def close(self):
+    @staticmethod
+    def close():
         sys.exit(0)
 
     def cmd_stage(self, mtk, filename, stage2addr, stage2file, verifystage2):

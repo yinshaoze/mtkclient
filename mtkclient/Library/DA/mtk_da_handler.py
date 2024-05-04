@@ -30,7 +30,8 @@ class DA_handler(metaclass=LogBase):
         self.eh = ErrorHandler()
         self.mtk = mtk
 
-    def close(self):
+    @staticmethod
+    def close():
         sys.exit(0)
 
     def dump_preloader_ram(self):

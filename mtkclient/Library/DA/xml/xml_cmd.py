@@ -324,11 +324,13 @@ class XMLCmd(metaclass=LogBase):
         cmd = self.create_cmd("WRITE-REGISTER", content)
         return cmd
 
-    def cmd_read_partition_name(self):
+    @staticmethod
+    def cmd_read_partition_name():
         cmd = ""
         return cmd
 
-    def cmd_debug_ufs(self):
+    @staticmethod
+    def cmd_debug_ufs():
         cmd = ""
         return cmd
 

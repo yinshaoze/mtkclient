@@ -675,7 +675,8 @@ class GCpu(metaclass=LogBase):
         self.info("seed: " + hexlify(seed[:16]).decode('utf-8'))
         return self.mtk_crypto_hmac_sha256_by_devkey_using_seed(seed, data)
 
-    def byteswap(self, data):
+    @staticmethod
+    def byteswap(data):
         data = bytearray(data)
         for i in range(0, len(data) // 2):
             j = len(data) - i - 1

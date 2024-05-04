@@ -10,7 +10,8 @@ from mtkclient.config.payloads import pathconfig
 
 
 class TimeEstim:
-    def calcProcessTime(self, starttime, cur_iter, max_iter):
+    @staticmethod
+    def calcProcessTime(starttime, cur_iter, max_iter):
         telapsed = time.time() - starttime
         if telapsed > 0 and cur_iter > 0:
             testimated = (telapsed / cur_iter) * max_iter

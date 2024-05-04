@@ -72,7 +72,8 @@ class DAXFlash(metaclass=LogBase):
         except Exception:
             self.carbonara = None
 
-    def usleep(self, usec):
+    @staticmethod
+    def usleep(usec):
         time.sleep(usec / 100000)
 
     def ack(self, rstatus=True):
