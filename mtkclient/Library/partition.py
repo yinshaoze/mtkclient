@@ -61,7 +61,7 @@ class Partition(metaclass=LogBase):
                 pm.sectors = partinfo.size // self.config.pagesize
                 pm.type = 1
                 pm.flags = partinfo.mask_flags
-                partitions.add(pm)
+                partitions.append(pm)
             return data, partitions
         return b"", None
 
