@@ -154,10 +154,7 @@ class MainWindow(QMainWindow):
         global lock
         lock.acquire()
         doneBytes = 0
-        if "currentPartitionSizeDone" in self.Status:
-            curpartBytes = self.Status["currentPartitionSizeDone"]
-        else:
-            curpartBytes = self.Status["currentPartitionSize"]
+        curpartBytes = self.Status[f"currentPartitionSize{'Done' if 'currentPartitionSizeDone' in self.Status else ''}"]
 
         if "allPartitions" in self.Status:
             for partition in self.Status["allPartitions"]:
