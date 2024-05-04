@@ -22,7 +22,7 @@ def asm(code, cpu, mode, bigendian):
         little = KS_MODE_BIG_ENDIAN  # big-endian mode
     else:
         little = KS_MODE_LITTLE_ENDIAN  # little-endian mode (default mode)
-    print("CPU: %s, MODE: %s" % (cpu, mode))
+    print(f"CPU: {cpu}, MODE: {mode}")
     ks = None
     if cpu == "arm":
         # ARM architecture (including Thumb, Thumb-2)
@@ -143,10 +143,8 @@ def disasm(code, cpu, mode, bigendian, size):
         print("CPU and/or mode not supported!")
         exit(0)
 
-    instr = []
-    for i in cs.disasm(code, size):
-        # print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
-        instr.append("%s\t%s" % (i.mnemonic, i.op_str))
+    instr = [f"{i.mnemonic}\t{i.op_str}" for i in cs.disasm(code, size)]
+    # print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
     return instr
 
 

@@ -303,7 +303,7 @@ def do_tcp_server(client, arguments, handler):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     port = int(arguments.tcpport)
     server_address = ('localhost', port)
-    print('starting up on %s port %s' % server_address)
+    print(f'starting up on {server_address[0]} port {port}')
     sock.bind(server_address)
     sock.listen(1)
     response = None
@@ -316,7 +316,7 @@ def do_tcp_server(client, arguments, handler):
                 data = connection.recv(4096).decode('utf-8')
                 if data == '':
                     break
-                print('received %s' % data)
+                print(f'received {data}')
                 if data:
                     print('handling request')
                     lines = data.split("\n")
