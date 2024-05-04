@@ -334,7 +334,7 @@ def hook_mem_write(uc, access, address, size, value, user_data):
     elif address == 0x11020000:
         r0 = uc.reg_read(UC_ARM_REG_R0)
         if r0 == 0xa:
-            print("UART: " + buffer.decode('utf-8'))
+            print(f"UART: {buffer.decode('utf-8')}")
             data += buffer.decode('utf-8')
             buffer = bytearray()
         else:
@@ -343,7 +343,7 @@ def hook_mem_write(uc, access, address, size, value, user_data):
     elif address == 0x11050000:
         r0 = uc.reg_read(UC_ARM_REG_R0)
         if r0 == 0xd:
-            print("UART: " + buffer.decode('utf-8'))
+            print(f"UART: {buffer.decode('utf-8')}")
             data += buffer.decode('utf-8')
             buffer = bytearray()
         else:
@@ -352,7 +352,7 @@ def hook_mem_write(uc, access, address, size, value, user_data):
     elif address == 0x11002000:
         r0 = uc.reg_read(UC_ARM_REG_R0)
         if r0 == 0xa:
-            print("UART: " + buffer.decode('utf-8'))
+            print(f"UART: {buffer.decode('utf-8')}")
             data += buffer.decode('utf-8')
             buffer = bytearray()
         else:
@@ -361,7 +361,7 @@ def hook_mem_write(uc, access, address, size, value, user_data):
     elif address == 0x11003000:
         r0 = uc.reg_read(UC_ARM_REG_R0)
         if r0 == 0xa:
-            print("UART: " + buffer.decode('utf-8'))
+            print(f"UART: {buffer.decode('utf-8')}")
             data += buffer.decode('utf-8')
             buffer = bytearray()
         else:
@@ -370,7 +370,7 @@ def hook_mem_write(uc, access, address, size, value, user_data):
     elif address == 0x11005000:
         r0 = uc.reg_read(UC_ARM_REG_R0)
         if r0 == 0xa:
-            print("UART: " + buffer.decode('utf-8'))
+            print(f"UART: {buffer.decode('utf-8')}")
             data += buffer.decode('utf-8')
             buffer = bytearray()
         else:
@@ -389,61 +389,61 @@ def hook_code(uc, access, address, size):
         keyslot0 = uc.mem_read(0x701953CC, 0x20)
         keyslot1 = uc.mem_read(0x701953EC, 0x20)
         keyslot2 = uc.mem_read(0x7019540C, 0x20)
-        print("Keyslot0: " + hexlify(keyslot0).decode('utf-8'))
-        print("Keyslot1: " + hexlify(keyslot1).decode('utf-8'))
-        print("Keyslot2: " + hexlify(keyslot2).decode('utf-8'))
+        print(f"Keyslot0: {hexlify(keyslot0).decode('utf-8')}")
+        print(f"Keyslot1: {hexlify(keyslot1).decode('utf-8')}")
+        print(f"Keyslot2: {hexlify(keyslot2).decode('utf-8')}")
     elif pc == 0x70094A5C:  # sha256_write
         lr = uc.reg_read(UC_ARM_REG_LR)
         r1 = uc.reg_read(UC_ARM_REG_R1)
         r2 = uc.reg_read(UC_ARM_REG_R2)
         s1 = uc.mem_read(r1, r2)
         print("sha256_write")
-        print("lr: " + hex(lr))
-        print(f"r1: {hex(r1)} " + hexlify(s1).decode('utf-8'))
-        print("r2: " + hex(r2) + "\n")
+        print(f"lr: {hex(lr)}")
+        print(f"r1: {hex(r1)} {hexlify(s1).decode('utf-8')}")
+        print(f"r2: {hex(r2)}\n")
     elif pc == 0x70094E3C:  # kdflib_get_huk
         lr = uc.reg_read(UC_ARM_REG_LR)
         r0 = uc.reg_read(UC_ARM_REG_R0)
         print("kdflib_get_huk")
-        print("klr: " + hex(lr))
-        print("kr0: " + hex(r0))
+        print(f"klr: {hex(lr)}")
+        print(f"kr0: {hex(r0)}")
     elif pc == 0x70095240:
         lr = uc.reg_read(UC_ARM_REG_LR)
         r0 = uc.reg_read(UC_ARM_REG_R0)
         r4 = uc.reg_read(UC_ARM_REG_R4)
         print("hmac_sha256")
-        print("hlr: " + hex(lr))
-        print("hr0: " + hex(r0))
-        print("hr4: " + hex(r4))
+        print(f"hlr: {hex(lr)}")
+        print(f"hr0: {hex(r0)}")
+        print(f"hr4: {hex(r4)}")
     elif pc == 0x70087430:  # memcpy
         lr = uc.reg_read(UC_ARM_REG_LR)
         r0 = uc.reg_read(UC_ARM_REG_R0)
         r1 = uc.reg_read(UC_ARM_REG_R0)
         r2 = uc.reg_read(UC_ARM_REG_R0)
         print("memcpy")
-        print("lr: " + hex(lr))
-        print("r0: " + hex(r0))
-        print("r1: " + hex(r1))
-        print("r2: " + hex(r2))
+        print(f"lr: {hex(lr)}")
+        print(f"r0: {hex(r0)}")
+        print(f"r1: {hex(r1)}")
+        print(f"r2: {hex(r2)}")
     elif pc == 0x70095084:
         lr = uc.reg_read(UC_ARM_REG_LR)
         print("hmac_init")
-        print("lr: " + hex(lr))
+        print(f"lr: {hex(lr)}")
     elif pc == 0x70094CF8:
         lr = uc.reg_read(UC_ARM_REG_LR)
         r1 = uc.reg_read(UC_ARM_REG_R1)
         debug = r1
         print("sha_finish")
-        print("lr: " + hex(lr))
-        print("r1: " + hex(r1))
+        print(f"lr: {hex(lr)}")
+        print(f"r1: {hex(r1)}")
     elif pc == 0x70094DB8:
         lr = uc.reg_read(UC_ARM_REG_LR)
         r1 = debug
         s1 = uc.mem_read(r1, 0x20)
         print("sha_finish2")
-        print("lr: " + hex(lr))
-        print("r1: " + hex(r1))
-        print("s1: " + hexlify(s1).decode('utf-8'))
+        print(f"lr: {hex(lr)}")
+        print(f"r1: {hex(r1)}")
+        print(f"s1: {hexlify(s1).decode('utf-8')}")
 
     # print("PC %08X" % pc)
     return True

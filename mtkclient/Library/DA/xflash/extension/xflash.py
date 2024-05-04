@@ -323,7 +323,7 @@ class xflashext(metaclass=LogBase):
                     return False
                 data = unpack("<I", val)[0]
                 if dwords == 1:
-                    self.debug(f"RX: {hex(addr + (pos * 4))} -> " + hex(data))
+                    self.debug(f"RX: {hex(addr + (pos * 4))} -> {hex(data)}")
                     return data
                 res.append(data)
         else:

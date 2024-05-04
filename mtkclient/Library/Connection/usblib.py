@@ -205,7 +205,7 @@ class usb_class(DeviceClass):
         if stopbits is not None:
             if stopbits not in sbits.keys():
                 valid = ", ".join(str(k) for k in sorted(sbits.keys()))
-                raise ValueError("Valid stopbits are " + valid)
+                raise ValueError(f"Valid stopbits are {valid}")
             self.stopbits = stopbits
         else:
             self.stopbits = 0
@@ -213,7 +213,7 @@ class usb_class(DeviceClass):
         if databits is not None:
             if databits not in dbits:
                 valid = ", ".join(str(d) for d in sorted(dbits))
-                raise ValueError("Valid databits are " + valid)
+                raise ValueError(f"Valid databits are {valid}")
             self.databits = databits
         else:
             self.databits = 0
@@ -221,7 +221,7 @@ class usb_class(DeviceClass):
         if parity is not None:
             if parity not in pmodes:
                 valid = ", ".join(str(pm) for pm in sorted(pmodes))
-                raise ValueError("Valid parity modes are " + valid)
+                raise ValueError(f"Valid parity modes are {valid}")
             self.parity = parity
         else:
             self.parity = 0
@@ -232,7 +232,7 @@ class usb_class(DeviceClass):
                 dif = [abs(br - baudrate) for br in brs]
                 best = brs[dif.index(min(dif))]
                 raise ValueError(
-                    "Invalid baudrates, nearest valid is {}".format(best))
+                    f"Invalid baudrates, nearest valid is {best}")
             self.baudrate = baudrate
 
         linecode = [
@@ -252,7 +252,7 @@ class usb_class(DeviceClass):
         wlen = self.device.ctrl_transfer(
             req_type, CDC_CMDS.SET_LINE_CODING,
             data_or_wLength=data, wIndex=1)
-        self.debug("Linecoding set, {}b sent".format(wlen))
+        self.debug(f"Linecoding set, {wlen}b sent")
 
     def setbreak(self):
         txdir = 0  # 0:OUT, 1:IN
@@ -262,7 +262,7 @@ class usb_class(DeviceClass):
         wlen = self.device.ctrl_transfer(
             bmRequestType=req_type, bRequest=CDC_CMDS.SEND_BREAK,
             wValue=0, data_or_wLength=0, wIndex=1)
-        self.debug("Break set, {}b sent".format(wlen))
+        self.debug(f"Break set, {wlen}b sent")
 
     def setcontrollinestate(self, RTS=None, DTR=None, isFTDI=False):
         cmds = CDC_CMDS()
@@ -282,7 +282,7 @@ class usb_class(DeviceClass):
             wValue=ctrlstate,
             wIndex=1,
             data_or_wLength=0)
-        self.debug("Linecoding set, {}b sent".format(wlen))
+        self.debug(f"Linecoding set, {wlen}b sent")
 
     def flush(self):
         return
@@ -346,7 +346,7 @@ class usb_class(DeviceClass):
                     self.debug("Detaching kernel driver")
                     self.device.detach_kernel_driver(0)
             except Exception as err:
-                self.debug("No kernel driver supported: " + str(err))
+                self.debug(f"No kernel driver supported: {str(err)}")
             try:
                 usb.util.claim_interface(self.device, 0)
             except Exception:
@@ -358,7 +358,7 @@ class usb_class(DeviceClass):
                     self.debug("Detaching kernel driver")
                     self.device.detach_kernel_driver(self.interface)
             except Exception as err:
-                self.debug("No kernel driver supported: " + str(err))
+                self.debug(f"No kernel driver supported: {str(err)}")
             try:
                 if self.interface != 0:
                     usb.util.claim_interface(self.device, self.interface)

@@ -989,9 +989,9 @@ class ErrorHandler:
 
     def status(self, status):
         if status in self.ec:
-            return self.ec[status] + " (" + hex(status) + ")"
+            return f"{self.ec[status]} ({hex(status)})"
         if status in self.xec:
-            return self.xec[status] + " (" + hex(status) + ")"
+            return f"{self.xec[status]} ({hex(status)})"
         if status in self.lec:
-            return self.lec[status] + " (" + hex(status) + ")"
-        return "Unknown: " + hex(status)
+            return f"{self.lec[status]} ({hex(status)})"
+        return f"Unknown: {hex(status)}"
