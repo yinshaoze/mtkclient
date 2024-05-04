@@ -306,6 +306,7 @@ class cryptutils:
                 ciphertext = cipher.encrypt(data)
                 return ciphertext
 
+        @staticmethod
         def aes_cmac_verify(key, plain, compare):
             ctx = CMAC.new(key, ciphermod=AES)
             ctx.update(plain)
