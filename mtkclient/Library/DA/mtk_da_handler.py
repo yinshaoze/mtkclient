@@ -198,7 +198,7 @@ class DA_handler(metaclass=LogBase):
                             rpartition = gptentry
                             break
                     if rpartition is not None:
-                        self.info(f"Dumping partition \"{rpartition.name}\"")
+                        self.info(f'Dumping partition "{rpartition.name}"')
                         if self.mtk.daloader.readflash(addr=rpartition.sector * self.config.pagesize,
                                                        length=rpartition.sectors * self.config.pagesize,
                                                        filename=partfilename, parttype=parttype):
@@ -646,7 +646,7 @@ class DA_handler(metaclass=LogBase):
         elif cmd == "printgpt":
             data, guid_gpt = mtk.daloader.get_gpt()
             if not guid_gpt:
-                self.error("Error reading gpt, please read whole flash using \"mtk rf flash.bin\".")
+                self.error('Error reading gpt, please read whole flash using "mtk rf flash.bin".')
             else:
                 guid_gpt.print()
         elif cmd == "r":

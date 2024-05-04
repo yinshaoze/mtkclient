@@ -354,8 +354,7 @@ class DAXFlash(metaclass=LogBase):
                 if self.daconfig.flashtype == "emmc":
                     length = min(length, self.emmc.rpmb_size)
             else:
-                self.error("Unknown parttype. Known parttypes are \"boot1\",\"boot2\",\"gp1\"," +
-                           "\"gp2\",\"gp3\",\"gp4\",\"rpmb\"")
+                self.error('Unknown parttype. Known parttypes are "boot1","boot2","gp1","gp2","gp3","gp4","rpmb"')
                 return []
         elif storage == DaStorage.MTK_DA_STORAGE_UFS:
             if parttype is None or parttype == "lu3" or parttype == "user":  # USER
@@ -371,7 +370,7 @@ class DAXFlash(metaclass=LogBase):
                 parttype = UFS_PartitionType.UFS_LU4
                 length = min(length, self.ufs.lu2_size)
             else:
-                self.error("Unknown parttype. Known parttypes are \"lu1\",\"lu2\",\"lu3\",\"lu4\"")
+                self.error('Unknown parttype. Known parttypes are "lu1","lu2","lu3","lu4"')
                 return []
         elif storage in [DaStorage.MTK_DA_STORAGE_NAND, DaStorage.MTK_DA_STORAGE_NAND_MLC,
                          DaStorage.MTK_DA_STORAGE_NAND_SLC, DaStorage.MTK_DA_STORAGE_NAND_TLC,

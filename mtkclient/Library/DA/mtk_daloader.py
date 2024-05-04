@@ -229,7 +229,7 @@ class DAloader(metaclass=LogBase):
         if self.mtk.config.chipconfig.damode == damodes.XFLASH:
             self.da = DAXFlash(self.mtk, self.daconfig, self.loglevel)
             if porttype not in ["off", "usb", "uart"]:
-                self.error("Only \"off\",\"usb\" or \"uart\" are allowed.")
+                self.error('Only "off","usb" or "uart" are allowed.')
             if self.da.set_meta(porttype):
                 self.info(f"Successfully set meta mode to {porttype}")
                 return True

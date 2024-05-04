@@ -666,7 +666,7 @@ class Main(metaclass=LogBase):
             if logs != b"":
                 with open(filename, "wb") as wf:
                     wf.write(logs)
-                    self.info(f"Successfully wrote logs to \"{filename}\"")
+                    self.info(f'Successfully wrote logs to "{filename}"')
             else:
                 self.info("No logs found.")
 
