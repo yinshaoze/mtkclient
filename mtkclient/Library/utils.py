@@ -482,8 +482,8 @@ class LogBase(type):
 
     def __init__(cls, *args):
         super().__init__(*args)
-        logger_attribute_name = '_' + cls.__name__ + '__logger'
-        logger_debuglevel_name = '_' + cls.__name__ + '__debuglevel'
+        logger_attribute_name = f'_{cls.__name__}__logger'
+        logger_debuglevel_name = f'_{cls.__name__}__debuglevel'
         logger_name = '.'.join([c.__name__ for c in cls.mro()[-2::-1]])
         LOG_CONFIG = {
             "version": 1,
