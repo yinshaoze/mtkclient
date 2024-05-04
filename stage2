@@ -131,7 +131,7 @@ class Stage2(metaclass=LogBase):
         if self.cdc.connected:
             self.cdc.close()
 
-    def readflash(self, type: int, start, length, display=False, filename: str = None):
+    def readflash(self, type_: int, start, length, display=False, filename: str = None):
         if not self.emmc_inited:
             self.init_emmc()
         wf = None
@@ -145,7 +145,7 @@ class Stage2(metaclass=LogBase):
         # emmc_switch(1)
         self.usbwrite(pack(">I", 0xf00dd00d))
         self.usbwrite(pack(">I", 0x1002))
-        self.usbwrite(pack(">I", type))
+        self.usbwrite(pack(">I", type_))
 
         # kick-wdt
         # self.usbwrite(pack(">I", 0xf00dd00d))
@@ -190,7 +190,7 @@ class Stage2(metaclass=LogBase):
             sectors = (length // 0x200) + (1 if length % 0x200 else 0)
         self.info("Reading user data...")
         if self.cdc.connected:
-            self.readflash(type=0, start=start, length=length, display=True, filename=filename)
+            self.readflash(type_=0, start=start, length=length, display=True, filename=filename)
 
     def preloader(self, start, length, filename):
         sectors = 0
@@ -201,7 +201,7 @@ class Stage2(metaclass=LogBase):
         self.info("Reading preloader...")
         if self.cdc.connected:
             if sectors == 0:
-                buffer = self.readflash(type=1, start=0, length=0x4000, display=False)
+                buffer = self.readflash(type_=1, start=0, length=0x4000, display=False)
                 if len(buffer) != 0x4000:
                     print("Error on reading boot1 area.")
                     return
@@ -212,7 +212,7 @@ class Stage2(metaclass=LogBase):
                         st = buffer[start:start + 4]
                         if st == b"MMM\x01":
                             length = unpack("<I", buffer[start + 0x20:start + 0x24])[0]
-                            data = self.readflash(type=1, start=0, length=start + length, display=True)
+                            data = self.readflash(type_=1, start=0, length=start + length, display=True)
                             if len(data) != start + length:
                                 print("Warning, please rerun command, length doesn't match.")
                             idx = data.find(b"MTK_BLOADER_INFO")
@@ -228,11 +228,11 @@ class Stage2(metaclass=LogBase):
                             return
                 else:
                     length = 0x40000
-                    self.readflash(type=1, start=0, length=length, display=True, filename=filename)
+                    self.readflash(type_=1, start=0, length=length, display=True, filename=filename)
                     print("Done")
                 print("Error on getting preloader info, aborting.")
             else:
-                self.readflash(type=1, start=start, length=length, display=True, filename=filename)
+                self.readflash(type_=1, start=start, length=length, display=True, filename=filename)
             print("Done")
 
     def boot2(self, start, length, filename):
@@ -244,10 +244,10 @@ class Stage2(metaclass=LogBase):
         self.info("Reading boot2...")
         if self.cdc.connected:
             if sectors == 0:
-                self.readflash(type=2, start=0, length=0x40000, display=True, filename=filename)
+                self.readflash(type_=2, start=0, length=0x40000, display=True, filename=filename)
                 print("Done")
             else:
-                self.readflash(type=1, start=start, length=length, display=True, filename=filename)
+                self.readflash(type_=1, start=start, length=length, display=True, filename=filename)
             print("Done")
 
     def memread(self, start, length, filename=None):

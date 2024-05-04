@@ -208,14 +208,14 @@ class progress:
                 if lefttime > 0:
                     sec = lefttime
                     if sec > 60:
-                        min = sec // 60
+                        minutes = sec // 60
                         sec = sec % 60
-                        if min > 60:
-                            h = min // 24
-                            min = min % 24
-                            hinfo = "%02dh:%02dm:%02ds left" % (h, min, sec)
+                        if minutes > 60:
+                            h = minutes // 24
+                            minutes = minutes % 24
+                            hinfo = "%02dh:%02dm:%02ds left" % (h, minutes, sec)
                         else:
-                            hinfo = "%02dm:%02ds left" % (min, sec)
+                            hinfo = "%02dm:%02ds left" % (minutes, sec)
                     else:
                         hinfo = "%02ds left" % sec
 
