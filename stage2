@@ -218,10 +218,10 @@ class Stage2(metaclass=LogBase):
                                 filename = data[idx + 0x1B:idx + 0x3D].rstrip(b"\x00").decode('utf-8')
                             with open(os.path.join("logs", filename), "wb") as wf:
                                 wf.write(data[start:start + length])
-                                print("Done writing to " + os.path.join("logs", filename))
+                                print(f"Done writing to {os.path.join('logs', filename)}")
                             with open(os.path.join("logs", "hdr_" + filename), "wb") as wf:
                                 wf.write(data[:start])
-                                print("Done writing to " + os.path.join("logs", "hdr_" + filename))
+                                print(f"Done writing to {os.path.join('logs', 'hdr_' + filename)}")
 
                             return
                 else:
@@ -267,7 +267,7 @@ class Stage2(metaclass=LogBase):
                 wf.write(self.usbread(size))
             bytestoread -= size
             pos += size
-        self.info(f"{hex(start)}: " + hexlify(data).decode('utf-8'))
+        self.info(f"{hex(start)}: {hexlify(data).decode('utf-8')}")
         if filename is not None:
             wf.close()
         return data
@@ -377,25 +377,25 @@ class Stage2(metaclass=LogBase):
         meid = self.config.get_meid()
         socid = self.config.get_socid()
         if meid is not None:
-            self.info("MEID        : " + hexlify(meid).decode('utf-8'))
+            self.info(f"MEID        : {hexlify(meid).decode('utf-8')}")
         else:
             try:
                 if self.config.chipconfig.meid_addr is not None:
                     meid = self.memread(self.config.chipconfig.meid_addr, 16)
                     self.config.set_meid(meid)
-                    self.info("MEID        : " + hexlify(meid).decode('utf-8'))
+                    self.info(f"MEID        : {hexlify(meid).decode('utf-8')}")
                     retval["meid"] = hexlify(meid).decode('utf-8')
             except Exception as err:
                 pass
         if socid is not None:
-            self.info("SOCID        : " + hexlify(socid).decode('utf-8'))
+            self.info(f"SOCID        : {hexlify(socid).decode('utf-8')}")
             retval["socid"] = socid
         else:
             try:
                 if self.config.chipconfig.socid_addr is not None:
                     socid = self.memread(self.config.chipconfig.socid_addr, 32)
                     self.config.set_socid(socid)
-                    self.info("SOCID        : " + hexlify(socid).decode('utf-8'))
+                    self.info(f"SOCID        : {hexlify(socid).decode('utf-8')}")
                     retval["socid"] = hexlify(socid).decode('utf-8')
             except Exception as err:
                 pass
@@ -407,32 +407,32 @@ class Stage2(metaclass=LogBase):
             ikey = self.hwcrypto.aes_hwcrypt(btype="dxcc", mode="itrustee")
             platkey, provkey = self.hwcrypto.aes_hwcrypt(btype="dxcc", mode="prov")
             keyinfo += "\nKeys :\n-----------------------------------------\n"
-            keyinfo += "RPMB:         " + hexlify(rpmbkey).decode('utf-8') + "\n"
-            keyinfo += "RPMB2:         " + hexlify(rpmb2key).decode('utf-8') + "\n"
-            keyinfo += "FDE :         " + hexlify(fdekey).decode('utf-8') + "\n"
-            keyinfo += "iTrustee:     " + hexlify(ikey).decode('utf-8') + "\n"
-            keyinfo += "Platform:     " + hexlify(platkey).decode('utf-8') + "\n"
-            keyinfo += "Provisioning: " + hexlify(provkey).decode('utf-8') + "\n"
+            keyinfo += f"RPMB:         {hexlify(rpmbkey).decode('utf-8')}\n"
+            keyinfo += f"RPMB2:        {hexlify(rpmb2key).decode('utf-8')}\n"
+            keyinfo += f"FDE :         {hexlify(fdekey).decode('utf-8')}\n"
+            keyinfo += f"iTrustee:     {hexlify(ikey).decode('utf-8')}\n"
+            keyinfo += f"Platform:     {hexlify(platkey).decode('utf-8')}\n"
+            keyinfo += f"Provisioning: {hexlify(provkey).decode('utf-8')}\n"
             keyinfo += "\n"
             if rpmbkey is not None:
-                self.info("RPMB        : " + hexlify(rpmbkey).decode('utf-8'))
+                self.info(f"RPMB        : {hexlify(rpmbkey).decode('utf-8')}")
                 self.config.hwparam.writesetting("rpmbkey", hexlify(rpmbkey).decode('utf-8'))
                 retval["rpmbkey"] = hexlify(rpmbkey).decode('utf-8')
             if rpmb2key is not None:
-                self.info("RPMB2       : " + hexlify(rpmb2key).decode('utf-8'))
+                self.info(f"RPMB2       : {hexlify(rpmb2key).decode('utf-8')}")
                 self.config.hwparam.writesetting("rpmb2key", hexlify(rpmb2key).decode('utf-8'))
                 retval["rpmb2key"] = hexlify(rpmb2key).decode('utf-8')
             if fdekey is not None:
-                self.info("FDE         : " + hexlify(fdekey).decode('utf-8'))
+                self.info(f"FDE         : {hexlify(fdekey).decode('utf-8')}")
                 self.config.hwparam.writesetting("fdekey", hexlify(fdekey).decode('utf-8'))
                 retval["fdekey"] = hexlify(fdekey).decode('utf-8')
             if ikey is not None:
-                self.info("iTrustee    : " + hexlify(ikey).decode('utf-8'))
+                self.info(f"iTrustee    : {hexlify(ikey).decode('utf-8')}")
                 self.config.hwparam.writesetting("kmkey", hexlify(ikey).decode('utf-8'))
                 retval["kmkey"] = hexlify(ikey).decode('utf-8')
             if self.config.chipconfig.prov_addr:
                 provkey = self.memread(self.config.chipconfig.prov_addr, 16)
-                self.info("PROV        : " + hexlify(provkey).decode('utf-8'))
+                self.info(f"PROV        : {hexlify(provkey).decode('utf-8')}")
                 self.config.hwparam.writesetting("provkey", hexlify(provkey).decode('utf-8'))
                 retval["provkey"] = hexlify(provkey).decode('utf-8')
             return retval, keyinfo
@@ -441,57 +441,45 @@ class Stage2(metaclass=LogBase):
             retval = {}
             rpmbkey = self.hwcrypto.aes_hwcrypt(mode="rpmb", data=meid, otp=otp, btype="sej")
             if rpmbkey:
-                self.info("RPMB        : " + hexlify(rpmbkey).decode('utf-8'))
+                self.info(f"RPMB        : {hexlify(rpmbkey).decode('utf-8')}")
                 self.config.hwparam.writesetting("rpmbkey", hexlify(rpmbkey).decode('utf-8'))
                 retval["rpmbkey"] = hexlify(rpmbkey).decode('utf-8')
             self.info("Generating sej mtee...")
             mtee = self.hwcrypto.aes_hwcrypt(mode="mtee", otp=otp, btype="sej")
             if mtee:
-                self.info("MTEE        : " + hexlify(mtee).decode('utf-8'))
+                self.info(f"MTEE        : {hexlify(mtee).decode('utf-8')}")
                 self.config.hwparam.writesetting("mtee", hexlify(mtee).decode('utf-8'))
                 retval["mtee"] = hexlify(mtee).decode('utf-8')
             mtee3 = self.hwcrypto.aes_hwcrypt(mode="mtee3", otp=otp, btype="sej")
             if mtee3:
-                self.info("MTEE3       : " + hexlify(mtee3).decode('utf-8'))
+                self.info(f"MTEE3       : {hexlify(mtee3).decode('utf-8')}")
                 self.config.hwparam.writesetting("mtee3", hexlify(mtee3).decode('utf-8'))
                 retval["mtee3"] = hexlify(mtee3).decode('utf-8')
 
             keyinfo += "\nKeys :\n-----------------------------------------\n"
-            keyinfo += "RPMB: " + hexlify(rpmbkey).decode('utf-8')
-            keyinfo += "\n"
-            keyinfo += "MTEE: " + hexlify(mtee).decode('utf-8')
-            keyinfo += "\n"
+            keyinfo += f"RPMB: {hexlify(rpmbkey).decode('utf-8')}\n"
+            keyinfo += f"MTEE: {hexlify(mtee).decode('utf-8')}\n"
             retval["rpmbkey"] = hexlify(rpmbkey).decode('utf-8')
             return retval, keyinfo
         if mode == "sej_aes_decrypt":
             dec_data = self.hwcrypto.aes_hwcrypt(mode="cbc", data=data, btype="sej", encrypt=False, otp=otp)
-            keyinfo += "\n"
-            keyinfo += "Data: " + hexlify(dec_data).decode('utf-8')
-            keyinfo += "\n"
+            keyinfo += f"\nData: {hexlify(dec_data).decode('utf-8')}\n"
             return dec_data, keyinfo
         elif mode == "sej_aes_encrypt":
             enc_data = self.hwcrypto.aes_hwcrypt(mode="cbc", data=data, btype="sej", encrypt=True, otp=otp)
-            keyinfo += "\n"
-            keyinfo += "Data: " + hexlify(enc_data).decode('utf-8')
-            keyinfo += "\n"
+            keyinfo += f"\nData: {hexlify(enc_data).decode('utf-8')}\n"
             return enc_data, keyinfo
         elif mode == "sej_sst_decrypt":
             dec_data = self.hwcrypto.aes_hwcrypt(mode="sst", data=data, btype="sej", encrypt=False, otp=otp)
-            keyinfo += "\n"
-            keyinfo += "Data: " + hexlify(dec_data).decode('utf-8')
-            keyinfo += "\n"
+            keyinfo += f"\nData: {hexlify(dec_data).decode('utf-8')}\n"
             return dec_data, keyinfo
         elif mode == "sej_sst_encrypt":
             enc_data = self.hwcrypto.aes_hwcrypt(mode="sst", data=data, btype="sej", encrypt=True, otp=otp)
-            keyinfo += "\n"
-            keyinfo += "Data: " + hexlify(enc_data).decode('utf-8')
-            keyinfo += "\n"
+            keyinfo += f"\nData: {hexlify(enc_data).decode('utf-8')}\n"
             return enc_data, keyinfo
         elif mode == "dxcc_sha256":
             sha256val = self.hwcrypto.aes_hwcrypt(mode="sha256", data=data, btype="dxcc")
-            keyinfo += "\n"
-            keyinfo += "SHA256: " + hexlify(sha256val).decode('utf-8')
-            keyinfo += "\n"
+            keyinfo += f"\nSHA256: {hexlify(sha256val).decode('utf-8')}\n"
             return sha256val, keyinfo
         return None, ""
 
