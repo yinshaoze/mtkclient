@@ -303,7 +303,7 @@ class DALegacy(metaclass=LogBase):
             pdram[0] = draminfo[:9]
             draminfo = draminfo[:4][::-1] + draminfo[4:8][::-1] + draminfo[8:12][::-1] + draminfo[12:16][::-1]
             pdram[1] = draminfo[:9]
-            self.info("DRAM config needed for : " + hexlify(draminfo).decode('utf-8'))
+            self.info(f"DRAM config needed for : {hexlify(draminfo).decode('utf-8')}")
             if self.daconfig.emi is None:
                 found = False
                 for root, dirs, files in os.walk(os.path.join(self.pathconfig.get_loader_path(), 'Preloader')):
@@ -312,7 +312,7 @@ class DALegacy(metaclass=LogBase):
                             data = rf.read()
                             if pdram[0] in data or pdram[1] in data:
                                 preloader = os.path.join(root, file)
-                                print("Detected preloader: " + preloader)
+                                print(f"Detected preloader: {preloader}")
                                 self.daconfig.extract_emi(preloader)
                                 found = True
                                 break
@@ -347,25 +347,25 @@ class DALegacy(metaclass=LogBase):
                         dramlength = len(self.daconfig.emi)
                         if self.daconfig.emiver in [0xF, 0x10, 0x11, 0x14, 0x15]:
                             dramlength = unpack(">I", self.usbread(0x4))[0]  # 0x000000BC
-                            self.info("RAM-Length: " + hex(dramlength))
+                            self.info(f"RAM-Length: {hex(dramlength)}")
                             self.usbwrite(self.Rsp.ACK)
                             lendram = len(self.daconfig.emi)
                             if hwcode != 0x8127:
                                 self.usbwrite(pack(">I", lendram))
                         elif self.daconfig.emiver in [0x0B]:
                             info = self.usbread(0x10)  # 0x000000BC
-                            self.info("RAM-Info: " + hexlify(info).decode('utf-8'))
+                            self.info(f"RAM-Info: {hexlify(info).decode('utf-8')}")
                             dramlength = unpack(">I", self.usbread(0x4))[0]
                             self.usbwrite(self.Rsp.ACK)
                         elif self.daconfig.emiver in [0x0C, 0x0D]:
                             dramlength = unpack(">I", self.usbread(0x4))[0]
-                            self.info("RAM-Length: " + hex(dramlength))
+                            self.info(f"RAM-Length: {hex(dramlength)}")
                             self.usbwrite(self.Rsp.ACK)
                             self.daconfig.emi = self.daconfig.emi[:dramlength]
                             self.daconfig.emi = pack(">I", 0x100) + self.daconfig.emi[0x4:dramlength]
                         elif self.daconfig.emiver in [0x00]:
                             dramlength = unpack(">I", self.usbread(0x4))[0]  # 0x000000B0
-                            self.info("RAM-Length: " + hex(dramlength))
+                            self.info(f"RAM-Length: {hex(dramlength)}")
                             self.usbwrite(self.Rsp.ACK)
                             lendram = len(self.daconfig.emi)
                             self.daconfig.emi = self.daconfig.emi[:dramlength]
@@ -582,7 +582,7 @@ class DALegacy(metaclass=LogBase):
 
             self.info("Reading nand info")
             nandinfo = unpack(">I", self.usbread(4))[0]
-            self.debug("NAND_INFO: " + hex(nandinfo))
+            self.debug(f"NAND_INFO: {hex(nandinfo)}")
             ids = unpack(">H", self.usbread(2))[0]
             nandids = []
             for i in range(0, ids):
@@ -590,7 +590,7 @@ class DALegacy(metaclass=LogBase):
                 nandids.append(tmp)
             self.info("Reading emmc info")
             emmcinfolegacy = unpack(">I", self.usbread(4))[0]
-            self.debug("EMMC_INFO: " + hex(emmcinfolegacy))
+            self.debug(f"EMMC_INFO: {hex(emmcinfolegacy)}")
             emmcids = []
             for i in range(0, 4):
                 tmp = unpack(">I", self.usbread(4))[0]
@@ -607,7 +607,7 @@ class DALegacy(metaclass=LogBase):
             ackval = self.usbread(1)
             ackval += self.usbread(1)
             ackval += self.usbread(1)
-            self.info("ACK: " + hexlify(ackval).decode('utf-8'))
+            self.info(f"ACK: {hexlify(ackval).decode('utf-8')}")
             self.info("Setting stage 2 config ...")
             if self.set_stage2_config(self.config.hwcode):
                 self.info("Uploading stage 2...")
@@ -791,7 +791,7 @@ class DALegacy(metaclass=LogBase):
                 buffer = self.usbread(1)
                 if buffer != self.Rsp.ACK:
                     self.error(
-                        f"Error on sending brom stage {stage} addr {hex(address+pos)}: " + hexlify(buffer).decode('utf-8'))
+                        f"Error on sending brom stage {stage} addr {hex(address+pos)}: {hexlify(buffer).decode('utf-8')}")
                     self.config.set_gui_status(self.config.tr("Error on sending brom stage"))
                     break
             time.sleep(0.5)
@@ -802,7 +802,7 @@ class DALegacy(metaclass=LogBase):
                 self.config.set_gui_status(self.config.tr(f"Successfully uploaded stage {stage}"))
                 return True
         else:
-            self.error(f"Error on sending brom stage {stage} : " + hexlify(buffer).decode('utf-8'))
+            self.error(f"Error on sending brom stage {stage} : {hexlify(buffer).decode('utf-8')}")
             self.config.set_gui_status(self.config.tr("Error on sending brom stage"))
         return False
 

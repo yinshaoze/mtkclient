@@ -160,9 +160,9 @@ class DAconfig(metaclass=LogBase):
                 self.parse_da_loader(loader, self.dasetup)
         else:
             if not os.path.exists(loader):
-                self.warning("Couldn't open " + loader)
+                self.warning(f"Couldn't open {loader}")
             else:
-                self.info("Using custom loader: " + loader)
+                self.info(f"Using custom loader: {loader}")
                 self.parse_da_loader(loader, self.dasetup)
 
     def m_extract_emi(self, data):
