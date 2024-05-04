@@ -7,7 +7,8 @@ from capstone import (Cs, CS_MODE_BIG_ENDIAN, CS_MODE_LITTLE_ENDIAN,
                       CS_MODE_ARM, CS_MODE_THUMB, CS_MODE_V8, CS_MODE_V9,
                       CS_MODE_MCLASS, CS_MODE_MICRO, CS_MODE_MIPS32, CS_MODE_MIPS64,
                       CS_MODE_MIPS32R6, CS_MODE_16, CS_MODE_32, CS_MODE_64)
-from keystone import (Ks, KS_MODE_BIG_ENDIAN, KS_MODE_LITTLE_ENDIAN, KS_ARCH_ARM, KS_MODE_THUMB, KS_MODE_ARM, KS_MODE_V8,
+from keystone import (Ks, KS_MODE_BIG_ENDIAN, KS_MODE_LITTLE_ENDIAN, KS_ARCH_ARM, KS_MODE_THUMB, KS_MODE_ARM,
+                      KS_MODE_V8,
                       KS_ARCH_ARM64, KS_ARCH_MIPS, KS_MODE_MICRO, KS_MODE_MIPS3, KS_MODE_MIPS32R6,
                       KS_MODE_MIPS32, KS_MODE_MIPS64, KS_MODE_16, KS_MODE_32, KS_MODE_64, KS_ARCH_X86,
                       KS_ARCH_PPC, KS_MODE_PPC32, KS_MODE_PPC64, KS_MODE_QPX,
@@ -193,7 +194,7 @@ def main():
         print("[asmtools] Usage: -asm cpu,mode or -disasm cpu,mode")
         exit(0)
 
-    if (args.infile == '' and args.inp == ''):
+    if not args.infile == '' and args.inp == '':
         print("[asmtools] I must have an infile to work on (-in) or a string input (--inp")
         exit(0)
 
@@ -251,4 +252,5 @@ def main():
         '''
 
 
-main()
+if __name__ == '__main__':
+    main()
