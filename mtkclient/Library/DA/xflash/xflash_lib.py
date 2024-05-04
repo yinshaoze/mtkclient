@@ -109,7 +109,7 @@ class DAXFlash(metaclass=LogBase):
             hdr = self.usbread(4 + 4 + 4)
             magic, datatype, length = unpack("<III", hdr)
         except Exception as err:
-            self.error("xread error: " + str(err))
+            self.error(f"xread error: {str(err)}")
             return -1
         if magic != 0xFEEEEEEF:
             self.error("xread error: Wrong magic")

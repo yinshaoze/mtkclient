@@ -718,7 +718,7 @@ class Scsi:
         ret_tag += self.send_mass_storage_command(lun, common_cmnd, USB_DIR_IN, datasize)
         if datasize > 0:
             data = self.usb.read(datasize, timeout)
-            print("DATA: " + hexlify(data).decode('utf-8'))
+            print(f"DATA: {hexlify(data).decode('utf-8')}")
         print("Sent HTC adb enable command")
 
     def send_htc_ums_adbenable(self):  # HTC10
@@ -778,7 +778,7 @@ class Scsi:
             # ret_tag+=self.send_mass_storage_command(lun, common_cmnd, USB_DIR_IN, 0x600)
             if datasize > 0:
                 data = self.usb.read(datasize, timeout)
-                print("DATA: " + hexlify(data).decode('utf-8'))
+                print(f"DATA: {hexlify(data).decode('utf-8')}")
             print("Sent FIH adb enable command")
             self.usb.close()
 

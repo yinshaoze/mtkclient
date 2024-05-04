@@ -66,7 +66,7 @@ def main():
                 print("Reserved3: 0x%04X" % da[0]["reserved3"])
                 for i in range(da[0]["entry_region_count"]):
                     entry = da[i + 1]
-                    print(f"\t{i}: " + hex(entry['m_start_addr']))
+                    print(f"\t{i}: {hex(entry['m_start_addr'])}")
                 mbuf = da[3]["m_buf"]
                 m_len = da[3]["m_len"]
                 startaddr = da[3]["m_start_addr"]
