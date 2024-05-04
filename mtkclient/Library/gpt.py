@@ -328,9 +328,8 @@ class gpt(metaclass=LogBase):
 
     def print_gptfile(self, filename):
         try:
-            filesize = os.stat(filename).st_size
             with open(filename, "rb") as rf:
-                size = min(32 * 4096, filesize)
+                size = min(32 * 4096, os.stat(filename).st_size)
                 data = rf.read(size)
                 for sectorsize in [512, 4096]:
                     result = self.parse(data, sectorsize)

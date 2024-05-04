@@ -323,17 +323,13 @@ def do_tcp_server(client, arguments, handler):
                     for line in lines:
                         if ":" in line:
                             cmd = line.split(":")[0]
-                            marguments = line.split(":")[1]
                             try:
-                                opts = parse_args(cmd, marguments, arguments)
+                                opts = parse_args(cmd, line.split(":")[1], arguments)
                             except Exception:
                                 response = "Wrong arguments\n<NAK>\n"
                                 opts = None
                             if opts is not None:
-                                if handler(cmd, opts):
-                                    response = "<ACK>\n"
-                                else:
-                                    response = "<NAK>\n"
+                                response = "<ACK>\n" if handler(cmd, opts) else "<NAK>\n"
                             connection.sendall(bytes(response, 'utf-8'))
         finally:
             connection.close()
@@ -341,11 +337,7 @@ def do_tcp_server(client, arguments, handler):
 
 def parse_args(cmd, args, mainargs):
     options = {}
-    opts = None
-    if "," in args:
-        opts = args.split(",")
-    else:
-        opts = [args]
+    opts = args.split(",") if "," in args else [args]
     for arg in mainargs:
         if "--" in arg:
             options[arg] = mainargs[arg]
@@ -605,7 +597,7 @@ class elf:
         elif self.elfclass == 2:  # 64Bit
             start = 0x34
         else:
-            print("Error on parsing " + self.filename)
+            print(f"Error on parsing {self.filename}")
             return ['', '']
         elfheadersize, programheaderentrysize, programheaderentrycount = struct.unpack("<HHH",
                                                                                        self.data[start:start + 3 * 2])
@@ -821,7 +813,7 @@ def print_progress(iteration, total, prefix='', suffix='', decimals=1, bar_lengt
     filled_length = int(round(bar_length * iteration / float(total)))
     bar = '█' * filled_length + '-' * (bar_length - filled_length)
 
-    sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix))
+    sys.stdout.write(f'\r{prefix} |{bar}| {percents}% {suffix}')
 
     if iteration == total:
         sys.stdout.write('\n')

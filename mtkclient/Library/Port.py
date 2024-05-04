@@ -116,7 +116,7 @@ class Port(metaclass=LogBase):
                     sys.stdout.flush()
 
             except Exception as serr:
-                print("Handshake: " + str(serr))
+                print(f"Handshake: {str(serr)}")
                 if "access denied" in str(serr):
                     self.warning(str(serr))
                 self.debug(str(serr))
@@ -194,13 +194,13 @@ class Port(metaclass=LogBase):
             else:
                 cmdrsp = self.usbread(dlen)
                 if cmdrsp[0] is not value[0]:
-                    self.error("Cmd error :" + hexlify(cmdrsp).decode('utf-8'))
+                    self.error(f"Cmd error :{hexlify(cmdrsp).decode('utf-8')}")
                     return -1
                 if bytestoread > 0:
                     resp = self.usbread(bytestoread)
                 return resp
         else:
-            self.warning("Couldn't send :" + hexlify(value).decode('utf-8'))
+            self.warning(f"Couldn't send :{hexlify(value).decode('utf-8')}")
             return resp
 
     def echo(self, data):
