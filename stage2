@@ -99,7 +99,7 @@ class Stage2(metaclass=LogBase):
         return result
 
     def cmd_C8(self, val) -> bool:
-        'Clear cache func'
+        """Clear cache func"""
         self.usbwrite(pack(">I", 0xf00dd00d))
         self.usbwrite(pack(">I", 0x5000))
         ack = self.usbread(4)
