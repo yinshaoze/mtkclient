@@ -48,7 +48,7 @@ def ldr_lit(curpc, instr):
 
 def ldr_imm(instr):
     simm5 = (instr >> 6) & 0x1F
-    sRt = (instr) & 0x7
+    sRt = instr & 0x7
     sRn = (instr >> 3) & 0x7
     return simm5, sRt, sRn
 
