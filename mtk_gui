@@ -165,11 +165,7 @@ class MainWindow(QMainWindow):
             fullPercentageDone = int((doneBytes / totalBytes) * 100)
             self.ui.fullProgress.setValue(fullPercentageDone)
             timeinfototal = self.timeEstTotal.update(fullPercentageDone, 100)
-            self.ui.fullProgressText.setText("<table width='100%'><tr><td><b>Total:</b> " +
-                                             convert_size(doneBytes) + " / " + convert_size(totalBytes) +
-                                             "</td><td align='right'>" + timeinfototal +
-                                             QCoreApplication.translate("main", " left") +
-                                             "</td></tr></table>")
+            self.ui.fullProgressText.setText(f"<table width='100%'><tr><td><b>Total:</b> {convert_size(doneBytes)} / {convert_size(totalBytes)}</td><td align='right'>{timeinfototal}{QCoreApplication.translate('main', ' left')}</td></tr></table>")
         else:
             partBytes = self.Status["currentPartitionSize"]
             doneBytes = self.Status["currentPartitionSizeDone"]
