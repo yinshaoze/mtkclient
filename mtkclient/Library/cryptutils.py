@@ -76,7 +76,8 @@ class cryptutils:
     class aes:
         # GF(2^128) defined by 1 + a + a^2 + a^7 + a^128
         # Please note the MSB is x0 and LSB is x127
-        def gf_2_128_mul(self, x, y):
+        @staticmethod
+        def gf_2_128_mul(x, y):
             assert x < (1 << 128)
             assert y < (1 << 128)
             res = 0
@@ -367,7 +368,8 @@ class cryptutils:
             x = bytes.fromhex(h)
             return b'\x00' * int(x_len - len(x)) + x
 
-        def os2ip(self, x):
+        @staticmethod
+        def os2ip(x):
             """Converts the byte string x representing an integer reprented using the
                big-endian convient to an integer.
             """
