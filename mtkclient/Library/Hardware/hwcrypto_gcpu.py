@@ -642,7 +642,7 @@ class GCpu(metaclass=LogBase):
             self.aes_setup_cbc(addr, data)
 
     def mtk_crypto_hmac_sha256_by_devkey_using_seed(self, seed, data):
-        dev_key = bytearray("\x00" * 16)
+        dev_key = bytearray(16)
         self.init()
         if not self.load_hw_key(0x30):
             self.memptr_set(0x12, seed)
