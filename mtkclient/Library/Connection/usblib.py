@@ -756,7 +756,7 @@ class Scsi:
         ret_tag += self.send_mass_storage_command(lun, common_cmnd2, USB_DIR_IN, datasize)
         if datasize > 0:
             data = self.usb.read(datasize, timeout)
-            print("DATA: " + hexlify(data).decode('utf-8'))
+            print(f"DATA: {hexlify(data).decode('utf-8')}")
         print("Send HTC adb enable command")
 
     def send_fih_adbenable(self):  # motorola xt560, nokia 3.1, #f_mass_storage.c
@@ -793,7 +793,7 @@ class Scsi:
             self.send_mass_storage_command(lun, common_cmnd, USB_DIR_IN, 0x600)
             if datasize > 0:
                 data = self.usb.read(datasize, timeout)
-                print("DATA: " + hexlify(data).decode('utf-8'))
+                print(f"DATA: {hexlify(data).decode('utf-8')}")
             print("Sent alcatel adb enable command")
             self.usb.close()
 
@@ -812,7 +812,7 @@ class Scsi:
             ret_tag += self.send_mass_storage_command(lun, common_cmnd, USB_DIR_IN, 0x600)
             if datasize > 0:
                 data = self.usb.read(datasize, timeout)
-                print("DATA: " + hexlify(data).decode('utf-8'))
+                print(f"DATA: {hexlify(data).decode('utf-8')}")
             print("Sent FIH root command")
             self.usb.close()
 
