@@ -65,7 +65,6 @@ def main():
         mpos = find_binary(data, b"\xA0\x0A\x50\x05.\x00\x00\x00", 0)
         usbdl_get_dword = None
         usbdl_put_dword = None
-        usbdl_put_word = None
         if mpos is not None:
             usbdl_put_data = unpack("<I", data[mpos - 0xC:mpos - 0xC + 4])[0]
             base = (((usbdl_put_data >> 16) & 0xFFFFF) << 16)
@@ -321,7 +320,6 @@ def main():
                                  unpack("<H", data[coffs:coffs + 2])[0])
         except:
             print("Err:" + sys.argv[1])
-        send_ptr_offset = offset
         send_ptr = unpack("<I", data[offset:offset + 4])[0] + 8
         send_ptr_offset = base | offset
         ctrl_addr = None
