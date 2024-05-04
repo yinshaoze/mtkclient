@@ -561,7 +561,7 @@ class Main(metaclass=LogBase):
                                 for pos in range(offset, offset + length, rlen):
                                     print("Reading pos %08X" % pos)
                                     res = mtk.preloader.read32(pos, rlen // 4)
-                                    if res == []:
+                                    if not res:
                                         break
                                     print(hexlify(b"".join([pack("<I", val) for val in res])).decode('utf-8'))
 
