@@ -1,22 +1,22 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # (c) B.Kerler 2018-2023
-import collections
-import sys
+import codecs
+import copy
+import datetime as dt
+import io
 import logging
 import logging.config
-import codecs
-import struct
 import os
 import shutil
 import stat
-import colorama
-import copy
+import struct
+import sys
 import time
-import io
-import datetime as dt
-from struct import unpack, pack
 from io import BytesIO
+from struct import unpack, pack
+
+import colorama
 
 try:
     from capstone import Cs, CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN
@@ -760,7 +760,7 @@ class patchtools:
         return None
 
 
-def read_object(data: object, definition: collections.Iterable) -> dict:
+def read_object(data: object, definition) -> dict:
     """
     Unpacks a structure using the given data and definition.
     """
