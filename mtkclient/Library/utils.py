@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # (c) B.Kerler 2018-2023
+import collections
 import sys
 import logging
 import logging.config
@@ -759,7 +760,7 @@ class patchtools:
         return None
 
 
-def read_object(data: object, definition: object) -> dict:
+def read_object(data: object, definition: collections.Iterable) -> dict:
     """
     Unpacks a structure using the given data and definition.
     """
