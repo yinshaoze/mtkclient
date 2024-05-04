@@ -154,10 +154,11 @@ class progress:
         else:
             self.guiprogress = None
 
-    def calcProcessTime(self, starttime, cur_iter, max_iter):
+    @staticmethod
+    def calcProcessTime(starttime, cur_iter, max_iter):
         telapsed = time.time() - starttime
         if telapsed > 0 and cur_iter > 0:
-            testimated = (telapsed / cur_iter) * (max_iter)
+            testimated = (telapsed / cur_iter) * max_iter
             finishtime = starttime + testimated
             finishtime = dt.datetime.fromtimestamp(finishtime).strftime("%H:%M:%S")  # in time
             lefttime = testimated - telapsed  # in seconds
@@ -221,7 +222,8 @@ class progress:
                 print_progress(prog, 100, prefix='Progress:',
                                suffix=prefix + f' (Sector 0x%X of 0x%X, {hinfo}) %0.2f MB/s' % (pos // self.pagesize,
                                                                                                 total // self.pagesize,
-                                                                                                throughput), bar_length=50)
+                                                                                                throughput),
+                               bar_length=50)
                 self.prog = prog
                 self.progpos = pos
                 self.progtime = t0
@@ -625,7 +627,8 @@ class patchtools:
     def __init__(self, bdebug=False):
         self.bDebug = bdebug
 
-    def has_bad_uart_chars(self, data):
+    @staticmethod
+    def has_bad_uart_chars(data):
         badchars = [b'\x00', b'\n', b'\r', b'\x08', b'\x7f', b'\x20', b'\x09']
         for idx, c in enumerate(data):
             c = bytes([c])
@@ -642,7 +645,7 @@ class patchtools:
             badchars = self.has_bad_uart_chars(data)
             if not badchars:
                 badchars = self.has_bad_uart_chars(data2)
-                if not (badchars):
+                if not badchars:
                     return div
             div += 4
 
@@ -665,19 +668,17 @@ class patchtools:
         abase = ((offset + div) & 0xFFFF0000) >> 16
         a = ((offset + div) & 0xFFFF)
         strasm = ""
+        strasm += f"# {hex(offset)}\n"
+        strasm += f"mov {reg}, #{hex(a)};\n"
+        strasm += f"movk {reg}, #{hex(abase)}, LSL#16;\n"
         if div > 0:
-            strasm += "# " + hex(offset) + "\n"
-            strasm += "mov " + reg + ", #" + hex(a) + ";\n"
-            strasm += "movk " + reg + ", #" + hex(abase) + ", LSL#16;\n"
-            strasm += "sub  " + reg + ", " + reg + ", #" + hex(div) + ";\n"
+            strasm += f"sub  {reg}, {reg}, #{hex(div)};\n"
         else:
-            strasm += "# " + hex(offset) + "\n"
-            strasm += "mov " + reg + ", #" + hex(a) + ";\n"
-            strasm += "movk " + reg + ", #" + hex(abase) + ", LSL#16;\n"
-            strasm += "add  " + reg + ", " + reg + ", #" + hex(-div) + ";\n"
+            strasm += f"add  {reg}, {reg}, #{hex(-div)};\n"
         return strasm
 
-    def uart_valid_sc(self, sc):
+    @staticmethod
+    def uart_valid_sc(sc):
         badchars = [b'\x00', b'\n', b'\r', b'\x08', b'\x7f', b'\x20', b'\x09']
         for idx, c in enumerate(sc):
             c = bytes([c])
@@ -687,12 +688,11 @@ class patchtools:
                 return False
         return True
 
-    def disasm(self, code, size):
+    @staticmethod
+    def disasm(code, size):
         cs = Cs(CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN)
-        instr = []
-        for i in cs.disasm(code, size):
-            # print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
-            instr.append("%s\t%s" % (i.mnemonic, i.op_str))
+        instr = [f"{i.mnemonic}\t{i.op_str}" for i in cs.disasm(code, size)]
+        # print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
         return instr
 
     def assembler(self, code):
@@ -735,7 +735,8 @@ class patchtools:
 
         return out
 
-    def find_binary(self, data, strf, pos=0):
+    @staticmethod
+    def find_binary(data, strf, pos=0):
         t = strf.split(b".")
         pre = 0
         offsets = []
@@ -752,7 +753,7 @@ class patchtools:
                                 continue
                             rt += 1
                             prep = data[rt:].find(t[i])
-                            if (prep != 0):
+                            if prep != 0:
                                 error = 1
                                 break
                             rt += len(t[i])
