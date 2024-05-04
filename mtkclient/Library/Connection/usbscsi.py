@@ -8,7 +8,7 @@ from mtkclient.Library.Connection.usblib import Scsi
 def main():
     info = 'MassStorageBackdoor (c) B.Kerler 2019.'
     parser = argparse.ArgumentParser(description=info)
-    print("\n" + info + "\n\n")
+    print(f"\n{info}\n\n")
     parser.add_argument('-vid', metavar="<vid>", help='[Option] Specify vid, default=0x2e04)', default="0x2e04")
     parser.add_argument('-pid', metavar="<pid>", help='[Option] Specify pid, default=0xc025)', default="0xc025")
     parser.add_argument('-interface', metavar="<pid>", help='[Option] Specify interface number)', default="")

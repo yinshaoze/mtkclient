@@ -446,13 +446,13 @@ class MainWindow(QMainWindow):
         return
 
     def on_eraseboot2(self):
-        self.eraseflash.eraseBoot2()
+        self.eraseflash.eraseFlash("boot2")
 
     def on_erasepreloader(self):
-        self.eraseflash.erasePreloader()
+        self.eraseflash.eraseFlash("boot1")
 
     def on_eraserpmb(self):
-        self.eraseflash.eraseRpmb()
+        self.eraseflash.eraseFlash("rpmb")
 
     def on_generatekeys(self):
         self.genkeys.generateKeys()
