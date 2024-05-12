@@ -1050,7 +1050,8 @@ class dxcc(metaclass=LogBase):
     def sasi_paldmaunmap(self, value1):
         return
 
-    def sasi_paldmamap(self, value1):
+    @staticmethod
+    def sasi_paldmamap(value1):
         # value2=value1
         return value1
 
@@ -1305,12 +1306,14 @@ class dxcc(metaclass=LogBase):
             self.sasi_sb_adddescsequence(xdesc)
         return self.SB_HalWaitDescCompletion() == 0
 
-    def mtee_decrypt(self, data):
+    @staticmethod
+    def mtee_decrypt(data):
         key = bytes.fromhex("B936C14D95A99585073E5607784A51F7444B60D6BFD6110F76D004CCB7E1950E")
         skey = hashlib.sha256(key).digest()
         return AES.new(key=skey[:16], iv=skey[16:], mode=AES.MODE_CBC).decrypt(data)
 
-    def descramble(self, data):
+    @staticmethod
+    def descramble(data):
         key = bytes.fromhex("5C0E349A27DC46034C7B6744A378BD17")
         iv = bytes.fromhex("A0B0924686447109F2D51DCDDC93458A")
         ctr = Counter.new(128, initial_value=bytes_to_long(iv))

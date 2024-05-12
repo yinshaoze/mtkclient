@@ -160,9 +160,9 @@ class DAconfig(metaclass=LogBase):
                 self.parse_da_loader(loader, self.dasetup)
         else:
             if not os.path.exists(loader):
-                self.warning("Couldn't open " + loader)
+                self.warning(f"Couldn't open {loader}")
             else:
-                self.info("Using custom loader: " + loader)
+                self.info(f"Using custom loader: {loader}")
                 self.parse_da_loader(loader, self.dasetup)
 
     def m_extract_emi(self, data):
@@ -203,7 +203,7 @@ class DAconfig(metaclass=LogBase):
                 with open(preloader, "rb") as rf:
                     data = rf.read()
             else:
-                self.error("Preloader : " + preloader + " doesn't exist. Aborting.")
+                self.error(f"Preloader : {preloader} doesn't exist. Aborting.")
                 exit(1)
         try:
             self.emiver, self.emi = self.m_extract_emi(data)
@@ -211,17 +211,14 @@ class DAconfig(metaclass=LogBase):
             self.emiver = 0
             self.emi = None
 
-    def parse_da_loader(self, loader:str, dasetup:dict):
+    def parse_da_loader(self, loader: str, dasetup: dict):
         try:
             with open(loader, 'rb') as bootldr:
                 # data = bootldr.read()
                 # self.debug(hexlify(data).decode('utf-8'))
                 hdr = bootldr.read(0x68)
                 count_da = unpack("<I", bootldr.read(4))[0]
-                if b"MTK_DA_v6" in hdr:
-                    v6 = True
-                else:
-                    v6 = False
+                v6 = b"MTK_DA_v6" in hdr
                 for i in range(0, count_da):
                     bootldr.seek(0x6C + (i * 0xDC))
                     da = DA(bootldr.read(0xDC))
@@ -245,7 +242,7 @@ class DAconfig(metaclass=LogBase):
                                 dasetup[da.hw_code].append(da)
                 return True
         except Exception as e:
-            self.error("Couldn't open loader: " + loader + ". Reason: " + str(e))
+            self.error(f"Couldn't open loader: {loader}. Reason: {str(e)}")
         return False
 
     def setup(self):

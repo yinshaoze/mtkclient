@@ -184,7 +184,8 @@ class sej(metaclass=LogBase):
         else:
             self.__logger.setLevel(logging.INFO)
 
-    def uffs(self, x):
+    @staticmethod
+    def uffs(x):
         v1 = x
         if x & 0xFFFF:
             result = 1
@@ -669,7 +670,8 @@ class sej(metaclass=LogBase):
         hw_key = self.sej_do_aes(True, iv, swkey, 32)
         self.sej_set_key(AES_HW_WRAP_KEY, AES_KEY_256, hw_key)
 
-    def sej_sec_cfg_sw(self, data, encrypt=True):
+    @staticmethod
+    def sej_sec_cfg_sw(data, encrypt=True):
         """
         Left for reference - hw implementation
         --------------------------------------

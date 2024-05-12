@@ -642,7 +642,7 @@ class GCpu(metaclass=LogBase):
             self.aes_setup_cbc(addr, data)
 
     def mtk_crypto_hmac_sha256_by_devkey_using_seed(self, seed, data):
-        dev_key = bytearray("\x00" * 16)
+        dev_key = bytearray(16)
         self.init()
         if not self.load_hw_key(0x30):
             self.memptr_set(0x12, seed)
@@ -667,7 +667,7 @@ class GCpu(metaclass=LogBase):
 
     def mtk_crypto_hmac_sha256_by_devkey(self, data: bytearray, seed: bytearray):
         if seed is None:
-            seed = bytearray("\x00" * 16)
+            seed = bytearray(16)
         dev_val = self.get_devinfo_with_index(12)
         seed = xor_data(seed, dev_val, 4)
         dev_val = self.get_devinfo_with_index(13)
@@ -675,7 +675,8 @@ class GCpu(metaclass=LogBase):
         self.info("seed: " + hexlify(seed[:16]).decode('utf-8'))
         return self.mtk_crypto_hmac_sha256_by_devkey_using_seed(seed, data)
 
-    def byteswap(self, data):
+    @staticmethod
+    def byteswap(data):
         data = bytearray(data)
         for i in range(0, len(data) // 2):
             j = len(data) - i - 1

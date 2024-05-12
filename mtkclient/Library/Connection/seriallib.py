@@ -88,7 +88,7 @@ class serial_class(DeviceClass):
             for usbid in self.portconfig:
                 if port.pid == usbid[1] and port.vid == usbid[0]:
                     # portid = port.location[-1:]
-                    print(f"Detected {hex(port.vid)}:{hex(port.pid)} device at: " + port.device)
+                    print(f"Detected {hex(port.vid)}:{hex(port.pid)} device at: {port.device}")
                     ids.append(port.device)
         return sorted(ids)
 

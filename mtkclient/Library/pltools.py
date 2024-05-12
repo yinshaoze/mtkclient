@@ -76,7 +76,7 @@ class PLTools(metaclass=LogBase):
 
         ack = self.exploit.runpayload(payload, ack, addr, dontack)
         if ack == ack:
-            self.info("Successfully sent payload: " + filename)
+            self.info(f"Successfully sent payload: {filename}")
             self.mtk.daloader.patch = True
             return True
         elif ack == b"\xc1\xc2\xc3\xc4":
@@ -87,20 +87,20 @@ class PLTools(metaclass=LogBase):
                         print_progress(0, 100, prefix='Progress:', suffix='Complete', bar_length=50)
                         for pos in range(0, 0x40000, 64):
                             wf.write(self.mtk.port.usbread(64))
-                        self.info("Preloader dumped as: " + "preloader.bin")
+                        self.info("Preloader dumped as: preloader.bin")
                         return True
             else:
                 with open("out.bin", 'wb') as wf:
                     print_progress(0, 100, prefix='Progress:', suffix='Complete', bar_length=50)
                     for pos in range(0, 0x20000, 64):
                         wf.write(self.mtk.port.usbread(64))
-                    self.info("Bootrom dumped as: " + "out.bin")
+                    self.info("Bootrom dumped as: out.bin")
                     return True
-            self.error("Error on sending payload: " + filename)
+            self.error(f"Error on sending payload: {filename}")
             return False
         else:
-            self.error("Error on sending payload: " + filename)
-            self.error("Error, payload answered instead: " + hexlify(ack).decode('utf-8'))
+            self.error(f"Error on sending payload: {filename}")
+            self.error(f"Error, payload answered instead: {hexlify(ack).decode('utf-8')}")
             return False
 
     def runbrute(self, args):
@@ -138,16 +138,16 @@ class PLTools(metaclass=LogBase):
             self.info("Kamakiri / DA Run")
             if self.runpayload(filename=pfilename, ack=0xC1C2C3C4, offset=0):
                 if self.exploit.dump_brom(filename):
-                    self.info("Dumped as: " + filename)
+                    self.info(f"Dumped as:{filename} ")
                     return True
             else:
-                self.error("Error on sending payload: " + filename)
+                self.error(f"Error on sending payload: {filename}")
         else:
             if self.exploit.dump_brom(filename, length=length):
-                self.info("Dumped as: " + filename)
+                self.info(f"Dumped as: {filename}")
                 return True
             else:
-                self.error("Error on sending payload: " + pfilename)
+                self.error(f"Error on sending payload: {pfilename}")
         return False
 
     def run_dump_preloader(self, filename):
@@ -158,11 +158,11 @@ class PLTools(metaclass=LogBase):
                 data, filename = self.exploit.dump_preloader()
                 return data, filename
             else:
-                self.error("Error on sending payload: " + pfilename)
+                self.error(f"Error on sending payload: {pfilename}")
                 return None, None
         else:
             if self.exploit.dump_brom(filename):
-                self.info("Preloader dumped as: " + filename)
+                self.info(f"Preloader dumped as: {filename}")
                 return True
             else:
                 self.error("Error on dumping preloader")

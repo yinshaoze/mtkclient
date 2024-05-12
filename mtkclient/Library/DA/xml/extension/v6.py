@@ -377,7 +377,7 @@ class xmlflashext(metaclass=LogBase):
                         self.error("Couldn't read rpmb.")
                         return False
                     wf.write(data)
-            self.info("Done reading rpmb to " + filename)
+            self.info(f"Done reading rpmb to {filename}")
             return True
         return False
 
@@ -686,22 +686,22 @@ class xmlflashext(metaclass=LogBase):
         pubk = self.read_pubk()
         if pubk is not None:
             retval["pubkey"] = pubk.hex()
-            self.info("PUBK        : " + pubk.hex())
+            self.info(f"PUBK        : {pubk.hex()}")
             self.config.hwparam.writesetting("pubkey", pubk.hex())
         if meid is not None:
-            self.info("MEID        : " + meid.hex())
+            self.info(f"MEID        : {meid.hex}")
             retval["meid"] = meid.hex()
             self.config.hwparam.writesetting("meid", meid.hex())
         if socid is not None:
-            self.info("SOCID       : " + socid.hex())
+            self.info(f"SOCID       : {socid.hex()}")
             retval["socid"] = socid.hex()
             self.config.hwparam.writesetting("socid", socid.hex())
         if hwcode is not None:
-            self.info("HWCODE      : " + hex(hwcode))
+            self.info(f"HWCODE      : {hex(hwcode)}")
             retval["hwcode"] = hex(hwcode)
             self.config.hwparam.writesetting("hwcode", hex(hwcode))
         if cid is not None:
-            self.info("CID         : " + cid)
+            self.info(f"CID         : {cid}")
             retval["cid"] = cid
         if self.config.chipconfig.dxcc_base is not None:
             self.info("Generating dxcc rpmbkey...")
@@ -719,28 +719,28 @@ class xmlflashext(metaclass=LogBase):
             # self.info("Provkey     : " + provkey.hex())
             # self.info("Platkey     : " + platkey.hex())
             if mirpmbkey is not None:
-                self.info("MIRPMB      : " + mirpmbkey.hex())
+                self.info(f"MIRPMB      : {mirpmbkey.hex()}")
                 self.config.hwparam.writesetting("mirpmbkey", mirpmbkey.hex())
                 retval["mirpmbkey"] = mirpmbkey.hex()
             if rpmbkey is not None:
-                self.info("RPMB        : " + rpmbkey.hex())
+                self.info(f"RPMB        : {rpmbkey.hex()}")
                 self.config.hwparam.writesetting("rpmbkey", rpmbkey.hex())
                 retval["rpmbkey"] = rpmbkey.hex()
             if rpmb2key is not None:
-                self.info("RPMB2       : " + rpmb2key.hex())
+                self.info(f"RPMB2       : {rpmb2key.hex()}")
                 self.config.hwparam.writesetting("rpmb2key", rpmb2key.hex())
                 retval["rpmb2key"] = rpmb2key.hex()
             if fdekey is not None:
-                self.info("FDE         : " + fdekey.hex())
+                self.info(f"FDE         : {fdekey.hex()}")
                 self.config.hwparam.writesetting("fdekey", fdekey.hex())
                 retval["fdekey"] = fdekey.hex()
             if ikey is not None:
-                self.info("iTrustee    : " + ikey.hex())
+                self.info(f"iTrustee    : {ikey.hex()}")
                 self.config.hwparam.writesetting("kmkey", ikey.hex())
                 retval["kmkey"] = ikey.hex()
             if self.config.chipconfig.prov_addr:
                 provkey = self.custom_read(self.config.chipconfig.prov_addr, 16)
-                self.info("PROV        : " + provkey.hex())
+                self.info(f"PROV        : {provkey.hex()}")
                 self.config.hwparam.writesetting("provkey", provkey.hex())
                 retval["provkey"] = provkey.hex()
 
@@ -749,7 +749,7 @@ class xmlflashext(metaclass=LogBase):
                 val += self.read_fuse(0xD)
                 val += self.read_fuse(0xE)
                 val += self.read_fuse(0xF)
-                self.info("HRID        : " + val.hex())
+                self.info(f"HRID        : {val.hex()}")
                 self.config.hwparam.writesetting("hrid", val.hex())
                 retval["hrid"] = val.hex()
 
@@ -757,7 +757,7 @@ class xmlflashext(metaclass=LogBase):
                 mtee3 = hwc.aes_hwcrypt(mode="mtee3", btype="sej")
                 if mtee3:
                     self.config.hwparam.writesetting("mtee3", mtee3.hex())
-                    self.info("MTEE3       : " + mtee3.hex())
+                    self.info(f"MTEE3       : {mtee3.hex()}")
                     retval["mtee3"] = mtee3.hex()
             return retval
         elif self.config.chipconfig.sej_base is not None:
@@ -772,19 +772,19 @@ class xmlflashext(metaclass=LogBase):
                 self.setotp(hwc)
                 rpmbkey = hwc.aes_hwcrypt(mode="rpmb", data=meid, btype="sej", otp=otp)
                 if rpmbkey:
-                    self.info("RPMB        : " + rpmbkey.hex())
+                    self.info(f"RPMB        : {rpmbkey.hex()}")
                     self.config.hwparam.writesetting("rpmbkey", rpmbkey.hex())
                     retval["rpmbkey"] = rpmbkey.hex()
                 self.info("Generating sej mtee...")
                 mtee = hwc.aes_hwcrypt(mode="mtee", btype="sej", otp=otp)
                 if mtee:
                     self.config.hwparam.writesetting("mtee", mtee.hex())
-                    self.info("MTEE        : " + mtee.hex())
+                    self.info(f"MTEE        : {mtee.hex()}")
                     retval["mtee"] = mtee.hex()
                 mtee3 = hwc.aes_hwcrypt(mode="mtee3", btype="sej", otp=otp)
                 if mtee3:
                     self.config.hwparam.writesetting("mtee3", mtee3.hex())
-                    self.info("MTEE3       : " + mtee3.hex())
+                    self.info(f"MTEE3       : {mtee3.hex()}")
                     retval["mtee3"] = mtee3.hex()
             else:
                 self.info("SEJ Mode: No meid found. Are you in brom mode ?")
@@ -793,7 +793,7 @@ class xmlflashext(metaclass=LogBase):
                 self.info("Generating gcpu mtee2 key...")
                 mtee2 = hwc.aes_hwcrypt(btype="gcpu", mode="mtee")
                 if mtee2 is not None:
-                    self.info("MTEE2       : " + mtee2.hex())
+                    self.info(f"MTEE2       : {mtee2.hex()}")
                     self.config.hwparam.writesetting("mtee2", mtee2.hex())
                     retval["mtee2"] = mtee2.hex()
         return retval

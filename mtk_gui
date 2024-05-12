@@ -105,7 +105,7 @@ def load_translations(application):
     locale = QLocale.system()
     translator = QTranslator(application)
     directory = os.path.dirname(__file__)
-    lang = 'mtkclient/gui/i18n/' + locale.name()
+    lang = f'mtkclient/gui/i18n/{locale.name()}'
     if locale.name() == "en_NL":
         lang = lang.replace("en_NL", "nl_NL")
     # lang = 'mtkclient/gui/i18n/fr_FR'
@@ -154,10 +154,7 @@ class MainWindow(QMainWindow):
         global lock
         lock.acquire()
         doneBytes = 0
-        if "currentPartitionSizeDone" in self.Status:
-            curpartBytes = self.Status["currentPartitionSizeDone"]
-        else:
-            curpartBytes = self.Status["currentPartitionSize"]
+        curpartBytes = self.Status[f"currentPartitionSize{'Done' if 'currentPartitionSizeDone' in self.Status else ''}"]
 
         if "allPartitions" in self.Status:
             for partition in self.Status["allPartitions"]:
@@ -168,11 +165,7 @@ class MainWindow(QMainWindow):
             fullPercentageDone = int((doneBytes / totalBytes) * 100)
             self.ui.fullProgress.setValue(fullPercentageDone)
             timeinfototal = self.timeEstTotal.update(fullPercentageDone, 100)
-            self.ui.fullProgressText.setText("<table width='100%'><tr><td><b>Total:</b> " +
-                                             convert_size(doneBytes) + " / " + convert_size(totalBytes) +
-                                             "</td><td align='right'>" + timeinfototal +
-                                             QCoreApplication.translate("main", " left") +
-                                             "</td></tr></table>")
+            self.ui.fullProgressText.setText(f"<table width='100%'><tr><td><b>Total:</b> {convert_size(doneBytes)} / {convert_size(totalBytes)}</td><td align='right'>{timeinfototal}{QCoreApplication.translate('main', ' left')}</td></tr></table>")
         else:
             partBytes = self.Status["currentPartitionSize"]
             doneBytes = self.Status["currentPartitionSizeDone"]
@@ -244,21 +237,21 @@ class MainWindow(QMainWindow):
         self.readflash.disableButtonsSignal.connect(self.disablebuttons)
         self.ui.readpartitionsbtn.clicked.connect(self.readflash.dumpPartition)
         self.ui.readselectallcheckbox.clicked.connect(self.readflash.selectAll)
-        self.ui.readpreloaderbtn.clicked.connect(self.on_readpreloader)
-        self.ui.readflashbtn.clicked.connect(self.on_readfullflash)
-        self.ui.readrpmbbtn.clicked.connect(self.on_readrpmb)
-        self.ui.readboot2btn.clicked.connect(self.on_readboot2)
+        self.ui.readpreloaderbtn.clicked.connect(lambda: self.readflash.dumpFlash("boot1"))
+        self.ui.readflashbtn.clicked.connect(lambda: self.readflash.dumpFlash("user"))
+        self.ui.readrpmbbtn.clicked.connect(lambda: self.readflash.dumpFlash("rpmb"))
+        self.ui.readboot2btn.clicked.connect(lambda: self.readflash.dumpFlash("boot2"))
 
     def initkeys(self):
         self.genkeys = generateKeysMenu(self.ui, self, self.devhandler.da_handler, self.sendToLog)
-        self.ui.generatekeybtn.clicked.connect(self.on_generatekeys)
+        self.ui.generatekeybtn.clicked.connect(self.genkeys.generateKeys)
         self.genkeys.enableButtonsSignal.connect(self.enablebuttons)
         self.genkeys.disableButtonsSignal.connect(self.disablebuttons)
 
     def initunlock(self):
         self.unlock = UnlockMenu(self.ui, self, self.devhandler.da_handler, self.sendToLog)
-        self.ui.unlockbutton.clicked.connect(self.on_unlock)
-        self.ui.lockbutton.clicked.connect(self.on_lock)
+        self.ui.unlockbutton.clicked.connect(lambda: self.unlock.unlock("unlock"))
+        self.ui.lockbutton.clicked.connect(lambda: self.unlock.unlock("lock"))
         self.unlock.enableButtonsSignal.connect(self.enablebuttons)
         self.unlock.disableButtonsSignal.connect(self.disablebuttons)
 
@@ -267,21 +260,21 @@ class MainWindow(QMainWindow):
         self.eraseflash.enableButtonsSignal.connect(self.enablebuttons)
         self.eraseflash.disableButtonsSignal.connect(self.disablebuttons)
         self.ui.eraseselectallpartitionscheckbox.clicked.connect(self.eraseflash.selectAll)
-        self.ui.erasepartitionsbtn.clicked.connect(self.on_erasepartflash)
-        self.ui.eraserpmbbtn.clicked.connect(self.on_eraserpmb)
-        self.ui.erasepreloaderbtn.clicked.connect(self.on_erasepreloader)
-        self.ui.eraseboot2btn.clicked.connect(self.on_eraseboot2)
+        self.ui.erasepartitionsbtn.clicked.connect(self.eraseflash.erasePartition)
+        self.ui.eraserpmbbtn.clicked.connect(lambda: self.eraseflash.eraseFlash("rpmb"))
+        self.ui.erasepreloaderbtn.clicked.connect(lambda: self.eraseflash.eraseFlash("boot1"))
+        self.ui.eraseboot2btn.clicked.connect(lambda: self.eraseflash.eraseFlash("boot2"))
 
     def initwrite(self):
         self.writeflash = WriteFlashWindow(self.ui, self, self.devhandler.da_handler, self.sendToLog)
         self.writeflash.enableButtonsSignal.connect(self.enablebuttons)
         self.writeflash.disableButtonsSignal.connect(self.disablebuttons)
         self.ui.writeselectfromdir.clicked.connect(self.writeflash.selectFiles)
-        self.ui.writeflashbtn.clicked.connect(self.on_writefullflash)
-        self.ui.writepartbtn.clicked.connect(self.on_writepartflash)
-        self.ui.writeboot2btn.clicked.connect(self.on_writeboot2)
-        self.ui.writepreloaderbtn.clicked.connect(self.on_writepreloader)
-        self.ui.writerpmbbtn.clicked.connect(self.on_writerpmb)
+        self.ui.writeflashbtn.clicked.connect(lambda: self.writeflash.writeFlash("user"))
+        self.ui.writepartbtn.clicked.connect(self.writeflash.writePartition)
+        self.ui.writeboot2btn.clicked.connect(lambda: self.writeflash.writeFlash("boot2"))
+        self.ui.writepreloaderbtn.clicked.connect(lambda: self.writeflash.writeFlash("boot1"))
+        self.ui.writerpmbbtn.clicked.connect(lambda: self.writeflash.writeFlash("rpmb"))
 
     @Slot(str)
     def update_status_text(self, text):
@@ -338,12 +331,7 @@ class MainWindow(QMainWindow):
 
     def getpartitions(self):
         data, guid_gpt = self.devhandler.da_handler.mtk.daloader.get_gpt()
-        if guid_gpt is None:
-            print("Error reading gpt")
-            self.ui.readtitle.setText(QCoreApplication.translate("main", "Error reading gpt"))
-        else:
-            self.ui.readtitle.setText(QCoreApplication.translate("main", "Select partitions to dump"))
-
+        self.ui.readtitle.setText(QCoreApplication.translate("main", "Error reading gpt" if guid_gpt is None else "Select partitions to dump"))
         readpartitionListWidgetVBox = QVBoxLayout()
         readpartitionListWidget = QWidget(self)
         readpartitionListWidget.setLayout(readpartitionListWidgetVBox)
@@ -421,65 +409,8 @@ class MainWindow(QMainWindow):
         lineedit.setDisabled(False)
         return fname
 
-    def on_writefullflash(self):
-        self.writeflash.writeFlash("user")
-        return
-
-    def on_writepreloader(self):
-        self.writeflash.writeFlash("boot1")
-        return
-
-    def on_writeboot2(self):
-        self.writeflash.writeFlash("boot2")
-        return
-
-    def on_writerpmb(self):
-        self.writeflash.writeFlash("rpmb")
-        return
-
-    def on_writepartflash(self):
-        self.writeflash.writePartition()
-        return
-
-    def on_erasepartflash(self):
-        self.eraseflash.erasePartition()
-        return
-
-    def on_eraseboot2(self):
-        self.eraseflash.eraseBoot2()
-
-    def on_erasepreloader(self):
-        self.eraseflash.erasePreloader()
-
-    def on_eraserpmb(self):
-        self.eraseflash.eraseRpmb()
-
-    def on_generatekeys(self):
-        self.genkeys.generateKeys()
-
-    def on_unlock(self):
-        self.unlock.unlock("unlock")
-
-    def on_lock(self):
-        self.unlock.unlock("lock")
-
-    def on_readpreloader(self):
-        self.readflash.dumpFlash("boot1")
-
-    def on_readboot2(self):
-        self.readflash.dumpFlash("boot2")
-        return
-
-    def on_readfullflash(self):
-        self.readflash.dumpFlash("user")
-
-    def on_readrpmb(self):
-        self.readflash.dumpFlash("rpmb")
-        return
-
     def sendToLog(self, info):
-        t = time.localtime()
-        self.ui.logBox.appendPlainText(time.strftime("[%H:%M:%S", t) + "]: " + info)
+        self.ui.logBox.appendPlainText(time.strftime("[%H:%M:%S", time.localtime()) + "]: " + info)
         self.ui.logBox.verticalScrollBar().setValue(self.ui.logBox.verticalScrollBar().maximum())
 
     def sendToProgress(self, progress):

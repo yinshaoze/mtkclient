@@ -14,7 +14,8 @@ class XMLCmd(metaclass=LogBase):
         self.mtk = mtk
         self.MAGIC = 0xFEEEEEEF
 
-    def create_cmd(self, cmd: str, content: dict = None, version="1.0"):
+    @staticmethod
+    def create_cmd(cmd: str, content: dict = None, version="1.0"):
         cmd = f"<?xml version=\"1.0\" encoding=\"utf-8\"?><da><version>{version}</version><command>CMD:{cmd}</command>"
         if content is not None:
             for item in content:
@@ -323,11 +324,13 @@ class XMLCmd(metaclass=LogBase):
         cmd = self.create_cmd("WRITE-REGISTER", content)
         return cmd
 
-    def cmd_read_partition_name(self):
+    @staticmethod
+    def cmd_read_partition_name():
         cmd = ""
         return cmd
 
-    def cmd_debug_ufs(self):
+    @staticmethod
+    def cmd_debug_ufs():
         cmd = ""
         return cmd
 

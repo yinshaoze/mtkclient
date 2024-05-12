@@ -1,21 +1,22 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # (c) B.Kerler 2018-2023
-import sys
+import codecs
+import copy
+import datetime as dt
+import io
 import logging
 import logging.config
-import codecs
-import struct
 import os
 import shutil
 import stat
-import colorama
-import copy
+import struct
+import sys
 import time
-import io
-import datetime as dt
-from struct import unpack, pack
 from io import BytesIO
+from struct import unpack, pack
+
+import colorama
 
 try:
     from capstone import Cs, CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN
@@ -154,10 +155,11 @@ class progress:
         else:
             self.guiprogress = None
 
-    def calcProcessTime(self, starttime, cur_iter, max_iter):
+    @staticmethod
+    def calcProcessTime(starttime, cur_iter, max_iter):
         telapsed = time.time() - starttime
         if telapsed > 0 and cur_iter > 0:
-            testimated = (telapsed / cur_iter) * (max_iter)
+            testimated = (telapsed / cur_iter) * max_iter
             finishtime = starttime + testimated
             finishtime = dt.datetime.fromtimestamp(finishtime).strftime("%H:%M:%S")  # in time
             lefttime = testimated - telapsed  # in seconds
@@ -207,21 +209,22 @@ class progress:
                 if lefttime > 0:
                     sec = lefttime
                     if sec > 60:
-                        min = sec // 60
+                        minutes = sec // 60
                         sec = sec % 60
-                        if min > 60:
-                            h = min // 24
-                            min = min % 24
-                            hinfo = "%02dh:%02dm:%02ds left" % (h, min, sec)
+                        if minutes > 60:
+                            h = minutes // 24
+                            minutes = minutes % 24
+                            hinfo = "%02dh:%02dm:%02ds left" % (h, minutes, sec)
                         else:
-                            hinfo = "%02dm:%02ds left" % (min, sec)
+                            hinfo = "%02dm:%02ds left" % (minutes, sec)
                     else:
                         hinfo = "%02ds left" % sec
 
                 print_progress(prog, 100, prefix='Progress:',
                                suffix=prefix + f' (Sector 0x%X of 0x%X, {hinfo}) %0.2f MB/s' % (pos // self.pagesize,
                                                                                                 total // self.pagesize,
-                                                                                                throughput), bar_length=50)
+                                                                                                throughput),
+                               bar_length=50)
                 self.prog = prog
                 self.progpos = pos
                 self.progtime = t0
@@ -301,7 +304,7 @@ def do_tcp_server(client, arguments, handler):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     port = int(arguments.tcpport)
     server_address = ('localhost', port)
-    print('starting up on %s port %s' % server_address)
+    print(f'starting up on {server_address[0]} port {port}')
     sock.bind(server_address)
     sock.listen(1)
     response = None
@@ -314,24 +317,20 @@ def do_tcp_server(client, arguments, handler):
                 data = connection.recv(4096).decode('utf-8')
                 if data == '':
                     break
-                print('received %s' % data)
+                print(f'received {data}')
                 if data:
                     print('handling request')
                     lines = data.split("\n")
                     for line in lines:
                         if ":" in line:
                             cmd = line.split(":")[0]
-                            marguments = line.split(":")[1]
                             try:
-                                opts = parse_args(cmd, marguments, arguments)
+                                opts = parse_args(cmd, line.split(":")[1], arguments)
                             except Exception:
                                 response = "Wrong arguments\n<NAK>\n"
                                 opts = None
                             if opts is not None:
-                                if handler(cmd, opts):
-                                    response = "<ACK>\n"
-                                else:
-                                    response = "<NAK>\n"
+                                response = "<ACK>\n" if handler(cmd, opts) else "<NAK>\n"
                             connection.sendall(bytes(response, 'utf-8'))
         finally:
             connection.close()
@@ -339,11 +338,7 @@ def do_tcp_server(client, arguments, handler):
 
 def parse_args(cmd, args, mainargs):
     options = {}
-    opts = None
-    if "," in args:
-        opts = args.split(",")
-    else:
-        opts = [args]
+    opts = args.split(",") if "," in args else [args]
     for arg in mainargs:
         if "--" in arg:
             options[arg] = mainargs[arg]
@@ -488,8 +483,8 @@ class LogBase(type):
 
     def __init__(cls, *args):
         super().__init__(*args)
-        logger_attribute_name = '_' + cls.__name__ + '__logger'
-        logger_debuglevel_name = '_' + cls.__name__ + '__debuglevel'
+        logger_attribute_name = f'_{cls.__name__}__logger'
+        logger_debuglevel_name = f'_{cls.__name__}__debuglevel'
         logger_name = '.'.join([c.__name__ for c in cls.mro()[-2::-1]])
         LOG_CONFIG = {
             "version": 1,
@@ -603,7 +598,7 @@ class elf:
         elif self.elfclass == 2:  # 64Bit
             start = 0x34
         else:
-            print("Error on parsing " + self.filename)
+            print(f"Error on parsing {self.filename}")
             return ['', '']
         elfheadersize, programheaderentrysize, programheaderentrycount = struct.unpack("<HHH",
                                                                                        self.data[start:start + 3 * 2])
@@ -625,7 +620,8 @@ class patchtools:
     def __init__(self, bdebug=False):
         self.bDebug = bdebug
 
-    def has_bad_uart_chars(self, data):
+    @staticmethod
+    def has_bad_uart_chars(data):
         badchars = [b'\x00', b'\n', b'\r', b'\x08', b'\x7f', b'\x20', b'\x09']
         for idx, c in enumerate(data):
             c = bytes([c])
@@ -642,7 +638,7 @@ class patchtools:
             badchars = self.has_bad_uart_chars(data)
             if not badchars:
                 badchars = self.has_bad_uart_chars(data2)
-                if not (badchars):
+                if not badchars:
                     return div
             div += 4
 
@@ -665,19 +661,17 @@ class patchtools:
         abase = ((offset + div) & 0xFFFF0000) >> 16
         a = ((offset + div) & 0xFFFF)
         strasm = ""
+        strasm += f"# {hex(offset)}\n"
+        strasm += f"mov {reg}, #{hex(a)};\n"
+        strasm += f"movk {reg}, #{hex(abase)}, LSL#16;\n"
         if div > 0:
-            strasm += "# " + hex(offset) + "\n"
-            strasm += "mov " + reg + ", #" + hex(a) + ";\n"
-            strasm += "movk " + reg + ", #" + hex(abase) + ", LSL#16;\n"
-            strasm += "sub  " + reg + ", " + reg + ", #" + hex(div) + ";\n"
+            strasm += f"sub  {reg}, {reg}, #{hex(div)};\n"
         else:
-            strasm += "# " + hex(offset) + "\n"
-            strasm += "mov " + reg + ", #" + hex(a) + ";\n"
-            strasm += "movk " + reg + ", #" + hex(abase) + ", LSL#16;\n"
-            strasm += "add  " + reg + ", " + reg + ", #" + hex(-div) + ";\n"
+            strasm += f"add  {reg}, {reg}, #{hex(-div)};\n"
         return strasm
 
-    def uart_valid_sc(self, sc):
+    @staticmethod
+    def uart_valid_sc(sc):
         badchars = [b'\x00', b'\n', b'\r', b'\x08', b'\x7f', b'\x20', b'\x09']
         for idx, c in enumerate(sc):
             c = bytes([c])
@@ -687,12 +681,11 @@ class patchtools:
                 return False
         return True
 
-    def disasm(self, code, size):
+    @staticmethod
+    def disasm(code, size):
         cs = Cs(CS_ARCH_ARM64, CS_MODE_LITTLE_ENDIAN)
-        instr = []
-        for i in cs.disasm(code, size):
-            # print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
-            instr.append("%s\t%s" % (i.mnemonic, i.op_str))
+        instr = [f"{i.mnemonic}\t{i.op_str}" for i in cs.disasm(code, size)]
+        # print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
         return instr
 
     def assembler(self, code):
@@ -735,7 +728,8 @@ class patchtools:
 
         return out
 
-    def find_binary(self, data, strf, pos=0):
+    @staticmethod
+    def find_binary(data, strf, pos=0):
         t = strf.split(b".")
         pre = 0
         offsets = []
@@ -752,7 +746,7 @@ class patchtools:
                                 continue
                             rt += 1
                             prep = data[rt:].find(t[i])
-                            if (prep != 0):
+                            if prep != 0:
                                 error = 1
                                 break
                             rt += len(t[i])
@@ -766,7 +760,7 @@ class patchtools:
         return None
 
 
-def read_object(data: object, definition: object) -> object:
+def read_object(data: object, definition) -> dict:
     """
     Unpacks a structure using the given data and definition.
     """
@@ -820,7 +814,7 @@ def print_progress(iteration, total, prefix='', suffix='', decimals=1, bar_lengt
     filled_length = int(round(bar_length * iteration / float(total)))
     bar = '█' * filled_length + '-' * (bar_length - filled_length)
 
-    sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix))
+    sys.stdout.write(f'\r{prefix} |{bar}| {percents}% {suffix}')
 
     if iteration == total:
         sys.stdout.write('\n')

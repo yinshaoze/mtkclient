@@ -6,6 +6,7 @@ from struct import unpack
 from mtkclient.config.payloads import pathconfig
 from mtkclient.Library.utils import read_object
 from mtkclient.Library.utils import find_binary
+
 entry_region = [
     ('m_buf', 'I'),
     ('m_len', 'I'),
@@ -27,7 +28,8 @@ DA = [
     # vector<entry_region> LoadRegion
 ]
 
-efusedb={}
+efusedb = {}
+
 
 def main():
     da_setup = []
@@ -54,7 +56,8 @@ def main():
                     da.append(entry_tmp)
                 da_setup.append(da)
                 print(f"Loader: {os.path.basename(loader)}")
-                dadb[da[0]["hw_code"]]=[("da_payload_addr",da[2]["m_start_addr"]),("pl_payload_addr", da[3]["m_start_addr"])]
+                dadb[da[0]["hw_code"]] = [("da_payload_addr", da[2]["m_start_addr"]),
+                                          ("pl_payload_addr", da[3]["m_start_addr"])]
                 print("hwcode: 0x%04X" % da[0]["hw_code"])
                 print("hw_sub_code: 0x%04X" % da[0]["hw_sub_code"])
                 print("hw_version: 0x%04X" % da[0]["hw_version"])
@@ -62,56 +65,60 @@ def main():
                 print("Reserved1: 0x%04X" % da[0]["reserved1"])
                 print("Reserved3: 0x%04X" % da[0]["reserved3"])
                 for i in range(da[0]["entry_region_count"]):
-                    entry=da[i+1]
-                    print(f"\t{i}: "+hex(entry['m_start_addr']))
-                mbuf=da[3]["m_buf"]
-                m_len=da[3]["m_len"]
-                startaddr=da[3]["m_start_addr"]
-                with open(loader,"rb") as rf:
+                    entry = da[i + 1]
+                    print(f"\t{i}: {hex(entry['m_start_addr'])}")
+                mbuf = da[3]["m_buf"]
+                m_len = da[3]["m_len"]
+                startaddr = da[3]["m_start_addr"]
+                with open(loader, "rb") as rf:
                     rf.seek(mbuf)
-                    da2data=rf.read(m_len)
-                    fname=os.path.join("loaders",hex(da[0]["hw_code"])[2:]+"_"+hex(startaddr)[2:]+os.path.basename(loader))
-                    open(fname,"wb").write(da2data)
-                mbuf=da[2]["m_buf"]
-                m_len=da[2]["m_len"]
-                startaddr=da[2]["m_start_addr"]
+                    da2data = rf.read(m_len)
+                    fname = os.path.join("loaders",
+                                         hex(da[0]["hw_code"])[2:] + "_" + hex(startaddr)[2:] + os.path.basename(
+                                             loader))
+                    open(fname, "wb").write(da2data)
+                mbuf = da[2]["m_buf"]
+                m_len = da[2]["m_len"]
+                startaddr = da[2]["m_start_addr"]
                 sys.stdout.flush()
-                with open(loader,"rb") as rf:
+                with open(loader, "rb") as rf:
                     rf.seek(mbuf)
-                    data=rf.read(m_len)
-                    hashidx=data.find(int.to_bytes(0xC0070004,4,'little'))
-                    if hashidx!=-1:
+                    data = rf.read(m_len)
+                    hashidx = data.find(int.to_bytes(0xC0070004, 4, 'little'))
+                    if hashidx != -1:
                         print("Hash check found.")
                     else:
-                        hashidx = data.find(b"\xCC\xF2\x07\x09") # => b"\x4F\xF0\x00\x09""
+                        hashidx = data.find(b"\xCC\xF2\x07\x09")  # => b"\x4F\xF0\x00\x09""
                         if hashidx != -1:
                             print("Hash check 2 found.")
                         else:
-                            hashidx = find_binary(data,b"\x14\x2C\xF6.\xFE\xE7")  # => b"\x14\x2C\xF6\xD1\x00\x00"
+                            hashidx = find_binary(data, b"\x14\x2C\xF6.\xFE\xE7")  # => b"\x14\x2C\xF6\xD1\x00\x00"
                             if hashidx is not None:
                                 print("Hash check 3 found.")
                             else:
                                 print("HASH ERROR !!!!")
 
-                    fname=os.path.join("loaders",hex(da[0]["hw_code"])[2:]+"_"+hex(startaddr)[2:]+os.path.basename(loader))
-                    open(fname,"wb").write(data)
+                    fname = os.path.join("loaders",
+                                         hex(da[0]["hw_code"])[2:] + "_" + hex(startaddr)[2:] + os.path.basename(
+                                             loader))
+                    open(fname, "wb").write(data)
                 print(f"Offset: {hex(mbuf)}")
                 print(f"Length: {hex(m_len)}")
                 print(f"Addr: {hex(startaddr)}")
                 bootldr.seek(da[2]["m_buf"])
-                tt=bootldr.read(da[2]["m_len"])
+                tt = bootldr.read(da[2]["m_len"])
                 idx = tt.find(bytes.fromhex("70BB442D27D244A7"))
                 #idx = tt.find(bytes.fromhex("01279360D36013615361"))
-                if idx!=-1:
+                if idx != -1:
                     print("V3 Enabled")
                 bootldr.seek(da[3]["m_buf"])
-                tt=bootldr.read(da[3]["m_len"])
+                tt = bootldr.read(da[3]["m_len"])
                 idx2 = tt.find(bytes.fromhex("03 29 0D D9 07 4B 1B 68 03 60"))
-                if idx2!=-1:
-                    efusedb[da[0]["hw_code"]]=hex(int.from_bytes(tt[idx2+0x24:idx2+0x28],'little')&0xFFFFF000)
+                if idx2 != -1:
+                    efusedb[da[0]["hw_code"]] = hex(int.from_bytes(tt[idx2 + 0x24:idx2 + 0x28], 'little') & 0xFFFFF000)
                 else:
                     if not da[0]["hw_code"] in efusedb:
-                        efusedb[da[0]["hw_code"]]="None"
+                        efusedb[da[0]["hw_code"]] = "None"
                 print()
 
     sorted_dict = dict(sorted(efusedb.items()))
@@ -135,5 +142,6 @@ def main():
             print(str(idx)+" "+name+": "+hex(fields[2]))
     """
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

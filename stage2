@@ -17,6 +17,7 @@ from mtkclient.Library.Hardware.hwcrypto import crypto_setup, hwcrypto
 from mtkclient.config.mtk_config import Mtk_Config
 from mtkclient.config.usb_ids import default_ids
 
+
 class Stage2(metaclass=LogBase):
     def __init__(self, args, loglevel=logging.INFO):
         self.__logger = self.__logger
@@ -40,8 +41,8 @@ class Stage2(metaclass=LogBase):
             self.__logger.setLevel(logging.INFO)
 
         self.cdc = usb_class(portconfig=default_ids, loglevel=loglevel, devclass=10)
-        self.usbread=self.cdc.usbread
-        self.usbwrite=self.cdc.usbwrite
+        self.usbread = self.cdc.usbread
+        self.usbwrite = self.cdc.usbwrite
 
     def preinit(self):
         try:
@@ -98,11 +99,10 @@ class Stage2(metaclass=LogBase):
         return result
 
     def cmd_C8(self, val) -> bool:
-        'Clear cache func'
+        """Clear cache func"""
         self.usbwrite(pack(">I", 0xf00dd00d))
         self.usbwrite(pack(">I", 0x5000))
-        ack = self.usbread(4)
-        if ack == b"\xD0\xD0\xD0\xD0":
+        if self.usbread(4) == b"\xD0\xD0\xD0\xD0":
             return True
         return False
 
@@ -115,8 +115,7 @@ class Stage2(metaclass=LogBase):
             self.usbwrite(pack(">I", addr + (pos * 4)))
             self.usbwrite(pack(">I", 4))
             self.usbwrite(pack("<I", dwords[pos]))
-            ack = self.usbread(4)
-            if ack == b"\xD0\xD0\xD0\xD0":
+            if self.usbread(4) == b"\xD0\xD0\xD0\xD0":
                 continue
             else:
                 return False
@@ -130,7 +129,7 @@ class Stage2(metaclass=LogBase):
         if self.cdc.connected:
             self.cdc.close()
 
-    def readflash(self, type: int, start, length, display=False, filename: str = None):
+    def readflash(self, type_: int, start, length, display=False, filename: str = None):
         if not self.emmc_inited:
             self.init_emmc()
         wf = None
@@ -144,7 +143,7 @@ class Stage2(metaclass=LogBase):
         # emmc_switch(1)
         self.usbwrite(pack(">I", 0xf00dd00d))
         self.usbwrite(pack(">I", 0x1002))
-        self.usbwrite(pack(">I", type))
+        self.usbwrite(pack(">I", type_))
 
         # kick-wdt
         # self.usbwrite(pack(">I", 0xf00dd00d))
@@ -160,7 +159,7 @@ class Stage2(metaclass=LogBase):
         self.usbwrite(pack(">I", sectors))
 
         if display:
-            pg.show_progress(prefix="Progress:",pos=0,total=sectors)
+            pg.show_progress(prefix="Progress:", pos=0, total=sectors)
 
         for sector in range(sectors):
             tmp = self.usbread(0x200)
@@ -183,14 +182,13 @@ class Stage2(metaclass=LogBase):
         else:
             return buffer[start % 0x200:(start % 0x200) + length]
 
-    def userdata(self, start=0, length=32*0x200, filename="data.bin"):
+    def userdata(self, start=0, length=32 * 0x200, filename="data.bin"):
         sectors = 0
         if length != 0:
             sectors = (length // 0x200) + (1 if length % 0x200 else 0)
         self.info("Reading user data...")
         if self.cdc.connected:
-            self.readflash(type=0, start=start, length=length, display=True, filename=filename)
-
+            self.readflash(type_=0, start=start, length=length, display=True, filename=filename)
 
     def preloader(self, start, length, filename):
         sectors = 0
@@ -201,7 +199,7 @@ class Stage2(metaclass=LogBase):
         self.info("Reading preloader...")
         if self.cdc.connected:
             if sectors == 0:
-                buffer = self.readflash(type=1, start=0, length=0x4000, display=False)
+                buffer = self.readflash(type_=1, start=0, length=0x4000, display=False)
                 if len(buffer) != 0x4000:
                     print("Error on reading boot1 area.")
                     return
@@ -212,7 +210,7 @@ class Stage2(metaclass=LogBase):
                         st = buffer[start:start + 4]
                         if st == b"MMM\x01":
                             length = unpack("<I", buffer[start + 0x20:start + 0x24])[0]
-                            data = self.readflash(type=1, start=0, length=start + length, display=True)
+                            data = self.readflash(type_=1, start=0, length=start + length, display=True)
                             if len(data) != start + length:
                                 print("Warning, please rerun command, length doesn't match.")
                             idx = data.find(b"MTK_BLOADER_INFO")
@@ -220,19 +218,19 @@ class Stage2(metaclass=LogBase):
                                 filename = data[idx + 0x1B:idx + 0x3D].rstrip(b"\x00").decode('utf-8')
                             with open(os.path.join("logs", filename), "wb") as wf:
                                 wf.write(data[start:start + length])
-                                print("Done writing to " + os.path.join("logs", filename))
+                                print(f"Done writing to {os.path.join('logs', filename)}")
                             with open(os.path.join("logs", "hdr_" + filename), "wb") as wf:
                                 wf.write(data[:start])
-                                print("Done writing to " + os.path.join("logs", "hdr_" + filename))
+                                print(f"Done writing to {os.path.join('logs', 'hdr_' + filename)}")
 
                             return
                 else:
                     length = 0x40000
-                    self.readflash(type=1, start=0, length=length, display=True, filename=filename)
+                    self.readflash(type_=1, start=0, length=length, display=True, filename=filename)
                     print("Done")
                 print("Error on getting preloader info, aborting.")
             else:
-                self.readflash(type=1, start=start, length=length, display=True, filename=filename)
+                self.readflash(type_=1, start=start, length=length, display=True, filename=filename)
             print("Done")
 
     def boot2(self, start, length, filename):
@@ -244,10 +242,10 @@ class Stage2(metaclass=LogBase):
         self.info("Reading boot2...")
         if self.cdc.connected:
             if sectors == 0:
-                self.readflash(type=2, start=0, length=0x40000, display=True, filename=filename)
+                self.readflash(type_=2, start=0, length=0x40000, display=True, filename=filename)
                 print("Done")
             else:
-                self.readflash(type=1, start=start, length=length, display=True, filename=filename)
+                self.readflash(type_=1, start=start, length=length, display=True, filename=filename)
             print("Done")
 
     def memread(self, start, length, filename=None):
@@ -269,7 +267,7 @@ class Stage2(metaclass=LogBase):
                 wf.write(self.usbread(size))
             bytestoread -= size
             pos += size
-        self.info(f"{hex(start)}: " + hexlify(data).decode('utf-8'))
+        self.info(f"{hex(start)}: {hexlify(data).decode('utf-8')}")
         if filename is not None:
             wf.close()
         return data
@@ -318,8 +316,8 @@ class Stage2(metaclass=LogBase):
             start = 0
         else:
             start = (start // 0x100)
-        if start>0xFFFF:
-            start=0xFFFF
+        if start > 0xFFFF:
+            start = 0xFFFF
         if length == 0:
             sectors = 16 * 1024 * 1024 // 0x100
         else:
@@ -339,8 +337,8 @@ class Stage2(metaclass=LogBase):
         bytestoread = sectors * 0x100
         count = sectors
         pg = progress(pagesize=0x200)
-        if sectors>0xFFFF:
-            count=0xFFFF
+        if sectors > 0xFFFF:
+            count = 0xFFFF
         with open(filename, "wb") as wf:
             self.usbwrite(pack(">I", 0xf00dd00d))
             self.usbwrite(pack(">I", 0x2000))
@@ -353,145 +351,135 @@ class Stage2(metaclass=LogBase):
                 if len(tmp) != 0x100:
                     self.error("Error on getting data")
                     return
-                pg.show_progress(prefix="Progress:",pos=sector,total=sectors)
+                pg.show_progress(prefix="Progress:", pos=sector, total=sectors)
                 bytesread += 0x100
                 size = min(bytestoread, len(tmp))
                 wf.write(tmp[:size])
                 bytestoread -= size
-            while bytestoread>0:
+            while bytestoread > 0:
                 self.usbwrite(pack(">I", 0xf00dd00d))
                 self.usbwrite(pack(">I", 0x2000))
-                self.usbwrite(pack(">H", sector+1))
+                self.usbwrite(pack(">H", sector + 1))
                 self.usbwrite(pack(">H", 1))
                 tmp = self.usbread(0x100)
                 size = min(bytestoread, len(tmp))
                 wf.write(tmp[:size])
                 bytestoread -= size
                 pg.show_progress(prefix="Progress:", pos=sector, total=sectors)
-                sector+=1
+                sector += 1
             pg.show_progress(prefix="Progress:", pos=sectors, total=sectors)
             print("Done")
 
     def keys(self, data=b"", otp=None, mode="dxcc"):
         # self.hwcrypto.disable_range_blacklist("cqdma",self.cmd_C8)
-        keyinfo=""
+        keyinfo = ""
         retval = {}
         meid = self.config.get_meid()
         socid = self.config.get_socid()
         if meid is not None:
-            self.info("MEID        : " + hexlify(meid).decode('utf-8'))
+            self.info(f"MEID        : {hexlify(meid).decode('utf-8')}")
         else:
             try:
                 if self.config.chipconfig.meid_addr is not None:
                     meid = self.memread(self.config.chipconfig.meid_addr, 16)
                     self.config.set_meid(meid)
-                    self.info("MEID        : " + hexlify(meid).decode('utf-8'))
+                    self.info(f"MEID        : {hexlify(meid).decode('utf-8')}")
                     retval["meid"] = hexlify(meid).decode('utf-8')
             except Exception as err:
                 pass
         if socid is not None:
-            self.info("SOCID        : " + hexlify(socid).decode('utf-8'))
+            self.info(f"SOCID        : {hexlify(socid).decode('utf-8')}")
             retval["socid"] = socid
         else:
             try:
                 if self.config.chipconfig.socid_addr is not None:
                     socid = self.memread(self.config.chipconfig.socid_addr, 32)
                     self.config.set_socid(socid)
-                    self.info("SOCID        : " + hexlify(socid).decode('utf-8'))
+                    self.info(f"SOCID        : {hexlify(socid).decode('utf-8')}")
                     retval["socid"] = hexlify(socid).decode('utf-8')
             except Exception as err:
                 pass
-        if self.setup.dxcc_base is not None and mode not in ["sej_aes_decrypt","sej_aes_encrypt","sej_sst_decrypt","sej_sst_encrypt","dxcc_sha256"]:
-            rpmbkey = self.hwcrypto.aes_hwcrypt(btype="dxcc",mode="rpmb")
+        if self.setup.dxcc_base is not None and mode not in ["sej_aes_decrypt", "sej_aes_encrypt", "sej_sst_decrypt",
+                                                             "sej_sst_encrypt", "dxcc_sha256"]:
+            rpmbkey = self.hwcrypto.aes_hwcrypt(btype="dxcc", mode="rpmb")
             rpmb2key = self.hwcrypto.aes_hwcrypt(btype="dxcc", mode="rpmb2")
-            fdekey = self.hwcrypto.aes_hwcrypt(btype="dxcc",mode="fde")
-            ikey = self.hwcrypto.aes_hwcrypt(btype="dxcc",mode="itrustee")
-            platkey, provkey = self.hwcrypto.aes_hwcrypt(btype="dxcc",mode="prov")
-            keyinfo+="\nKeys :\n-----------------------------------------\n"
-            keyinfo+="RPMB:         " + hexlify(rpmbkey).decode('utf-8')+"\n"
-            keyinfo+="RPMB2:         " + hexlify(rpmb2key).decode('utf-8') + "\n"
-            keyinfo+="FDE :         " + hexlify(fdekey).decode('utf-8')+"\n"
-            keyinfo+="iTrustee:     " + hexlify(ikey).decode('utf-8')+"\n"
-            keyinfo+="Platform:     " + hexlify(platkey).decode('utf-8')+"\n"
-            keyinfo+="Provisioning: " + hexlify(provkey).decode('utf-8')+"\n"
-            keyinfo+="\n"
+            fdekey = self.hwcrypto.aes_hwcrypt(btype="dxcc", mode="fde")
+            ikey = self.hwcrypto.aes_hwcrypt(btype="dxcc", mode="itrustee")
+            platkey, provkey = self.hwcrypto.aes_hwcrypt(btype="dxcc", mode="prov")
+            keyinfo += "\nKeys :\n-----------------------------------------\n"
+            keyinfo += f"RPMB:         {hexlify(rpmbkey).decode('utf-8')}\n"
+            keyinfo += f"RPMB2:        {hexlify(rpmb2key).decode('utf-8')}\n"
+            keyinfo += f"FDE :         {hexlify(fdekey).decode('utf-8')}\n"
+            keyinfo += f"iTrustee:     {hexlify(ikey).decode('utf-8')}\n"
+            keyinfo += f"Platform:     {hexlify(platkey).decode('utf-8')}\n"
+            keyinfo += f"Provisioning: {hexlify(provkey).decode('utf-8')}\n"
+            keyinfo += "\n"
             if rpmbkey is not None:
-                self.info("RPMB        : " + hexlify(rpmbkey).decode('utf-8'))
-                self.config.hwparam.writesetting("rpmbkey",hexlify(rpmbkey).decode('utf-8'))
+                self.info(f"RPMB        : {hexlify(rpmbkey).decode('utf-8')}")
+                self.config.hwparam.writesetting("rpmbkey", hexlify(rpmbkey).decode('utf-8'))
                 retval["rpmbkey"] = hexlify(rpmbkey).decode('utf-8')
             if rpmb2key is not None:
-                self.info("RPMB2       : " + hexlify(rpmb2key).decode('utf-8'))
-                self.config.hwparam.writesetting("rpmb2key",hexlify(rpmb2key).decode('utf-8'))
+                self.info(f"RPMB2       : {hexlify(rpmb2key).decode('utf-8')}")
+                self.config.hwparam.writesetting("rpmb2key", hexlify(rpmb2key).decode('utf-8'))
                 retval["rpmb2key"] = hexlify(rpmb2key).decode('utf-8')
             if fdekey is not None:
-                self.info("FDE         : " + hexlify(fdekey).decode('utf-8'))
-                self.config.hwparam.writesetting("fdekey",hexlify(fdekey).decode('utf-8'))
+                self.info(f"FDE         : {hexlify(fdekey).decode('utf-8')}")
+                self.config.hwparam.writesetting("fdekey", hexlify(fdekey).decode('utf-8'))
                 retval["fdekey"] = hexlify(fdekey).decode('utf-8')
             if ikey is not None:
-                self.info("iTrustee    : " + hexlify(ikey).decode('utf-8'))
+                self.info(f"iTrustee    : {hexlify(ikey).decode('utf-8')}")
                 self.config.hwparam.writesetting("kmkey", hexlify(ikey).decode('utf-8'))
                 retval["kmkey"] = hexlify(ikey).decode('utf-8')
             if self.config.chipconfig.prov_addr:
                 provkey = self.memread(self.config.chipconfig.prov_addr, 16)
-                self.info("PROV        : " + hexlify(provkey).decode('utf-8'))
+                self.info(f"PROV        : {hexlify(provkey).decode('utf-8')}")
                 self.config.hwparam.writesetting("provkey", hexlify(provkey).decode('utf-8'))
                 retval["provkey"] = hexlify(provkey).decode('utf-8')
             return retval, keyinfo
-        elif self.setup.sej_base is not None and mode not in ["sej_aes_decrypt","sej_aes_encrypt","sej_sst_decrypt","sej_sst_encrypt","dxcc_sha256"]:
-            retval={}
+        elif self.setup.sej_base is not None and mode not in ["sej_aes_decrypt", "sej_aes_encrypt", "sej_sst_decrypt",
+                                                              "sej_sst_encrypt", "dxcc_sha256"]:
+            retval = {}
             rpmbkey = self.hwcrypto.aes_hwcrypt(mode="rpmb", data=meid, otp=otp, btype="sej")
             if rpmbkey:
-                self.info("RPMB        : " + hexlify(rpmbkey).decode('utf-8'))
+                self.info(f"RPMB        : {hexlify(rpmbkey).decode('utf-8')}")
                 self.config.hwparam.writesetting("rpmbkey", hexlify(rpmbkey).decode('utf-8'))
                 retval["rpmbkey"] = hexlify(rpmbkey).decode('utf-8')
             self.info("Generating sej mtee...")
             mtee = self.hwcrypto.aes_hwcrypt(mode="mtee", otp=otp, btype="sej")
             if mtee:
-                self.info("MTEE        : " + hexlify(mtee).decode('utf-8'))
+                self.info(f"MTEE        : {hexlify(mtee).decode('utf-8')}")
                 self.config.hwparam.writesetting("mtee", hexlify(mtee).decode('utf-8'))
                 retval["mtee"] = hexlify(mtee).decode('utf-8')
             mtee3 = self.hwcrypto.aes_hwcrypt(mode="mtee3", otp=otp, btype="sej")
             if mtee3:
-                self.info("MTEE3       : " + hexlify(mtee3).decode('utf-8'))
+                self.info(f"MTEE3       : {hexlify(mtee3).decode('utf-8')}")
                 self.config.hwparam.writesetting("mtee3", hexlify(mtee3).decode('utf-8'))
                 retval["mtee3"] = hexlify(mtee3).decode('utf-8')
 
-            keyinfo+="\nKeys :\n-----------------------------------------\n"
-            keyinfo+="RPMB: " + hexlify(rpmbkey).decode('utf-8')
-            keyinfo+="\n"
-            keyinfo += "MTEE: " + hexlify(mtee).decode('utf-8')
-            keyinfo += "\n"
+            keyinfo += "\nKeys :\n-----------------------------------------\n"
+            keyinfo += f"RPMB: {hexlify(rpmbkey).decode('utf-8')}\n"
+            keyinfo += f"MTEE: {hexlify(mtee).decode('utf-8')}\n"
             retval["rpmbkey"] = hexlify(rpmbkey).decode('utf-8')
             return retval, keyinfo
         if mode == "sej_aes_decrypt":
             dec_data = self.hwcrypto.aes_hwcrypt(mode="cbc", data=data, btype="sej", encrypt=False, otp=otp)
-            keyinfo+="\n"
-            keyinfo+="Data: " + hexlify(dec_data).decode('utf-8')
-            keyinfo+="\n"
+            keyinfo += f"\nData: {hexlify(dec_data).decode('utf-8')}\n"
             return dec_data, keyinfo
         elif mode == "sej_aes_encrypt":
             enc_data = self.hwcrypto.aes_hwcrypt(mode="cbc", data=data, btype="sej", encrypt=True, otp=otp)
-            keyinfo+="\n"
-            keyinfo+="Data: " + hexlify(enc_data).decode('utf-8')
-            keyinfo+="\n"
+            keyinfo += f"\nData: {hexlify(enc_data).decode('utf-8')}\n"
             return enc_data, keyinfo
         elif mode == "sej_sst_decrypt":
             dec_data = self.hwcrypto.aes_hwcrypt(mode="sst", data=data, btype="sej", encrypt=False, otp=otp)
-            keyinfo+="\n"
-            keyinfo+="Data: " + hexlify(dec_data).decode('utf-8')
-            keyinfo+="\n"
+            keyinfo += f"\nData: {hexlify(dec_data).decode('utf-8')}\n"
             return dec_data, keyinfo
         elif mode == "sej_sst_encrypt":
             enc_data = self.hwcrypto.aes_hwcrypt(mode="sst", data=data, btype="sej", encrypt=True, otp=otp)
-            keyinfo += "\n"
-            keyinfo += "Data: " + hexlify(enc_data).decode('utf-8')
-            keyinfo += "\n"
+            keyinfo += f"\nData: {hexlify(enc_data).decode('utf-8')}\n"
             return enc_data, keyinfo
         elif mode == "dxcc_sha256":
             sha256val = self.hwcrypto.aes_hwcrypt(mode="sha256", data=data, btype="dxcc")
-            keyinfo+="\n"
-            keyinfo+="SHA256: " + hexlify(sha256val).decode('utf-8')
-            keyinfo+="\n"
+            keyinfo += f"\nSHA256: {hexlify(sha256val).decode('utf-8')}\n"
             return sha256val, keyinfo
         return None, ""
 
@@ -499,7 +487,6 @@ class Stage2(metaclass=LogBase):
         print("Rebooting..")
         self.usbwrite(pack(">I", 0xf00dd00d))
         self.usbwrite(pack(">I", 0x3000))
-
 
 
 def getint(valuestr):
@@ -533,86 +520,78 @@ cmds = {
 info = "MTK Stage2 client (c) B.Kerler 2021"
 
 
-def showcommands():
-    print(info)
-    print("-----------------------------------\n")
-    print("Available commands are:\n")
-    for cmd in cmds:
-        print("%20s" % (cmd) + ":\t" + cmds[cmd])
-    print()
-
-
 def main():
     parser = argparse.ArgumentParser(description=info)
-    subparsers = parser.add_subparsers(dest="cmd", help='Valid commands are: rpmb, preloader, data, boot2, memread, memwrite, keys')
+    subparsers = parser.add_subparsers(dest="cmd",
+                                       help='Valid commands are: rpmb, preloader, data, boot2, memread, memwrite, keys')
 
     parser_rpmb = subparsers.add_parser("rpmb", help="Dump the rpmb")
     parser_rpmb.add_argument('--start', dest='start', type=str,
-                        help='Start offset to dump')
+                             help='Start offset to dump')
     parser_rpmb.add_argument('--length', dest='length', type=str,
-                        help='Max length to dump')
+                             help='Max length to dump')
     parser_rpmb.add_argument('--reverse', dest='reverse', action="store_true",
-                        help='Reverse byte order (example: rpmb command)')
+                             help='Reverse byte order (example: rpmb command)')
     parser_rpmb.add_argument('--filename', dest='filename', type=str,
-                        help='Read from / save to filename')
+                             help='Read from / save to filename')
 
     parser_preloader = subparsers.add_parser("preloader", help="Dump the preloader")
     parser_preloader.add_argument('--start', dest='start', type=str,
-                        help='Start offset to dump')
+                                  help='Start offset to dump')
     parser_preloader.add_argument('--length', dest='length', type=str,
-                        help='Max length to dump')
+                                  help='Max length to dump')
     parser_preloader.add_argument('--filename', dest='filename', type=str,
-                        help='Read from / save to filename')
+                                  help='Read from / save to filename')
 
     parser_data = subparsers.add_parser("data", help="Read the mmc")
     parser_data.add_argument('--start', dest='start', type=str,
-                        help='Start offset to dump')
+                             help='Start offset to dump')
     parser_data.add_argument('--length', dest='length', type=str,
-                        help='Max length to dump')
+                             help='Max length to dump')
     parser_data.add_argument('--filename', dest='filename', type=str,
-                        help='Read from / save to filename')
+                             help='Read from / save to filename')
 
     parser_boot2 = subparsers.add_parser("boot2", help="Dump boot2")
     parser_boot2.add_argument('--start', dest='start', type=str,
-                        help='Start offset to dump')
+                              help='Start offset to dump')
     parser_boot2.add_argument('--length', dest='length', type=str,
-                        help='Max length to dump')
+                              help='Max length to dump')
     parser_boot2.add_argument('--filename', dest='filename', type=str,
-                        help='Read from / save to filename')
+                              help='Read from / save to filename')
 
     parser_memread = subparsers.add_parser("memread", help="Read memory")
     parser_memread.add_argument(dest='start', type=str,
-                        help='Start offset to dump')
+                                help='Start offset to dump')
     parser_memread.add_argument(dest='length', type=str,
-                        help='Max length to dump')
+                                help='Max length to dump')
     parser_memread.add_argument('--filename', dest='filename', type=str,
-                        help='Save to filename')
+                                help='Save to filename')
 
     parser_memwrite = subparsers.add_parser("memwrite", help="Write memory")
     parser_memwrite.add_argument(dest='start', type=str,
-                        help='Start offset to dump')
+                                 help='Start offset to dump')
     parser_memwrite.add_argument('data', type=str,
-                        help='Data to write [hexstring, dword or filename]')
+                                 help='Data to write [hexstring, dword or filename]')
 
     parser_reboot = subparsers.add_parser("reboot", help="Reboot device")
 
     parser_seccfg = subparsers.add_parser("seccfg", help="Generate seccfg")
     parser_seccfg.add_argument('flag', type=str,
-                        help='Option for generating: unlock or lock')
+                               help='Option for generating: unlock or lock')
     parser_seccfg.add_argument('--sw', dest='sw', action="store_true",
-                        help='Option for generating: sw or hw')
+                               help='Option for generating: sw or hw')
 
     parser_keys = subparsers.add_parser("keys", help="Write memory")
     parser_keys.add_argument('--otp', dest='otp', type=str,
-                        help='OTP for keys (dxcc,sej,gcpu)')
+                             help='OTP for keys (dxcc,sej,gcpu)')
     parser_keys.add_argument('--mode', dest='mode', default=None, type=str,
-                        help='keymode (dxcc,sej,gcpu,sej_aes_decrypt,sej_aes_decrypt,sej_sst_decrypt,sej_sst_encrypt')
+                             help='keymode (dxcc,sej,gcpu,sej_aes_decrypt,sej_aes_decrypt,sej_sst_decrypt,sej_sst_encrypt')
     parser_keys.add_argument('--data', dest='data', default=None, type=str,
-                        help='data')
+                             help='data')
     args = parser.parse_args()
     cmd = args.cmd
     if cmd not in cmds:
-        showcommands()
+        parser.print_help()
         exit(0)
 
     if not os.path.exists("logs"):
@@ -673,35 +652,35 @@ def main():
                 exit(0)
             start = getint(args.start)
             if os.path.exists(args.data):
-                filename=args.data
-                data=None
+                filename = args.data
+                data = None
             else:
                 if "0x" in args.data:
-                    data=getint(args.data)
+                    data = getint(args.data)
                 else:
-                    data=args.data
-                filename=None
+                    data = args.data
+                filename = None
             if st2.memwrite(start, data, filename):
                 print(f"Successfully wrote data to {hex(start)}.")
             else:
                 print(f"Failed to write data to {hex(start)}.")
         elif cmd == "keys":
-            keyinfo=""
-            data=b""
-            if args.mode in ["sej_aes_decrypt","sej_aes_encrypt","sej_sst_decrypt","sej_sst_encrypt"]:
+            keyinfo = ""
+            data = b""
+            if args.mode in ["sej_aes_decrypt", "sej_aes_encrypt", "sej_sst_decrypt", "sej_sst_encrypt"]:
                 if not args.data:
                     print("Option --data is needed")
                     exit(0)
                 data = bytes.fromhex(args.data)
             # otp_hisense=bytes.fromhex("486973656E736500000000000000000000000000000000000000000000000000")
             # st2.jump(0x223449)
-            keys, keyinfo=st2.keys(data=data, mode=args.mode, otp=args.otp)
+            keys, keyinfo = st2.keys(data=data, mode=args.mode, otp=args.otp)
             print(keyinfo)
             print("Wrote keys to logs/hwparam.json")
         elif cmd == "reboot":
             st2.reboot()
         elif cmd == "seccfg":
-            if args.flag not in ["unlock","lock"]:
+            if args.flag not in ["unlock", "lock"]:
                 print("Valid flags are: unlock, lock")
                 sys.exit(1)
                 """
@@ -720,15 +699,15 @@ def main():
                 SBOOT_RUNTIME_OFF = 0
                 SBOOT_RUNTIME_ON  = 1
                 """
-            if args.flag=="unlock":
+            if args.flag == "unlock":
                 lock_state = 3
                 critical_lock_state = 1
-            elif args.flag=="lock":
+            elif args.flag == "lock":
                 lock_state = 1
                 critical_lock_state = 0
             with open("seccfg.bin", "wb") as wf:
                 seccfg_ver = 4
-                seccfg_size = 0x3C                
+                seccfg_size = 0x3C
                 sboot_runtime = 0
                 seccfg_data = pack("<IIIIIII", 0x4D4D4D4D, seccfg_ver, seccfg_size, lock_state,
                                    critical_lock_state, sboot_runtime, 0x45454545)
@@ -736,12 +715,13 @@ def main():
                 if args.sw:
                     enc_hash = st2.hwcrypto.sej.sej_sec_cfg_sw(dec_hash, True)
                 else:
-                    enc_hash = st2.hwcrypto.sej.sej_sec_cfg_hw(dec_hash,True)
+                    enc_hash = st2.hwcrypto.sej.sej_sec_cfg_hw(dec_hash, True)
                 data = seccfg_data + enc_hash
                 data += b"\x00" * (0x200 - len(data))
                 wf.write(data)
                 print("Successfully wrote seccfg to seccfg.bin. You need to write seccfg.bin to partition seccfg.")
     st2.close()
+
 
 if __name__ == "__main__":
     main()

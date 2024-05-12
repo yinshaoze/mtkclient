@@ -59,7 +59,7 @@ class Mtk(metaclass=LogBase):
                     idx = -1
                 else:
                     data[idx:idx + len(patchval)] = patchval
-                    self.info(f"Patched \"{patchval[2]}\" in preloader")
+                    self.info(f'Patched "{patchval[2]}" in preloader')
                     patched = True
             else:
                 pattern = bytes.fromhex(patchval[0])
@@ -67,7 +67,7 @@ class Mtk(metaclass=LogBase):
                 if idx != -1:
                     patch = bytes.fromhex(patchval[1])
                     data[idx:idx + len(patch)] = patch
-                    self.info(f"Patched \"{patchval[2]}\" in preloader")
+                    self.info(f'Patched "{patchval[2]}" in preloader')
                     patched = True
                     # break
             i += 1
@@ -101,7 +101,7 @@ class Mtk(metaclass=LogBase):
             if idx != -1:
                 patch = bytes.fromhex(patchval[1])
                 data[idx:idx + len(patch)] = patch
-                self.info(f"Patched \"{patchval[2]}\" in preloader")
+                self.info(f'Patched "{patchval[2]}" in preloader')
                 patched = True
                 # break
             i += 1

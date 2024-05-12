@@ -1311,7 +1311,8 @@ class Preloader(metaclass=LogBase):
                 self.config.is_brom = False
         return b""
 
-    def prepare_data(self, data, sigdata=b"", maxsize=0):
+    @staticmethod
+    def prepare_data(data, sigdata=b"", maxsize=0):
         gen_chksum = 0
         data = (data[:maxsize] + sigdata)
         if len(data + sigdata) % 2 != 0:

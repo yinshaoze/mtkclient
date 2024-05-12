@@ -72,7 +72,8 @@ class DAXFlash(metaclass=LogBase):
         except Exception:
             self.carbonara = None
 
-    def usleep(self, usec):
+    @staticmethod
+    def usleep(usec):
         time.sleep(usec / 100000)
 
     def ack(self, rstatus=True):
@@ -108,7 +109,7 @@ class DAXFlash(metaclass=LogBase):
             hdr = self.usbread(4 + 4 + 4)
             magic, datatype, length = unpack("<III", hdr)
         except Exception as err:
-            self.error("xread error: " + str(err))
+            self.error(f"xread error: {str(err)}")
             return -1
         if magic != 0xFEEEEEEF:
             self.error("xread error: Wrong magic")
@@ -353,8 +354,7 @@ class DAXFlash(metaclass=LogBase):
                 if self.daconfig.flashtype == "emmc":
                     length = min(length, self.emmc.rpmb_size)
             else:
-                self.error("Unknown parttype. Known parttypes are \"boot1\",\"boot2\",\"gp1\"," +
-                           "\"gp2\",\"gp3\",\"gp4\",\"rpmb\"")
+                self.error('Unknown parttype. Known parttypes are "boot1","boot2","gp1","gp2","gp3","gp4","rpmb"')
                 return []
         elif storage == DaStorage.MTK_DA_STORAGE_UFS:
             if parttype is None or parttype == "lu3" or parttype == "user":  # USER
@@ -370,7 +370,7 @@ class DAXFlash(metaclass=LogBase):
                 parttype = UFS_PartitionType.UFS_LU4
                 length = min(length, self.ufs.lu2_size)
             else:
-                self.error("Unknown parttype. Known parttypes are \"lu1\",\"lu2\",\"lu3\",\"lu4\"")
+                self.error('Unknown parttype. Known parttypes are "lu1","lu2","lu3","lu4"')
                 return []
         elif storage in [DaStorage.MTK_DA_STORAGE_NAND, DaStorage.MTK_DA_STORAGE_NAND_MLC,
                          DaStorage.MTK_DA_STORAGE_NAND_SLC, DaStorage.MTK_DA_STORAGE_NAND_TLC,
@@ -1119,11 +1119,11 @@ class DAXFlash(metaclass=LogBase):
                 if self.daconfig.emi is None:
                     emmc_info = self.get_emmc_info(False)
                     if emmc_info is not None and emmc_info.user_size != 0:
-                        self.info("DRAM config needed for : " + hexlify(emmc_info.cid[:8]).decode('utf-8'))
+                        self.info(f"DRAM config needed for : {hexlify(emmc_info.cid[:8]).decode('utf-8')}")
                     else:
                         ufs_info = self.get_ufs_info()
                         if ufs_info is not None and ufs_info.block_size != 0:
-                            self.info("DRAM config needed for : " + hexlify(ufs_info.cid).decode('utf-8'))
+                            self.info(f"DRAM config needed for : {hexlify(ufs_info.cid).decode('utf-8')}")
                     self.info("No preloader given. Searching for preloader")
                     found = False
                     for root, dirs, files in os.walk(os.path.join(self.pathconfig.get_loader_path(), 'Preloader')):
@@ -1188,7 +1188,7 @@ class DAXFlash(metaclass=LogBase):
                     self.error("Error on booting to da (xflash)")
                     return False
             else:
-                self.error("Didn't get brom connection, got instead: " + hexlify(connagent).decode('utf-8'))
+                self.error(f"Didn't get brom connection, got instead: {hexlify(connagent).decode('utf-8')}")
         return False
 
 

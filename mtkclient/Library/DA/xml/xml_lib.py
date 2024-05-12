@@ -708,7 +708,7 @@ class DAXML(metaclass=LogBase):
             self.error("Couldn't find item key")
         return data
 
-    def get_sys_property(self, key: int = "DA.SLA", length: int = 0x200000):
+    def get_sys_property(self, key: str = "DA.SLA", length: int = 0x200000):
         self.send_command(self.Cmd.cmd_get_sys_property(key=key, length=length), noack=True)
         cmd, result = self.get_command_result()
         if type(result) is not upfile:
@@ -783,8 +783,7 @@ class DAXML(metaclass=LogBase):
                 if self.daconfig.flashtype == "emmc":
                     length = min(length, self.emmc.gp1_size)
             else:
-                self.error("Unknown parttype. Known parttypes are \"boot1\",\"boot2\",\"gp1\"," +
-                           "\"gp2\",\"gp3\",\"gp4\",\"rpmb\"")
+                self.error('Unknown parttype. Known parttypes are "boot1","boot2","gp1","gp2","gp3","gp4","rpmb"')
                 return []
         elif storage == DaStorage.MTK_DA_STORAGE_UFS:
             if parttype is None or parttype == "lu3" or parttype == "user":  # USER

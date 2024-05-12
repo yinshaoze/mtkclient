@@ -7,7 +7,8 @@ from capstone import (Cs, CS_MODE_BIG_ENDIAN, CS_MODE_LITTLE_ENDIAN,
                       CS_MODE_ARM, CS_MODE_THUMB, CS_MODE_V8, CS_MODE_V9,
                       CS_MODE_MCLASS, CS_MODE_MICRO, CS_MODE_MIPS32, CS_MODE_MIPS64,
                       CS_MODE_MIPS32R6, CS_MODE_16, CS_MODE_32, CS_MODE_64)
-from keystone import (Ks, KS_MODE_BIG_ENDIAN, KS_MODE_LITTLE_ENDIAN, KS_ARCH_ARM, KS_MODE_THUMB, KS_MODE_ARM, KS_MODE_V8,
+from keystone import (Ks, KS_MODE_BIG_ENDIAN, KS_MODE_LITTLE_ENDIAN, KS_ARCH_ARM, KS_MODE_THUMB, KS_MODE_ARM,
+                      KS_MODE_V8,
                       KS_ARCH_ARM64, KS_ARCH_MIPS, KS_MODE_MICRO, KS_MODE_MIPS3, KS_MODE_MIPS32R6,
                       KS_MODE_MIPS32, KS_MODE_MIPS64, KS_MODE_16, KS_MODE_32, KS_MODE_64, KS_ARCH_X86,
                       KS_ARCH_PPC, KS_MODE_PPC32, KS_MODE_PPC64, KS_MODE_QPX,
@@ -21,7 +22,7 @@ def asm(code, cpu, mode, bigendian):
         little = KS_MODE_BIG_ENDIAN  # big-endian mode
     else:
         little = KS_MODE_LITTLE_ENDIAN  # little-endian mode (default mode)
-    print("CPU: %s, MODE: %s" % (cpu, mode))
+    print(f"CPU: {cpu}, MODE: {mode}")
     ks = None
     if cpu == "arm":
         # ARM architecture (including Thumb, Thumb-2)
@@ -142,10 +143,8 @@ def disasm(code, cpu, mode, bigendian, size):
         print("CPU and/or mode not supported!")
         exit(0)
 
-    instr = []
-    for i in cs.disasm(code, size):
-        # print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
-        instr.append("%s\t%s" % (i.mnemonic, i.op_str))
+    instr = [f"{i.mnemonic}\t{i.op_str}" for i in cs.disasm(code, size)]
+    # print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
     return instr
 
 
@@ -193,7 +192,7 @@ def main():
         print("[asmtools] Usage: -asm cpu,mode or -disasm cpu,mode")
         exit(0)
 
-    if (args.infile == '' and args.inp == ''):
+    if not args.infile == '' and args.inp == '':
         print("[asmtools] I must have an infile to work on (-in) or a string input (--inp")
         exit(0)
 
@@ -251,4 +250,5 @@ def main():
         '''
 
 
-main()
+if __name__ == '__main__':
+    main()

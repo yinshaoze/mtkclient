@@ -10,14 +10,14 @@ from mtkclient.config.payloads import pathconfig
 
 
 class TimeEstim:
-    def calcProcessTime(self, starttime, cur_iter, max_iter):
+    @staticmethod
+    def calcProcessTime(starttime, cur_iter, max_iter):
         telapsed = time.time() - starttime
         if telapsed > 0 and cur_iter > 0:
             testimated = (telapsed / cur_iter) * max_iter
             finishtime = starttime + testimated
             finishtime = dt.datetime.fromtimestamp(finishtime).strftime("%H:%M:%S")  # in time
-            lefttime = testimated - telapsed  # in seconds
-            return int(telapsed), int(lefttime), finishtime
+            return int(telapsed), int(testimated - telapsed), finishtime
         else:
             return 0, 0, ""
 
@@ -34,14 +34,14 @@ class TimeEstim:
         if lefttime > 0:
             sec = lefttime
             if sec > 60:
-                min = sec // 60
+                minutes = sec // 60
                 sec = sec % 60
-                if min > 60:
-                    h = min // 24
-                    min = min % 24
-                    hinfo = "%02dh:%02dm:%02ds" % (h, min, sec)
+                if minutes > 60:
+                    h = minutes // 24
+                    minutes = minutes % 24
+                    hinfo = "%02dh:%02dm:%02ds" % (h, minutes, sec)
                 else:
-                    hinfo = "%02dm:%02ds" % (min, sec)
+                    hinfo = "%02dm:%02ds" % (minutes, sec)
             else:
                 hinfo = "%02ds" % sec
 
@@ -97,7 +97,7 @@ def convert_size(size_bytes):
     i = int(math.floor(math.log(size_bytes, 1024)))
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
-    return "%s %s" % (s, size_name[i])
+    return f"{s} {size_name[i]}"
 
 
 class asyncThread(QThread):
@@ -116,7 +116,7 @@ class asyncThread(QThread):
         self.function(self, self.parameters)
 
 
-class FDialog():
+class FDialog:
     def __init__(self, parent):
         pc = pathconfig()
         self.parent = parent

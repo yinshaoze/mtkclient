@@ -89,7 +89,8 @@ class DAloader(metaclass=LogBase):
             return idx, hashmode, hashlen
         return idx, hashmode, hashlen
 
-    def find_da_hash_V6(self, da1, siglen):
+    @staticmethod
+    def find_da_hash_V6(da1, siglen):
         pos = len(da1) - siglen - 0x30
         hash = da1[pos:pos + 0x30]
         if hash[-4:] == b"\x00\x00\x00\x00":
@@ -110,7 +111,8 @@ class DAloader(metaclass=LogBase):
             self.debug("Error: No hash found")
         return -1, -1
 
-    def calc_da_hash(self, da1, da2):
+    @staticmethod
+    def calc_da_hash(da1, da2):
         hashdigest = hashlib.sha1(da2).digest()
         hashdigest256 = hashlib.sha256(da2).digest()
         idx = da1.find(hashdigest)
@@ -120,7 +122,8 @@ class DAloader(metaclass=LogBase):
             hashmode = 2
         return hashmode, idx
 
-    def fix_hash(self, da1, da2, hashpos, hashmode, hashlen):
+    @staticmethod
+    def fix_hash(da1, da2, hashpos, hashmode, hashlen):
         da1 = bytearray(da1)
         dahash = None
         if hashmode == 1:
@@ -226,7 +229,7 @@ class DAloader(metaclass=LogBase):
         if self.mtk.config.chipconfig.damode == damodes.XFLASH:
             self.da = DAXFlash(self.mtk, self.daconfig, self.loglevel)
             if porttype not in ["off", "usb", "uart"]:
-                self.error("Only \"off\",\"usb\" or \"uart\" are allowed.")
+                self.error('Only "off","usb" or "uart" are allowed.')
             if self.da.set_meta(porttype):
                 self.info(f"Successfully set meta mode to {porttype}")
                 return True

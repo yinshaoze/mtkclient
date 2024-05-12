@@ -96,18 +96,6 @@ class EraseFlashWindow(QObject):
         thread.wait()
         self.enableButtonsSignal.emit()
 
-    def eraseBoot2(self):
-        self.eraseFlash("boot2")
-        return
-
-    def erasePreloader(self):
-        self.eraseFlash("boot1")
-        return
-
-    def eraseRpmb(self):
-        self.eraseFlash("rpmb")
-        return
-
     def erasePartitionAsync(self, toolkit, parameters):
         self.parent.timeEst.init()
         self.parent.timeEstTotal.init()
