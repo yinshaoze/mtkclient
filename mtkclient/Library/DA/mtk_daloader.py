@@ -210,7 +210,7 @@ class DAloader(metaclass=LogBase):
                 self.flashmode = damodes.XFLASH
         if self.mtk.config.chipconfig.damode == damodes.XFLASH:
             self.flashmode = damodes.XFLASH
-        elif self.mtk.config.chipconfig.damode == damodes.XML:
+        elif self.mtk.config.chipconfig.damode == damodes.XML or self.daconfig.da_loader.v6:
             self.flashmode = damodes.XML
         if self.flashmode == damodes.XFLASH:
             self.da = DAXFlash(self.mtk, self.daconfig, self.loglevel)

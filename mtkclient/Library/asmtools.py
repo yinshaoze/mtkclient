@@ -143,8 +143,10 @@ def disasm(code, cpu, mode, bigendian, size):
         print("CPU and/or mode not supported!")
         exit(0)
 
-    instr = [f"{i.mnemonic}\t{i.op_str}" for i in cs.disasm(code, size)]
-    # print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
+    instr = []
+    for i in cs.disasm(code, size):
+        # print("0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
+        instr.append("%s\t%s" % (i.mnemonic, i.op_str))
     return instr
 
 

@@ -653,9 +653,11 @@ class DA_handler(metaclass=LogBase):
             partitionname = args.partitionname
             parttype = args.parttype
             filename = args.filename
+            self.mtk.config.hwparam_path = os.path.dirname(filename)
             self.da_read(partitionname=partitionname, parttype=parttype, filename=filename)
         elif cmd == "rl":
             directory = args.directory
+            self.mtk.config.hwparam_path = directory
             parttype = args.parttype
             if args.skip:
                 skip = args.skip.split(",")
@@ -664,12 +666,14 @@ class DA_handler(metaclass=LogBase):
             self.da_rl(directory=directory, parttype=parttype, skip=skip)
         elif cmd == "rf":
             filename = args.filename
+            self.mtk.config.hwparam_path = os.path.dirname(filename)
             parttype = args.parttype
             self.da_rf(filename=filename, parttype=parttype)
         elif cmd == "rs":
             start = getint(args.startsector)
             sectors = getint(args.sectors)
             filename = args.filename
+            self.mtk.config.hwparam_path = os.path.dirname(filename)
             parttype = args.parttype
             if self.da_rs(start=start, sectors=sectors, filename=filename, parttype=parttype):
                 print(f"Dumped sector {str(start)} with sector count {str(sectors)} as {filename}.")
@@ -679,6 +683,7 @@ class DA_handler(metaclass=LogBase):
             start = getint(args.offset)
             length = getint(args.length)
             filename = args.filename
+            self.mtk.config.hwparam_path = os.path.dirname(filename)
             parttype = args.parttype
             if self.da_ro(start=start, length=length, filename=filename, parttype=parttype):
                 print(f"Dumped offset {hex(start)} with length {hex(length)} as {filename}.")
@@ -804,6 +809,7 @@ class DA_handler(metaclass=LogBase):
                 data = args.data
                 self.da_poke(addr=addr, data=data, filename=filename)
             elif subcmd == "generatekeys":
+                self.mtk.config.hwparam_path = "."
                 mtk.daloader.keys()
             elif subcmd == "dumpbrom":
                 filename = f"brom_{hex(mtk.daloader.config.hwcode)[2:]}.bin"

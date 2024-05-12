@@ -1336,6 +1336,9 @@ class Preloader(metaclass=LogBase):
         time.sleep(0.035)
         try:
             res = self.rword(2)
+            if isinstance(res, list) and res == []:
+                self.error("No reply from da loader.")
+                return False
             if isinstance(res, list):
                 checksum, status = res
                 if gen_chksum != checksum and checksum != 0:

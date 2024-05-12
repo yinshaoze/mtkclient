@@ -442,7 +442,7 @@ class DAXML(metaclass=LogBase):
                     if cmd == "CMD:START":
                         return True
                 else:
-                    cmd, result = self.get_command_result()
+                    cmd, startresult = self.get_command_result()
                     self.error(result)
             return False
         else:
