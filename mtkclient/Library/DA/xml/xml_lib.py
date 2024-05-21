@@ -614,7 +614,9 @@ class DAXML(metaclass=LogBase):
                             self.lua1_size = int(get_field(data, "lua1_size"), 16)
                             self.lua2_size = int(get_field(data, "lua2_size"), 16)
                             self.lua3_size = int(get_field(data, "lua3_size"), 16)
-                            self.cid = get_field(data, "id")
+                            self.cid = get_field(data, "id") # this doesn't exists in Xiaomi DA
+                            if self.cid == "":
+                                self.cid = get_field(data, "ufs_cid")
                         elif self.storagetype == "EMMC":
                             self.block_size = int(get_field(data, "block_size"), 16)
                             self.boot1_size = int(get_field(data, "boot1_size"), 16)
@@ -625,7 +627,9 @@ class DAXML(metaclass=LogBase):
                             self.gp2_size = int(get_field(data, "gp2_size"), 16)
                             self.gp3_size = int(get_field(data, "gp3_size"), 16)
                             self.gp4_size = int(get_field(data, "gp4_size"), 16)
-                            self.cid = get_field(data, "id")
+                            self.cid = get_field(data, "id") # this doesn't exists in Xiaomi DA
+                            if self.cid == "":
+                                self.cid = get_field(data, "emmc_cid")
                         elif self.storagetype == "NAND":
                             self.block_size = int(get_field(data, "block_size"), 16)
                             self.page_size = int(get_field(data, "page_size"), 16)
