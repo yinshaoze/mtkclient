@@ -1528,11 +1528,11 @@ hwconfig = {
         loader="mt8127_payload.bin"),  # ford,austin,tank #mhmm wdt, nochmal checken
     0x8135: chipconfig(  # var1
         watchdog=0x10000000,
-        # uart
+        uart=0x11002000,
         # brom_payload_addr
         da_payload_addr=0x12001000,
-        # pl_payload_addr
-        # gcpu_base
+        pl_payload_addr=0x80001000,
+        gcpu_base=0x11018000,
         # sej_base
         # cqdma_base
         # ap_dma_mem
