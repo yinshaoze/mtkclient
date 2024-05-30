@@ -202,7 +202,10 @@ class Mtk(metaclass=LogBase):
                 self.config.payloadfile = os.path.join(self.pathconfig.get_payloads_path(),
                                                        self.config.chipconfig.loader)
         if plt.runpayload(filename=self.config.payloadfile):
-            mtk.port.run_handshake()
+            if mtk.serialportname:
+                mtk.port.serial_handshake()
+            else:
+                mtk.port.handshake()
             return mtk
         else:
             self.error("Error on running kamakiri payload")
