@@ -614,8 +614,8 @@ class DAXML(metaclass=LogBase):
                             self.lua1_size = int(get_field(data, "lua1_size"), 16)
                             self.lua2_size = int(get_field(data, "lua2_size"), 16)
                             self.lua3_size = int(get_field(data, "lua3_size"), 16)
-                            self.cid = get_field(data, "id") # this doesn't exists in Xiaomi DA
-                            if self.cid == "":
+                            self.cid = get_field(data, "id")  # this doesn't exists in Xiaomi DA
+                            if not self.cid:
                                 self.cid = get_field(data, "ufs_cid")
                         elif self.storagetype == "EMMC":
                             self.block_size = int(get_field(data, "block_size"), 16)
@@ -627,8 +627,8 @@ class DAXML(metaclass=LogBase):
                             self.gp2_size = int(get_field(data, "gp2_size"), 16)
                             self.gp3_size = int(get_field(data, "gp3_size"), 16)
                             self.gp4_size = int(get_field(data, "gp4_size"), 16)
-                            self.cid = get_field(data, "id") # this doesn't exists in Xiaomi DA
-                            if self.cid == "":
+                            self.cid = get_field(data, "id")  # this doesn't exists in Xiaomi DA
+                            if not self.cid:
                                 self.cid = get_field(data, "emmc_cid")
                         elif self.storagetype == "NAND":
                             self.block_size = int(get_field(data, "block_size"), 16)
@@ -704,10 +704,7 @@ class DAXML(metaclass=LogBase):
         if "item key=" in data:
             tmp = data[data.find("item key=") + 8:]
             res = tmp[tmp.find(">") + 1:tmp.find("<")]
-            if res == "DISABLED":
-                return False
-            else:
-                return True
+            return res != "DISABLED"
         else:
             self.error("Couldn't find item key")
         return data
@@ -918,10 +915,7 @@ class DAXML(metaclass=LogBase):
         if sresult == "OK":
             tcmd, tresult = self.get_command_result()
             if tresult == "START":
-                if data == b"OK\x00":
-                    return True
-                else:
-                    return False
+                return data == b"OK\x00"
         return False
 
     def reinit(self, display=False):

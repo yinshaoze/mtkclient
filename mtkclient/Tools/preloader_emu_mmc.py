@@ -163,10 +163,7 @@ class Stage2(metaclass=LogBase):
             bytestowrite -= size
             pos += size
         ack = self.cdc.usbread(4)
-        if ack == b"\xD0\xD0\xD0\xD0":
-            return True
-        else:
-            return False
+        return ack == b"\xD0\xD0\xD0\xD0"
 
     def rpmb(self, start, length, filename):
         if start == 0:

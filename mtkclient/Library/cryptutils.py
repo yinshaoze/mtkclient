@@ -486,18 +486,12 @@ class cryptutils:
             if salt is not None:
                 inBlock = b"\x00" * 8 + msghash + salt
                 mhash = self.hash(inBlock)
-                if mhash == hash:
-                    return True
-                else:
-                    return False
+                return mhash == hash
             else:
                 salt = TS[-self.digestLen:]
                 inBlock = b"\x00" * 8 + msghash + salt
                 mhash = self.hash(inBlock)
-                if mhash == hash:
-                    return True
-                else:
-                    return False
+                return mhash == hash
             return maskedDB
 
         @staticmethod

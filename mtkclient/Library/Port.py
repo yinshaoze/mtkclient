@@ -49,7 +49,6 @@ class Port(metaclass=LogBase):
             self.__logger.setLevel(logging.INFO)
 
     def run_serial_handshake(self):
-        EP_OUT = None
         try:  # Support for serial port where EP_OUT is unknown
             if hasattr(self.cdc, 'EP_OUT'):
                 EP_OUT = self.cdc.EP_OUT.write

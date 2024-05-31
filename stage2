@@ -303,10 +303,7 @@ class Stage2(metaclass=LogBase):
         if filename is not None:
             rf.close()
         ack = self.usbread(4)
-        if ack == b"\xD0\xD0\xD0\xD0":
-            return True
-        else:
-            return False
+        return ack == b"\xD0\xD0\xD0\xD0"
 
     def rpmb(self, start, length, filename, reverse=False):
         pg = progress(pagesize=0x100)
