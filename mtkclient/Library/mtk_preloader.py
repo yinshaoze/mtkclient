@@ -1141,6 +1141,28 @@ class Preloader(metaclass=LogBase):
                     "7c9a404c97433f46d983bd0c5f49fa4b013b9d86e5f1377f563d8299675c0ea2b81f51c33ad74a265184df9389eefb8" +
                     "e72d2f0585e4a41826b8846b0ee6da5ef8cce471536109fe4c658735247ebbc301"))
             ),
+            # Motorola G13
+            (
+                bytes_to_long(bytes.fromhex("00010001")),
+                # N
+                bytes_to_long(bytes.fromhex("DA61964924F441559A1F8B5264CEB01DACE8E417413BBA4657F4556811D07B85074FD69" +
+                                            "87F315A7492E003D03C57FC83D3B889F2D4F136D0989E515A08628A7B16A300217162DC" +
+                                            "35C340B1127046AA86649B763AF97F7C9871964483DE6695CDA2E8CCE82E1F6A0F701AF" +
+                                            "8BE767BB16927489524F8FC9A2C280F5692E850E4C4E2606436CF2E253147AFAB32E6B9" +
+                                            "2A19FA180C43CF480619B71B3D6A7863C7CC376C0A36BCF8BA3DA89CBF3E6DAA4691DCD" +
+                                            "769C0AE4535E502A9966AFF3F123C7A0EDA2DF04593B0E1FC60DC688F2BA7617DFE67D3" +
+                                            "1854443ED95D2645323728C594CA49DAA9351A572E3182D0A1B3146C92CEF87380CBD2D" +
+                                            "EFFEBC4E8F420D3")),
+                # D
+                bytes_to_long(bytes.fromhex("AEAC47CD11A5DD6C5EEEC43D8F2C536A2917CEF95AD02F5A7C978E88C35702B590F7A72" +
+                                            "A2AF28AEB9B5F5B2D8056D03F916595D189C9B6927AC0874980537178AACE8E1831DD65" +
+                                            "4E0B72FF2F44670196A57A43C340355CAF828B331A5715AED4E06D5D18896BCF25B201A" +
+                                            "0DC9760B0B2EF1CFB4EAB6940D7F8E2EBD86DC1E678AA69F6B0BBF55C688BF72C2123CF" +
+                                            "42E367F789E2592CE281C7C4752E14F6FD00D54610977DEF753E3890F12F704688537E8" +
+                                            "60D81142805750B805E7CAE3AACDE1CD7A272D227E9F8CCAADCB4D06489664627BAC46C" +
+                                            "AF5DA0F0740CEEDEBC7ED1C1D1EB1E37C6A8A9E6A0454F742B3248448B20C93D5FF6E5C" +
+                                            "789907A862C90A1")),
+            )
         ]
         if isbrom:
             # e, n, d

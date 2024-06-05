@@ -40,10 +40,13 @@ def main():
     da_setup = []
     loaders = []
     pc = pathconfig()
-    for root, dirs, files in os.walk(pc.get_loader_path(), topdown=False):
-        for file in files:
-            if "MTK_AllInOne" in file:
-                loaders.append(os.path.join(root, file))
+    if len(sys.argv)>1:
+        loaders.append(sys.argv[1])
+    else:
+        for root, dirs, files in os.walk(pc.get_loader_path(), topdown=False):
+            for file in files:
+                if "MTK_DA_V5.bin" in file:
+                    loaders.append(os.path.join(root, file))
     if not os.path.exists("loaders"):
         os.mkdir("loaders")
     dadb = {}

@@ -41,7 +41,7 @@ User: user, Password:user (based on Ubuntu 22.04 LTS)
 
 #### For Debian/Ubuntu
 ```
-sudo apt install python3 git libusb-1.0-0 python3-pip
+sudo apt install python3 git libusb-1.0-0 python3-pip libfuse2
 ```
 #### For ArchLinux
 ```
@@ -56,6 +56,7 @@ yay -S python python-pip git libusb
 ```
 git clone https://github.com/bkerler/mtkclient
 cd mtkclient
+pip3 install -r requirements.txt
 pip3 install .
 ```
 

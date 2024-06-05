@@ -1,6 +1,8 @@
+import logging
 import os
 import sys
 from struct import unpack, pack
+
 # from keystone import *
 from mtkclient.config.payloads import pathconfig
 from mtkclient.config.brom_config import efuse
@@ -105,14 +107,14 @@ class xmlflashext(metaclass=LogBase):
         xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMACK")
         if self.xsend(xmlcmd):
             # result =
-            self.xflash.get_response()
+            result = self.xflash.get_response()
             # DATA data =
-            self.xflash.get_response(raw=True)
+            data = self.xflash.get_response(raw=True)
             # CMD:END result =
-            self.xflash.get_response()
+            result2 = self.xflash.get_response()
             self.xflash.ack()
             # CMD:START result =
-            self.xflash.get_response()
+            resp = self.xflash.get_response()
             self.xflash.ack()
             if data == b"\xA4\xA3\xA2\xA1":
                 return True
@@ -229,6 +231,22 @@ class xmlflashext(metaclass=LogBase):
             self.info("Patched write partitions / allow_read / allow_write")
         if not patched:
             self.warning("Write not allowed not patched.")
+        idx2 = find_binary(da2patched, b"\x30\x48\x2D\xE9\x08\xB0\x8D\xE2\x20\xD0\x4D\xE2\x01\x50\xA0\xE1")
+        if idx2 is not None:
+            da2patched[idx2:idx2+8] = b"\x00\x00\xA0\xE3\x1E\xFF\x2F\xE1"
+            self.info("Patched Infinix SLA authentification.")
+        else:
+            idx2 = find_binary(da2patched, b"\x70\x4C\x2D\xE9\x10\xB0\x8D\xE2\x00\x60\xA0\xE1\x02\x06\xA0\xE3")
+            if idx2 is not None:
+                da2patched[idx2:idx2 + 8] = b"\x00\x00\xA0\xE3\x1E\xFF\x2F\xE1"
+                self.info("Patched Oppo SLA authentification.")
+                idx3 = find_binary(da2patched,b"\x03\x00\x00\x00\xFF\xFF\xFF\xFF\x00\x00\x00\x00\x01\x00\x00\x00")
+                if idx3 is not None:
+                    da2patched[idx3:idx3+4]=b"\xFF\x00\x00\x00"
+                    self.info("Patched Oppo Allowance flag.")
+            else:
+                self.warning("SLA authentification not patched.")
+        #open("/home/bjk/Projects/mtkclient_le/Loaders/V6/infinix/mt6789/DA_BR_2_40000000.patched.bin", "wb").write(da2patched)
         return da2patched
 
     def custom_rpmb_read(self, sector, ufs=False):

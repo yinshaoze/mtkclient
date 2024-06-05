@@ -60,6 +60,7 @@ class hwcrypto(metaclass=LogBase):
                 if mode == "cbc":
                     return self.sej.hw_aes128_cbc_encrypt(buf=data, encrypt=True)
                 elif mode == "sst":
+                    self.sej.sej_base = 0xC0016000
                     data2 = self.sej.generate_hw_meta(encrypt=True, data=data)
                     data3 = self.sej.SST_Secure_Algo_With_Level(buf=data, encrypt=True)
                     print(data2.hex())
