@@ -1475,6 +1475,34 @@ hwconfig = {
         description="MTK Helio G99"
         # loader="mt6789_payload.bin"
     ),
+    0x1229: chipconfig(
+        var1=0xA,
+        watchdog=0x10007000,
+        uart=0x11002000,
+        brom_payload_addr=0x100A00,
+        da_payload_addr=0x2001000,
+        pl_payload_addr=0x40200000,
+        # gcpu_base=0x10050000,
+        dxcc_base=0x10210000,
+        #sej_base=0x1000a000,
+        cqdma_base=0x10212000,
+        # ap_dma_mem=0x11300800 + 0x1a0,
+        # blacklist=[(0x102d5c, 0x0)],
+        # blacklist_count=0x0000000A,
+        # send_ptr=(0x102888, 0xE79C),
+        # ctrl_buffer=0x00103024,
+        # cmd_handler=0x000101E8,
+        # brom_register_access=(0xf99a, 0xfa0c),
+        #meid_addr=0x1008EC,
+        #socid_addr=0x100934,
+        # prov_addr=0x1066C0,
+        # efuse_addr=0x11C10000,
+        damode=damodes.XML,
+        dacode=0x1229,
+        name="MT6886",
+        description="Dimensity 7200 Ultra"
+        # loader="mt7200_payload.bin"
+    ),
     0x1296: chipconfig(
         var1=0xA,
         watchdog=0x10007000,
