@@ -179,7 +179,7 @@ class xflashext(metaclass=LogBase):
             da1patched = self.mtk.patch_preloader_security_da1(da1patched)
             # Patch security
 
-            da_version_check = find_binary(da1, b"\x1F\xB5\x00\x23\x01\xA8\x00\x93\x00\xF0\xDE\xFE")
+            da_version_check = find_binary(da1, b"\x1F\xB5\x00\x23\x01\xA8\x00\x93\x00\xF0")
             if da_version_check is not None:
                 da1patched = bytearray(da1patched)
                 da1patched[da_version_check:da_version_check + 4] = b"\x00\x20\x70\x47"
