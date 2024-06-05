@@ -89,6 +89,8 @@ class Port(metaclass=LogBase):
             self.cdc.connected = self.cdc.connect()
         while 1:  # Workaround for serial port
             try:
+                if not self.cdc.connected:
+                    self.cdc.connected = self.cdc.connect()
                 if maxtries is not None and counter == maxtries:
                     break
                 counter += 1

@@ -33,25 +33,36 @@ class serial_class(DeviceClass):
         if self.connected:
             self.close()
             self.connected = False
-        if self.portname is None:
-            devices = self.detectdevices()
-            if len(devices) > 0:
-                self.portname = devices[0]
-        elif self.portname is not None:
-            self.device = serial.Serial(baudrate=115200, bytesize=serial.EIGHTBITS,
+
+        ports = self.detectdevices()
+        if ports:
+            port = None
+            if self.portname != "DETECT":
+                if self.portname not in ports:
+                    self.debug("{} not in detected ports: {}".format(self.portname, ports))
+                    return False
+                else:
+                    port = ports[ports.index(self.portname)]
+            else:
+                port = ports[0]
+            self.debug("Got port: {}, initializing".format(port))
+            self.device = serial.Serial(port=port, baudrate=115200, bytesize=serial.EIGHTBITS,
                                         parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,
                                         timeout=500,
                                         xonxoff=False, dsrdtr=False, rtscts=False)
-            self.device._reset_input_buffer = _reset_input_buffer
-            self.device.setPort(port=self.portname)
-            try:
-                self.device.open()
-            except Exception:
-                pass
-            self.device._reset_input_buffer = _reset_input_buffer_org
-            self.connected = self.device.is_open
-            if self.connected:
-                return True
+            self.portname = port
+        else:
+            return False
+        self.device._reset_input_buffer = _reset_input_buffer
+        try:
+            self.device.open()
+        except Exception as e:
+            self.debug(e)
+            pass
+        self.device._reset_input_buffer = _reset_input_buffer_org
+        self.connected = self.device.is_open
+        if self.connected:
+            return True
         return False
 
     def setportname(self, portname: str):
@@ -87,8 +98,7 @@ class serial_class(DeviceClass):
         for port in serial.tools.list_ports.comports():
             for usbid in self.portconfig:
                 if port.pid == usbid[1] and port.vid == usbid[0]:
-                    # portid = port.location[-1:]
-                    print(f"Detected {hex(port.vid)}:{hex(port.pid)} device at: {port.device}")
+                    self.debug(f"Detected {hex(port.vid)}:{hex(port.pid)} device at: {port.device}")
                     ids.append(port.device)
         return sorted(ids)
 
