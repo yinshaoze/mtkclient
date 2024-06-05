@@ -203,10 +203,7 @@ class DALegacy(metaclass=LogBase):
             if ack == self.Rsp.ACK:
                 self.usbwrite(pack(">B", partition))
                 res = self.usbread(1)
-                if res < 0:
-                    return False
-                else:
-                    return True
+                return not res < 0
         return False
 
     def check_security(self):
