@@ -205,7 +205,7 @@ class Mtk(metaclass=LogBase):
             if mtk.serialportname:
                 mtk.port.serial_handshake()
             else:
-                mtk.port.handshake()
+                mtk.port.run_handshake()
             return mtk
         else:
             self.error("Error on running kamakiri payload")
