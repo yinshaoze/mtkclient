@@ -1477,7 +1477,7 @@ hwconfig = {
     ),
     0x1229: chipconfig(
         var1=0xA,
-        watchdog=0x10007000,
+        watchdog=0x1c007000,
         uart=0x11002000,
         brom_payload_addr=0x100A00,
         da_payload_addr=0x2001000,
