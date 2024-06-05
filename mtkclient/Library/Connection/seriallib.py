@@ -37,7 +37,7 @@ class serial_class(DeviceClass):
         ports = self.detectdevices()
         if ports:
             port = None
-            if self.portname is not "DETECT":
+            if self.portname != "DETECT":
                 if self.portname not in ports:
                     self.debug("{} not in detected ports: {}".format(self.portname, ports))
                     return False
