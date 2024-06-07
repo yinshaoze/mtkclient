@@ -29,7 +29,7 @@ class ShutDownModes:
 
 
 def get_field(data, fieldname):
-    if type(data) is bytes or type(data) is bytearray:
+    if isinstance(data, bytes) or isinstance(data, bytearray):
         data = data.decode('utf-8')
     start = data.find(f"<{fieldname}>")
     if start != -1:
@@ -558,7 +558,7 @@ class DAXML(metaclass=LogBase):
                 self.setup_hw_init()
                 self.change_usb_speed()
                 res = self.check_sla()
-                if type(res) is bool:
+                if isinstance(res, bool):
                     if not res:
                         self.info("SLA is disabled")
                     else:

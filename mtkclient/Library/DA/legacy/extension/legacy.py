@@ -167,14 +167,15 @@ class legacyext(metaclass=LogBase):
         data, guid_gpt = self.legacy.partition.get_gpt(self.mtk.config.gpt_settings, "user")
         seccfg_data = None
         partition = None
-        for rpartition in guid_gpt.partentries:
-            if rpartition.name == "seccfg":
-                partition = rpartition
-                seccfg_data = self.legacy.readflash(
-                    addr=partition.sector * self.mtk.daloader.daconfig.pagesize,
-                    length=partition.sectors * self.mtk.daloader.daconfig.pagesize,
-                    filename="", parttype="user", display=False)
-                break
+        if guid_gpt is not None:
+            for rpartition in guid_gpt.partentries:
+                if rpartition.name == "seccfg":
+                    partition = rpartition
+                    seccfg_data = self.legacy.readflash(
+                        addr=partition.sector * self.mtk.daloader.daconfig.pagesize,
+                        length=partition.sectors * self.mtk.daloader.daconfig.pagesize,
+                        filename="", parttype="user", display=False)
+                    break
         if seccfg_data is None:
             return False, "Couldn't detect existing seccfg partition. Aborting unlock."
         hwc = self.cryptosetup()
