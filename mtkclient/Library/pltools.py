@@ -173,7 +173,7 @@ class PLTools(metaclass=LogBase):
             data = bytearray()
         for i in range(32):
             data.append(self.config.meid[i % len(self.config.meid)])
-        if btype == "":
+        if not btype:
             encrypted = self.hwcrypto.aes_hwcrypt(data=data, iv=iv, encrypt=encrypt, btype=btype, otp=otp)
             return encrypted
         return False
