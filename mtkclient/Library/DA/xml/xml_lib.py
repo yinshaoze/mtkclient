@@ -576,7 +576,7 @@ class DAXML(metaclass=LogBase):
     def get_hw_info(self):
         self.send_command(self.Cmd.cmd_get_hw_info(), noack=True)
         cmd, result = self.get_command_result()
-        if type(result) is not upfile:
+        if not isinstance(result, upfile):
             return False
         data = self.download(result)
         """
@@ -907,7 +907,7 @@ class DAXML(metaclass=LogBase):
     def check_lifecycle(self):
         self.send_command(self.Cmd.cmd_emmc_control(function="LIFE-CYCLE-STATUS"), noack=True)
         cmd, result = self.get_command_result()
-        if type(result) is not upfile:
+        if not isinstance(result, upfile):
             return False
         data = self.download(result)
         scmd, sresult = self.get_command_result()
@@ -926,6 +926,9 @@ class DAXML(metaclass=LogBase):
         self.nor = self.get_nor_info(display)
         self.ufs = self.get_ufs_info(display)
         """
+        if isinstance(self.storage, bool):
+            self.error("Error: Cannot Reinit daconfig")
+            return
         if self.storage.storagetype == "EMMC":
             self.daconfig.flashtype = "emmc"
             self.daconfig.flashsize = self.storage.user_size
