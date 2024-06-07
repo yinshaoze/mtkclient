@@ -296,9 +296,18 @@ class DAXFlash(metaclass=LogBase):
                                 return False
 
                             if status == 0x434E5953 or status == 0x0:
+                                self.info(f"Boot to succeeded.")
                                 return True
                             else:
-                                self.error(f"Error on boot to: {self.eh.status(status)}")
+                                self.error(f"Error on boot to: {self.eh.status(status)}, addr: {hex(addr)}")
+                        else:
+                            self.error(f"Error on boot to send_data, addr: {hex(addr)}")
+                    else:
+                        self.error(f"Error on boot usbwrite, addr: {hex(addr)}")
+                else:
+                    self.error(f"Error on boot usbwrite, addr: {hex(addr)}")
+            else:
+                self.error(f"Error on boot to: {self.eh.status(status)}, addr: {hex(addr)}")
         return False
 
     def get_connection_agent(self):
@@ -1161,6 +1170,9 @@ class DAXFlash(metaclass=LogBase):
                 self.info("Uploading stage 2...")
                 stage = stage + 1
                 if not self.mtk.daloader.patch:
+                    #if self.carbonara is not None:
+                    #    loaded = self.carbonara.patchda1_and_upload_da2()
+                    #else:
                     loaded = self.boot_to(self.daconfig.da_loader.region[stage].m_start_addr, self.daconfig.da2)
                 else:
                     loaded = self.boot_to(self.daconfig.da_loader.region[stage].m_start_addr, self.daconfig.da2)

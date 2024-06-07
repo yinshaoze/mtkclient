@@ -179,7 +179,7 @@ class xflashext(metaclass=LogBase):
             da1patched = self.mtk.patch_preloader_security_da1(da1patched)
             # Patch security
 
-            da_version_check = find_binary(da1, b"\x1F\xB5\x00\x23\x01\xA8\x00\x93\x00\xF0\xDE\xFE")
+            da_version_check = find_binary(da1, b"\x1F\xB5\x00\x23\x01\xA8\x00\x93\x00\xF0")
             if da_version_check is not None:
                 da1patched = bytearray(da1patched)
                 da1patched[da_version_check:da_version_check + 4] = b"\x00\x20\x70\x47"
@@ -232,6 +232,10 @@ class xflashext(metaclass=LogBase):
                     da2patched[authaddr:authaddr + 14] = b"\x4F\xF0\x00\x09\x32\x46\x01\x98\x03\x99\x4F\xF0\x00\x09"
                 else:
                     self.warning("Hash check not patched.")
+        # Disable security checks
+        security_check = find_binary(da2, b"\x01\x23\x03\x60\x00\x20\x70\x47\x70\xB5")
+        if security_check:
+            da2patched[security_check:security_check+2]=b"\x00\x23"
         # Disable da anti rollback version check
         antirollback = find_binary(da2, int.to_bytes(0xC0020053, 4, 'little'))
         if antirollback:

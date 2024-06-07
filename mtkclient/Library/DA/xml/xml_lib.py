@@ -541,6 +541,15 @@ class DAXML(metaclass=LogBase):
             self.error("Wrong boot_to response :(")
         return False
 
+    def handle_sla(self, data=b"\x00"*0x100, display=True, timeout=0.5):
+        result = self.send_command(self.Cmd.cmd_security_set_flash_policy(host_offset=0x8000000,length=len(data)))
+        if type(result) is dwnfile:
+            self.info("Running sla auth...")
+            if self.upload(result, data):
+                self.info("Successfully uploaded sla auth.")
+                return True
+        return False
+
     def upload_da(self):
         if self.upload_da1():
             self.info("Stage 1 successfully loaded.")
@@ -784,7 +793,8 @@ class DAXML(metaclass=LogBase):
                 if self.daconfig.flashtype == "emmc":
                     length = min(length, self.emmc.gp1_size)
             else:
-                self.error('Unknown parttype. Known parttypes are "boot1","boot2","gp1","gp2","gp3","gp4","rpmb"')
+                self.error("Unknown parttype. Known parttypes are \"boot1\",\"boot2\",\"gp1\"," +
+                           "\"gp2\",\"gp3\",\"gp4\",\"rpmb\"")
                 return []
         elif storage == DaStorage.MTK_DA_STORAGE_UFS:
             if parttype is None or parttype == "lu3" or parttype == "user":  # USER

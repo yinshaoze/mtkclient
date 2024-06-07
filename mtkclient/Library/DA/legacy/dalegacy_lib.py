@@ -340,7 +340,7 @@ class DALegacy(metaclass=LogBase):
                         self.error("EMI Config not accepted :(")
                         return False
                     if ret == self.Rsp.ACK:
-                        self.info("Sending dram info ...")
+                        self.info(f"Sending dram info ... EMI-Version {hex(self.daconfig.emiver)}")
                         dramlength = len(self.daconfig.emi)
                         if self.daconfig.emiver in [0xF, 0x10, 0x11, 0x14, 0x15]:
                             dramlength = unpack(">I", self.usbread(0x4))[0]  # 0x000000BC
