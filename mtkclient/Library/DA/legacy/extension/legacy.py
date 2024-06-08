@@ -163,18 +163,18 @@ class legacyext(metaclass=LogBase):
     def seccfg(self, lockflag):
         if lockflag not in ["unlock", "lock"]:
             return False, "Valid flags are: unlock, lock"
-        hwc = self.cryptosetup()
         data, guid_gpt = self.legacy.partition.get_gpt(self.mtk.config.gpt_settings, "user")
         seccfg_data = None
         partition = None
-        for rpartition in guid_gpt.partentries:
-            if rpartition.name == "seccfg":
-                partition = rpartition
-                seccfg_data = self.legacy.readflash(
-                    addr=partition.sector * self.mtk.daloader.daconfig.pagesize,
-                    length=partition.sectors * self.mtk.daloader.daconfig.pagesize,
-                    filename="", parttype="user", display=False)
-                break
+        if guid_gpt is not None:
+            for rpartition in guid_gpt.partentries:
+                if rpartition.name == "seccfg":
+                    partition = rpartition
+                    seccfg_data = self.legacy.readflash(
+                        addr=partition.sector * self.mtk.daloader.daconfig.pagesize,
+                        length=partition.sectors * self.mtk.daloader.daconfig.pagesize,
+                        filename="", parttype="user", display=False)
+                    break
         if seccfg_data is None:
             return False, "Couldn't detect existing seccfg partition. Aborting unlock."
         hwc = self.cryptosetup()
@@ -228,8 +228,8 @@ class legacyext(metaclass=LogBase):
             base = 0x122000
         else:
             base = 0x100000
-        #data = b"".join([pack("<I", val) for val in self.readmem(0x111418EC, 0x20000 // 4)])
-        #print(data.hex())
+        # data = b"".join([pack("<I", val) for val in self.readmem(0x111418EC, 0x20000 // 4)])
+        # print(data.hex())
         sys.stdout.flush()
         if self.config.meid is None:
             try:

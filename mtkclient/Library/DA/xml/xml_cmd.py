@@ -35,8 +35,8 @@ class XMLCmd(metaclass=LogBase):
         cmd = self.create_cmd("NOTIFY-INIT-HW")
         return cmd
 
-    def cmd_security_set_flash_policy(self,host_offset: int = 0x8000000,
-                    length: int = 0x100000):
+    def cmd_security_set_flash_policy(self, host_offset: int = 0x8000000,
+                                      length: int = 0x100000):
         """
         <?xml version="1.0" encoding="utf-8"?><da><version>1.0</version><command>CMD:SECURITY-SET-FLASH-POLICY</command><arg>
         <source_file>MEM://0x8000000:0x100000</source_file></arg></da>
