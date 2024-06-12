@@ -11,6 +11,7 @@ from binascii import hexlify
 from Cryptodome.Util.number import bytes_to_long, long_to_bytes, ceil_div, size
 from Cryptodome.PublicKey import RSA
 
+import mtkclient.Library.settings
 from mtkclient.Library.utils import LogBase, logsetup
 from mtkclient.Library.error import ErrorHandler
 from mtkclient.config.brom_config import damodes
@@ -162,10 +163,10 @@ class Preloader(metaclass=LogBase):
         self.sendcmd = self.mtk.port.mtk_cmd
 
     def init(self, maxtries=None, display=True):
-        if os.path.exists(".state"):
+        if os.path.exists(os.path.join(self.mtk.config.hwparam_path, ".state")):
             try:
-                os.remove(".state")
-                os.remove(os.path.join("logs", "hwparam.json"))
+                os.remove(os.path.join(self.mtk.config.hwparam_path, ".state"))
+                os.remove(os.path.join(self.mtk.config.hwparam_path, "hwparam.json"))
             except OSError:
                 pass
         readsocid = self.config.readsocid

@@ -4,7 +4,7 @@
 import argparse
 from mtkclient.Library.mtk_main import Main, metamodes
 
-info = "MTK Flash/Exploit Client Public V2.0.0 (c) B.Kerler 2018-2024"
+info = "MTK Flash/Exploit Client Public V2.0.1 (c) B.Kerler 2018-2024"
 
 cmds = {
     "printgpt": "Print GPT Table information",

@@ -83,7 +83,7 @@ class DA_handler(metaclass=LogBase):
         else:
             if mtk.serialportname is not None:
                 mtk.preloader.init()
-            if mtk.port.cdc.connected and os.path.exists(".state"):
+            if mtk.port.cdc.connected and os.path.exists(os.path.join(mtk.hwparamFolder,".state")):
                 mtk.daloader.reinit()
                 return mtk
         if mtk.config.target_config is None:
@@ -757,10 +757,10 @@ class DA_handler(metaclass=LogBase):
                 self.close()
             self.da_ess(sector=sector, parttype=parttype, sectors=sectors)
         elif cmd == "reset":
-            if os.path.exists(".state"):
-                os.remove(".state")
-                if os.path.exists(os.path.join("logs", "hwparam.json")):
-                    os.remove(os.path.join("logs", "hwparam.json"))
+            if os.path.exists(os.path.join(self.mtk.config.hwparam_path, ".state")):
+                os.remove(os.path.join(self.mtk.config.hwparam_path, ".state"))
+                if os.path.exists(os.path.join(self.mtk.config.hwparam_path, "hwparam.json")):
+                    os.remove(os.path.join(self.mtk.config.hwparam_path, "hwparam.json"))
             mtk.daloader.shutdown(bootmode=0)
             print("Reset command was sent. Disconnect usb cable to power off.")
         elif cmd == "da":

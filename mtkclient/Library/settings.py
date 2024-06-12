@@ -8,9 +8,10 @@ class hwparam:
     hwcode = None
     appid = b""
 
-    def __init__(self, meid: str, path: str = "logs"):
+    def __init__(self, config, meid: str, path: str = "logs"):
+        self.config = config
         self.paramfile = "hwparam.json"
-        self.hwparampath = path
+        self.config.hwparam_path = path
         self.appid = b""
         if isinstance(meid, bytearray) or isinstance(meid, bytes):
             meid = hexlify(meid).decode('utf-8')
@@ -18,8 +19,8 @@ class hwparam:
             self.paramsetting = {}
             if meid is not None:
                 self.paramsetting["meid"] = meid
-                if not os.path.exists(self.hwparampath):
-                    os.mkdir(self.hwparampath)
+                if not os.path.exists(self.config.hwparam_path):
+                    os.mkdir(self.config.hwparam_path)
                 open(os.path.join(path, self.paramfile), "w").write(json.dumps(self.paramsetting))
         else:
             self.paramsetting = {}
@@ -43,6 +44,6 @@ class hwparam:
 
     def write_json(self):
         if self.paramsetting is not None:
-            if not os.path.exists(self.hwparampath):
-                os.mkdir(self.hwparampath)
-            open(os.path.join(self.hwparampath, self.paramfile), "w").write(json.dumps(self.paramsetting))
+            if not os.path.exists(self.config.hwparam_path):
+                os.mkdir(self.config.hwparam_path)
+            open(os.path.join(self.config.hwparam_path, self.paramfile), "w").write(json.dumps(self.paramsetting))

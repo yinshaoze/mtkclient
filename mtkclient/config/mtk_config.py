@@ -67,12 +67,12 @@ class Mtk_Config(metaclass=LogBase):
         self.chipconfig = chipconfig()
         self.gpt_settings = None
         self.hwparam = None
-        self.hwparam_path = "logs"
+        self.hwparam_path = "."
         self.sram = None
         self.dram = None
         self.otp = None
         if loglevel == logging.DEBUG:
-            logfilename = os.path.join("logs", "log.txt")
+            logfilename = os.path.join(self.hwparam_path, "log.txt")
             fh = logging.FileHandler(logfilename)
             self.__logger.addHandler(fh)
             self.__logger.setLevel(logging.DEBUG)
@@ -113,7 +113,7 @@ class Mtk_Config(metaclass=LogBase):
         self.hwparam.writesetting("hwcode", hex(hwcode))
 
     def set_meid(self, meid):
-        self.hwparam = hwparam(meid, self.hwparam_path)
+        self.hwparam = hwparam(self, meid, self.hwparam_path)
         self.meid = meid
         self.hwparam.writesetting("meid", hexlify(meid).decode('utf-8'))
 

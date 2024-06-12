@@ -69,7 +69,7 @@ class DAloader(metaclass=LogBase):
             if not self.mtk.config.iot:
                 config["m_sdmmc_ua_size"] = self.da.sdc.m_sdmmc_ua_size
 
-        open(".state", "w").write(json.dumps(config))
+        open(os.path.join(self.mtk.config.hwparam_path, ".state"), "w").write(json.dumps(config))
 
     def compute_hash_pos(self, da1, da2, da1sig_len, da2sig_len, v6):
         hashlen = len(da2) - da2sig_len
@@ -135,8 +135,8 @@ class DAloader(metaclass=LogBase):
         return da1
 
     def reinit(self):
-        if os.path.exists(".state"):
-            config = json.loads(open(".state", "r").read())
+        if os.path.exists(os.path.join(self.mtk.config.hwparam_path, ".state")):
+            config = json.loads(open(os.path.join(self.mtk.config.hwparam_path, ".state"), "r").read())
             self.config.hwcode = config["hwcode"]
             if "meid" in config:
                 self.config.meid = bytes.fromhex(config["meid"])
@@ -153,7 +153,7 @@ class DAloader(metaclass=LogBase):
                 self.flashmode = damodes.XML
             self.config.init_hwcode(self.config.hwcode)
             if self.config.meid is not None:
-                self.config.hwparam = hwparam(self.config.meid.hex(), self.mtk.config.hwparam_path)
+                self.config.hwparam = hwparam(self.mtk.config, self.config.meid.hex(), self.mtk.config.hwparam_path)
             if self.flashmode == damodes.XML:
                 self.da = DAXML(self.mtk, self.daconfig, self.loglevel)
                 self.daconfig.flashtype = config["flashtype"]
