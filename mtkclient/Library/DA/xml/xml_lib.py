@@ -231,6 +231,22 @@ class DAXML(metaclass=LogBase):
                         return data
         return b""
 
+    def patch_da(self, da1, da2):
+        da1sig_len = self.daconfig.da_loader.region[1].m_sig_len
+        # ------------------------------------------------
+        da2sig_len = self.daconfig.da_loader.region[2].m_sig_len
+        hashaddr, hashmode, hashlen = self.mtk.daloader.compute_hash_pos(da1, da2, da1sig_len, da2sig_len,
+                                                                         self.daconfig.da_loader.v6)
+        if hashaddr is not None:
+            da1 = self.xmlft.patch_da1(da1)
+            da2 = self.xmlft.patch_da2(da2)
+            da1 = self.mtk.daloader.fix_hash(da1, da2, hashaddr, hashmode, hashlen)
+            self.mtk.daloader.patch = True
+        else:
+            self.mtk.daloader.patch = False
+            self.daconfig.da2 = da2[:-da2sig_len]
+        return da1, da2
+
     def upload_da1(self):
         if self.daconfig.da_loader is None:
             self.error("No valid da loader found... aborting.")
@@ -258,6 +274,11 @@ class DAXML(metaclass=LogBase):
             da2sig_len = self.daconfig.da_loader.region[2].m_sig_len
             bootldr.seek(da2offset)
             da2 = bootldr.read(self.daconfig.da_loader.region[2].m_len)
+            if self.patch or not self.config.target_config["sbc"]:
+                da1, da2 = self.patch_da(da1,da2)
+                self.patch = True
+            else:
+                self.patch = False
             self.daconfig.da2 = da2[:-da2sig_len]
 
             if self.mtk.preloader.send_da(da1address, da1size, da1sig_len, da1):
@@ -560,7 +581,36 @@ class DAXML(metaclass=LogBase):
                 self.daext = False
             else:
                 loaded = self.boot_to(da2offset, da2)
-                self.daext = False
+                sla_signature = b"\x00" * 0x100
+                self.handle_sla(data=sla_signature)
+                xmlcmd = self.Cmd.create_cmd("CUSTOM")
+                if self.xsend(xmlcmd):
+                    # result =
+                    data = self.get_response()
+                    if data == 'OK':
+                        # OUTPUT
+                        xdata = self.xmlft.patch()
+                        self.xsend(int.to_bytes(len(xdata), 4, 'little'))
+                        self.xsend(xdata)
+                        # CMD:END
+                        # result =
+                        self.get_response()
+                        self.ack()
+                        # CMD:START
+                        # result =
+                        self.get_response()
+                        self.ack()
+
+                        if self.xmlft.ack():
+                            self.info("DA XML Extensions successfully loaded.")
+                            self.daext = True
+                        else:
+                            self.error("DA XML Extensions failed.")
+                            self.daext = False
+                    else:
+                        self.error("DA XML Extensions failed.")
+                        self.daext = False
+
 
             if loaded:
                 self.info("Successfully uploaded stage 2")
@@ -936,6 +986,7 @@ class DAXML(metaclass=LogBase):
         self.nor = self.get_nor_info(display)
         self.ufs = self.get_ufs_info(display)
         """
+        self.storage = self.get_hw_info()
         if isinstance(self.storage, bool):
             self.error("Error: Cannot Reinit daconfig")
             return

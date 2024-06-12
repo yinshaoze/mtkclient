@@ -201,7 +201,7 @@ class xmlflashext(metaclass=LogBase):
         return None
 
     def patch_da1(self, da1):
-        pass
+        return da1
 
     def patch_da2(self, da2):
         self.info("Patching da2 ...")

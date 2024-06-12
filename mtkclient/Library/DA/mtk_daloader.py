@@ -162,7 +162,7 @@ class DAloader(metaclass=LogBase):
                 self.xmlft = xmlflashext(self.mtk, self.da, self.loglevel)
                 self.xft = None
                 self.lft = None
-            if self.flashmode == damodes.XFLASH:
+            elif self.flashmode == damodes.XFLASH:
                 self.da = DAXFlash(self.mtk, self.daconfig, self.loglevel)
                 self.daconfig.flashtype = config["flashtype"]
                 self.daconfig.flashsize = config["flashsize"]
