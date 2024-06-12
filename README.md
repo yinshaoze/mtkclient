@@ -45,11 +45,11 @@ sudo apt install python3 git libusb-1.0-0 python3-pip libfuse2
 ```
 #### For ArchLinux
 ```
-(sudo) pacman -S  python python-pip git libusb
+(sudo) pacman -S  python python-pip git libusb fuse2
 ```
 or
 ```
-yay -S python python-pip git libusb
+yay -S python python-pip git libusb fuse2
 ```
 
 #### Grab files 
