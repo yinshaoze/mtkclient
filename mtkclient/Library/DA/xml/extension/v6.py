@@ -29,7 +29,7 @@ class XmlFlashExt(metaclass=LogBase):
     def __init__(self, _mtk, _xmlflash, loglevel):
         self.pathconfig = PathConfig()
         self.__logger, self.info, self.debug, self.warning, self.error = logsetup(self, self.__logger,
-                                                                                  loglevel, mtk.config.gui)
+                                                                                  loglevel, _mtk.config.gui)
         self.mtk = _mtk
         self.loglevel = loglevel
         self.__logger = self.__logger
@@ -103,7 +103,7 @@ class XmlFlashExt(metaclass=LogBase):
                 newcmd = b"CMD:CUSTOM\x00"
                 data[idx + 1:idx + 1 + len(newcmd)] = newcmd
                 return data
-        return da2
+        return _da2
 
     def ack(self):
         xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMACK")
