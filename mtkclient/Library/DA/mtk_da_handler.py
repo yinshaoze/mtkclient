@@ -296,7 +296,7 @@ class DaHandler(metaclass=LogBase):
             length = self.mtk.daloader.daconfig.flashsize
         print(f"Dumping sector 0 with flash size {hex(length)} as {filename}.")
         sys.stdout.flush()
-        if self.mtk.daloader.readflash(addr=0, length=length, filename=filename, parttype=parttype) == b"ACK":
+        if self.mtk.daloader.readflash(addr=0, length=length, filename=filename, parttype=parttype):
             print(f"Dumped sector 0 with flash size {hex(length)} as {filename}.")
         else:
             print(f"Failed to dump sector 0 with flash size {hex(length)} as {filename}.")
