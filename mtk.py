@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# MTK Flash Client (c) B.Kerler 2018-2023.
+# MTK Flash Client (c) B.Kerler 2018-2024.
 # Licensed under GPLv3 License
 import argparse
 from mtkclient.Library.mtk_main import Main, metamodes
@@ -47,8 +47,8 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(dest="cmd",
                                        help='Valid commands are: \n' +
                                             'printgpt, gpt, r, rl, rf, fs, rs, w, wf, wl, e, es, footer, reset, \n' +
-                                            'dumpbrom, dumpsram, dumppreloader, payload, crash, brute, gettargetconfig, \n' +
-                                            'peek, stage, plstage, da, script\n')
+                                            'dumpbrom, dumpsram, dumppreloader, payload, crash, brute, \n' +
+                                            'gettargetconfig, peek, stage, plstage, da, script\n')
 
     parser_script = subparsers.add_parser("script", help="Run text script")
     parser_printgpt = subparsers.add_parser("printgpt", help="Print GPT Table information")
@@ -202,8 +202,8 @@ if __name__ == '__main__':
     parser_printgpt.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_printgpt.add_argument('--gpt_file', help='Use a gpt file instead of trying to read gpt from flash')
     parser_printgpt.add_argument('--ptype',
-                                 help='Set the payload type ("amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by ' +
-                                      'default)')
+                                 help='Set the payload type ("amonet","kamakiri","kamakiri2","carbonara" '
+                                      'kamakiri2/da used by default)')
     parser_printgpt.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_printgpt.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_printgpt.add_argument('--socid', help='Read Soc ID')
@@ -229,7 +229,8 @@ if __name__ == '__main__':
     parser_gpt.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_gpt.add_argument('--gpt_file', help='Use a gpt file instead of trying to read gpt from flash')
     parser_gpt.add_argument('--ptype',
-                            help='Set the payload type ("amonet","kamakiri","kamakiri2","carbonara", kamakiri2/da used by default)')
+                            help='Set the payload type ("amonet","kamakiri","kamakiri2","carbonara", kamakiri2/da ' +
+                                 'used by default)')
     parser_gpt.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_gpt.add_argument('--parttype', help='Partition type\n' +
                                                '\t\tEMMC: [user, boot1, boot2, gp1, gp2, gp3, gp4, rpmb]' +
@@ -259,7 +260,8 @@ if __name__ == '__main__':
     parser_r.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_r.add_argument('--gpt_file', help='Use a gpt file instead of trying to read gpt from flash')
     parser_r.add_argument('--ptype',
-                          help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                          help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da ' +
+                               'used by default)')
     parser_r.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_r.add_argument('--parttype', help='Partition type\n' +
                                              '\t\tEMMC: [user, boot1, boot2, gp1, gp2, gp3, gp4, rpmb]' +
@@ -288,7 +290,8 @@ if __name__ == '__main__':
     parser_rl.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_rl.add_argument('--gpt_file', help='Use a gpt file instead of trying to read gpt from flash')
     parser_rl.add_argument('--ptype',
-                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da ' +
+                                'used by default)')
     parser_rl.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_rl.add_argument('--parttype', help='Partition type\n' +
                                               '\t\tEMMC: [user, boot1, boot2, gp1, gp2, gp3, gp4, rpmb]' +
@@ -318,7 +321,8 @@ if __name__ == '__main__':
     parser_rf.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_rf.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_rf.add_argument('--ptype',
-                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da ' +
+                                'used by default)')
     parser_rf.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_rf.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
     parser_rf.add_argument('--parttype', help='Partition type\n' +
@@ -328,7 +332,8 @@ if __name__ == '__main__':
     parser_rf.add_argument('--filename', help='Optional filename')
     parser_rf.add_argument('--crash', help='Enforce crash if device is in pl mode to enter brom mode')
     parser_rf.add_argument('--socid', help='Read Soc ID')
-    parser_rf.add_argument('--iot', help='Use special mode for iot MT6261/2301', action="store_true", default=False)
+    parser_rf.add_argument('--iot', help='Use special mode for iot MT6261/2301', action="store_true",
+                           default=False)
     parser_rf.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
     parser_rf.add_argument('--cert', type=str, help="Use cert file")
 
@@ -342,7 +347,8 @@ if __name__ == '__main__':
     parser_rs.add_argument('--debugmode', action='store_true', default=False, help='Enable verbose mode')
     parser_rs.add_argument('--gpt-num-part-entries', default='0', help='Set GPT entry count')
     parser_rs.add_argument('--gpt-part-entry-size', default='0', help='Set GPT entry size')
-    parser_rs.add_argument('--gpt-part-entry-start-lba', default='0', help='Set GPT entry start lba sector')
+    parser_rs.add_argument('--gpt-part-entry-start-lba', default='0',
+                           help='Set GPT entry start lba sector')
     parser_rs.add_argument('--gpt_file', help='Use a gpt file instead of trying to read gpt from flash')
     parser_rs.add_argument('--skip', help='Skip reading partition with names "partname1,partname2,etc."')
     parser_rs.add_argument('--skipwdt', help='Skip wdt init')
@@ -353,7 +359,8 @@ if __name__ == '__main__':
     parser_rs.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_rs.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_rs.add_argument('--ptype',
-                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da ' +
+                                'used by default)')
     parser_rs.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_rs.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
     parser_rs.add_argument('--parttype', help='Partition type\n' +
@@ -376,7 +383,8 @@ if __name__ == '__main__':
     parser_ro.add_argument('--debugmode', action='store_true', default=False, help='Enable verbose mode')
     parser_ro.add_argument('--gpt-num-part-entries', default='0', help='Set GPT entry count')
     parser_ro.add_argument('--gpt-part-entry-size', default='0', help='Set GPT entry size')
-    parser_ro.add_argument('--gpt-part-entry-start-lba', default='0', help='Set GPT entry start lba sector')
+    parser_ro.add_argument('--gpt-part-entry-start-lba', default='0',
+                           help='Set GPT entry start lba sector')
     parser_ro.add_argument('--gpt_file', help='Use a gpt file instead of trying to read gpt from flash')
     parser_ro.add_argument('--skip', help='Skip reading partition with names "partname1,partname2,etc."')
     parser_ro.add_argument('--skipwdt', help='Skip wdt init')
@@ -387,7 +395,8 @@ if __name__ == '__main__':
     parser_ro.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_ro.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_ro.add_argument('--ptype',
-                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da ' +
+                                'used by default)')
     parser_ro.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_ro.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
     parser_ro.add_argument('--parttype', help='Partition type\n' +
@@ -398,10 +407,13 @@ if __name__ == '__main__':
     parser_ro.add_argument('--cert', type=str, help="Use cert file")
 
     parser_fs.add_argument('mountpoint', help='Directory to mount the FUSE filesystem in')
-    parser_fs.add_argument('--rw', help='Mount the filesystem as writeable', default=False, action='store_true')
+    parser_fs.add_argument('--rw', help='Mount the filesystem as writeable', default=False,
+                           action='store_true')
 
-    parser_w.add_argument('partitionname', help='Partition to write (separate by comma for multiple partitions)')
-    parser_w.add_argument('filename', help='Filename for writing (separate by comma for multiple filenames)')
+    parser_w.add_argument('partitionname',
+                          help='Partition to write (separate by comma for multiple partitions)')
+    parser_w.add_argument('filename',
+                          help='Filename for writing (separate by comma for multiple filenames)')
     parser_w.add_argument('--loader', type=str, help='Use specific DA loader, disable autodetection')
     parser_w.add_argument('--vid', type=str, help='Set usb vendor id used for MTK Preloader')
     parser_w.add_argument('--pid', type=str, help='Set usb product id used for MTK Preloader')
@@ -420,7 +432,8 @@ if __name__ == '__main__':
     parser_w.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_w.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_w.add_argument('--ptype',
-                          help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                          help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da ' +
+                               'used by default)')
     parser_w.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_w.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
     parser_w.add_argument('--parttype', help='Partition type\n' +
@@ -452,7 +465,8 @@ if __name__ == '__main__':
     parser_wf.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_wf.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_wf.add_argument('--ptype',
-                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da ' +
+                                'used by default)')
     parser_wf.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_wf.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
     parser_wf.add_argument('--parttype', help='Partition type\n' +
@@ -482,7 +496,8 @@ if __name__ == '__main__':
     parser_wl.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_wl.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_wl.add_argument('--ptype',
-                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                           help='Set the payload type ("amonet","kamakiri","kamakiri2",' +
+                                '"carbonara" kamakiri2/da used by default)')
     parser_wl.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_wl.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
     parser_wl.add_argument('--parttype', help='Partition type\n' +
@@ -515,7 +530,8 @@ if __name__ == '__main__':
     parser_wo.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_wo.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_wo.add_argument('--ptype',
-                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" ' +
+                                'kamakiri2/da used by default)')
     parser_wo.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_wo.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
     parser_wo.add_argument('--parttype', help='Partition type\n' +
@@ -546,7 +562,8 @@ if __name__ == '__main__':
     parser_e.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_e.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_e.add_argument('--ptype',
-                          help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                          help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" ' +
+                               'kamakiri2/da used by default)')
     parser_e.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_e.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
     parser_e.add_argument('--parttype', help='Partition type\n' +
@@ -578,7 +595,8 @@ if __name__ == '__main__':
     parser_es.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_es.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_es.add_argument('--ptype',
-                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                           help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da ' +
+                                'used by default)')
     parser_es.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_es.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
     parser_es.add_argument('--parttype', help='Partition type\n' +
@@ -610,7 +628,8 @@ if __name__ == '__main__':
     parser_ess.add_argument('--da_addr', help='Set a specific da payload addr')
     parser_ess.add_argument('--brom_addr', help='Set a specific brom payload addr')
     parser_ess.add_argument('--ptype',
-                            help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da used by default)')
+                            help='Set the payload type ( "amonet","kamakiri","kamakiri2","carbonara" kamakiri2/da ' +
+                                 'used by default)')
     parser_ess.add_argument('--preloader', help='Set the preloader filename for dram config')
     parser_ess.add_argument('--verifystage2', help='Verify if stage2 data has been written correctly')
     parser_ess.add_argument('--parttype', help='Partition type\n' +
@@ -872,21 +891,36 @@ if __name__ == '__main__':
     parser_gpt.add_argument('--generatekeys', action="store_true", help='Option for deriving hw keys')
     parser_r.add_argument('--generatekeys', action="store_true", help='Option for deriving hw keys')
 
-    parser_printgpt.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_footer.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_e.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_es.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_wl.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_wf.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_w.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_rs.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_rf.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_rl.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_gpt.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_r.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_reset.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_payload.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
-    parser_script.add_argument('--serialport', help='Use serial port', default=None, const='DETECT', action='store', type=str, nargs='?')
+    parser_printgpt.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                                 action='store', type=str, nargs='?')
+    parser_footer.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                               action='store', type=str, nargs='?')
+    parser_e.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                          action='store', type=str, nargs='?')
+    parser_es.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                           action='store', type=str, nargs='?')
+    parser_wl.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                           action='store', type=str, nargs='?')
+    parser_wf.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                           action='store', type=str, nargs='?')
+    parser_w.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                          action='store', type=str, nargs='?')
+    parser_rs.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                           action='store', type=str, nargs='?')
+    parser_rf.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                           action='store', type=str, nargs='?')
+    parser_rl.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                           action='store', type=str, nargs='?')
+    parser_gpt.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                            action='store', type=str, nargs='?')
+    parser_r.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                          action='store', type=str, nargs='?')
+    parser_reset.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                              action='store', type=str, nargs='?')
+    parser_payload.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                                action='store', type=str, nargs='?')
+    parser_script.add_argument('--serialport', help='Use serial port', default=None, const='DETECT',
+                               action='store', type=str, nargs='?')
 
     parser_script.add_argument('--noreconnect', action="store_true", help='Disable reconnect')
     parser_printgpt.add_argument('--noreconnect', action="store_true", help='Disable reconnect')

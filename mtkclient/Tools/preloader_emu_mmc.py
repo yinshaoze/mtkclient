@@ -5,7 +5,7 @@ import os
 import logging
 from binascii import hexlify
 from struct import pack, unpack
-from mtkclient.Library.Connection.usblib import usb_class
+from mtkclient.Library.Connection.usblib import UsbClass
 from mtkclient.Library.utils import LogBase
 from mtkclient.Library.utils import print_progress
 from unicorn import (Uc, UC_MEM_WRITE, UC_MEM_READ, UC_MEM_FETCH, UC_MEM_READ_UNMAPPED,
@@ -40,7 +40,7 @@ class Stage2(metaclass=LogBase):
         else:
             self.__logger.setLevel(logging.INFO)
         portconfig = [[0x0E8D, 0x0003, -1], [0x0E8D, 0x2000, -1]]
-        self.cdc = usb_class(portconfig=portconfig, loglevel=loglevel, devclass=10)
+        self.cdc = UsbClass(portconfig=portconfig, loglevel=loglevel, devclass=10)
 
     def connect(self):
         self.cdc.connected = self.cdc.connect()

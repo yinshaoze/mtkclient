@@ -46,7 +46,8 @@ def main():
         if (flag & 0x16F) != 0:
             info += "B"
         print(
-            f"Offset {hex(checklist_generic[0] + (i * 3))} -> Flag {hex(flag)}+[{info}] Ptr {hex(ptr)} Count {hex(count)}")
+            f"Offset {hex(checklist_generic[0] + (i * 3))} -> Flag {hex(flag)}+" +
+            f"[{info}] Ptr {hex(ptr)} Count {hex(count)}")
         print("----------------------------------------------------------------------------------------------")
         for field in range(count):
             start, end = dword(data, ptr + (field * 8), 2)

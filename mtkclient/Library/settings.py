@@ -3,7 +3,7 @@ import os.path
 from binascii import hexlify
 
 
-class hwparam:
+class HwParam:
     paramsetting = None
     hwcode = None
     appid = b""

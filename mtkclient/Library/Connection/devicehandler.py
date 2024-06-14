@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# (c) B.Kerler 2018-2023
+# (c) B.Kerler 2018-2024
 import inspect
 import traceback
 import logging
@@ -45,7 +45,7 @@ class DeviceClass(metaclass=LogBase):
     def get_write_packetsize(self):
         raise NotImplementedError()
 
-    def connect(self, EP_IN=-1, EP_OUT=-1):
+    def connect(self, ep_in=-1, ep_out=-1):
         raise NotImplementedError()
 
     def setportname(self, portname: str):
@@ -63,16 +63,16 @@ class DeviceClass(metaclass=LogBase):
     def detectdevices(self):
         raise NotImplementedError()
 
-    def getInterfaceCount(self):
+    def get_interface_count(self):
         raise NotImplementedError()
 
-    def setLineCoding(self, baudrate=None, parity=0, databits=8, stopbits=1):
+    def set_line_coding(self, baudrate=None, parity=0, databits=8, stopbits=1):
         raise NotImplementedError()
 
     def setbreak(self):
         raise NotImplementedError()
 
-    def setcontrollinestate(self, RTS=None, DTR=None, isFTDI=False):
+    def setcontrollinestate(self, rts=None, dtr=None, is_ftdi=False):
         raise NotImplementedError()
 
     def write(self, command, pktsize=None):
@@ -87,7 +87,7 @@ class DeviceClass(metaclass=LogBase):
     def usbxmlread(self, maxtimeout=100):
         raise NotImplementedError()
 
-    def ctrl_transfer(self, bmRequestType, bRequest, wValue, wIndex, data_or_wLength):
+    def ctrl_transfer(self, bm_request_type, b_request, w_value, w_index, data_or_w_length):
         raise NotImplementedError()
 
     def usbreadwrite(self, data, resplen):

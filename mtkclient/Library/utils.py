@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# (c) B.Kerler 2018-2023
+# (c) B.Kerler 2018-2024
 import codecs
 import copy
 import datetime as dt
@@ -31,7 +31,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.detach(), encoding='utf-8')
 
 
-class mtktee:
+class MTKTee:
     magic = None
     hdrlen = None
     flag1 = None
@@ -46,7 +46,7 @@ class mtktee:
     data = None
 
     def parse(self, data):
-        sh = structhelper_io(BytesIO(data))
+        sh = StructhelperIo(BytesIO(data))
         self.magic = sh.qword()
         self.hdrlen = sh.dword()
         self.flag1 = sh.bytes()
@@ -62,7 +62,7 @@ class mtktee:
         self.data = bytearray(sh.bytes(self.datalen))
 
 
-class structhelper_io:
+class StructhelperIo:
     pos = 0
 
     def __init__(self, data: BytesIO = None, direction='little'):
@@ -143,7 +143,7 @@ def find_binary(data, strf, pos=0):
     return None
 
 
-class progress:
+class Progress:
     def __init__(self, pagesize, guiprogress=None):
         self.progtime = 0
         self.prog = 0
@@ -230,7 +230,7 @@ class progress:
                 self.progtime = t0
 
 
-class structhelper:
+class Structhelper:
     pos = 0
 
     def __init__(self, data, pos=0):
@@ -475,7 +475,7 @@ def logsetup(self, logger, loglevel, signal=None):
     else:
         logger.setLevel(logging.INFO)
     self.loglevel = loglevel
-    return logger
+    return logger, self.info, self.debug, self.warning, self.error
 
 
 class LogBase(type):
@@ -531,8 +531,8 @@ def rmrf(path):
             shutil.rmtree(path, onerror=del_rw)
 
 
-class elf:
-    class memorysegment:
+class ELF:
+    class MemorySegment:
         phy_addr = 0
         virt_start_addr = 0
         virt_end_addr = 0
@@ -545,7 +545,7 @@ class elf:
         self.header, self.pentry = self.parse()
         self.memorylayout = []
         for entry in self.pentry:
-            ms = self.memorysegment()
+            ms = self.MemorySegment()
             ms.phy_addr = entry.phy_addr
             ms.virt_start_addr = entry.virt_addr
             ms.virt_end_addr = entry.virt_addr + entry.seg_mem_len
@@ -571,7 +571,7 @@ class elf:
                 return memsegment.virt_start_addr
         return None
 
-    class programentry:
+    class ProgramEntry:
         p_type = 0
         from_file = 0
         virt_addr = 0
@@ -582,7 +582,7 @@ class elf:
         p_align = 0
 
     def parse_programentry(self, dat):
-        pe = self.programentry()
+        pe = self.ProgramEntry()
         if self.elfclass == 1:
             (pe.p_type, pe.from_file, pe.virt_addr, pe.phy_addr, pe.seg_file_len, pe.seg_mem_len, pe.p_flags,
              pe.p_align) = struct.unpack("<IIIIIIII", dat)
@@ -613,7 +613,7 @@ class elf:
         return [header, pentry]
 
 
-class patchtools:
+class Patchtools:
     cstyle = False
     bDebug = False
 
@@ -697,7 +697,7 @@ class patchtools:
                 print(e)
                 print(e.stat_count)
                 print(code[e.stat_count:e.stat_count + 10])
-                exit(0)
+                """
                 if self.bDebug:
                     # walk every line to find the (first) error
                     for idx, line in enumerate(code.splitlines()):
@@ -709,6 +709,8 @@ class patchtools:
                                 print("bummer: " + str(e))
                 else:
                     exit(0)
+                """
+                exit(0)
         else:
             encoding, count = ks.asm(code)
 

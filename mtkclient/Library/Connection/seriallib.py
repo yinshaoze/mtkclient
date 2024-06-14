@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# (c) B.Kerler 2018-2022
+# (c) B.Kerler 2018-2024
 import time
 import sys
 import logging
@@ -22,21 +22,20 @@ def _reset_input_buffer_org(self):
         return termios.tcflush(self.fd, termios.TCIFLUSH)
 
 
-class serial_class(DeviceClass):
+class SerialClass(DeviceClass):
 
     def __init__(self, loglevel=logging.INFO, portconfig=None, devclass=-1):
         super().__init__(loglevel, portconfig, devclass)
         self.is_serial = True
         self.device = None
 
-    def connect(self, EP_IN=-1, EP_OUT=-1):
+    def connect(self, ep_in=-1, ep_out=-1):
         if self.connected:
             self.close()
             self.connected = False
 
         ports = self.detectdevices()
         if ports:
-            port = None
             if self.portname != "DETECT":
                 if self.portname not in ports:
                     self.debug("{} not in detected ports: {}".format(self.portname, ports))
@@ -71,7 +70,7 @@ class serial_class(DeviceClass):
     def set_fast_mode(self, enabled):
         pass
 
-    def changeBaud(self):
+    def change_baud(self):
         print("Changing Baudrate")
         self.write(b'\xD2' + b'\x02' + b'\x01')
         self.read(1)
@@ -102,7 +101,7 @@ class serial_class(DeviceClass):
                     ids.append(port.device)
         return sorted(ids)
 
-    def setLineCoding(self, baudrate=None, parity=0, databits=8, stopbits=1):
+    def set_line_coding(self, baudrate=None, parity=0, databits=8, stopbits=1):
         self.device.baudrate = baudrate
         self.device.parity = parity
         self.device.stopbbits = stopbits
@@ -113,11 +112,11 @@ class serial_class(DeviceClass):
         self.device.send_break()
         self.debug("Break set")
 
-    def setcontrollinestate(self, RTS=None, DTR=None, isFTDI=False):
-        if RTS == 1:
-            self.device.setRTS(RTS)
-        if DTR == 1:
-            self.device.setDTR(DTR)
+    def setcontrollinestate(self, rts=None, dtr=None, is_ftdi=False):
+        if rts == 1:
+            self.device.setRTS(rts)
+        if dtr == 1:
+            self.device.setDTR(dtr)
         self.debug("Linecoding set")
 
     def write(self, command, pktsize=None):
@@ -130,7 +129,7 @@ class serial_class(DeviceClass):
             try:
                 self.device.write(b'')
             except Exception as err:
-                error = str(err.strerror)
+                error = str(err)
                 if "timeout" in error:
                     # time.sleep(0.01)
                     try:
@@ -180,7 +179,7 @@ class serial_class(DeviceClass):
                 length = self.device.in_waiting
         return self.usbread(resplen=length, maxtimeout=timeout)
 
-    def getDevice(self):
+    def get_device(self):
         return self.device
 
     def get_read_packetsize(self):
@@ -190,7 +189,7 @@ class serial_class(DeviceClass):
         return 0x200
 
     def flush(self):
-        if self.getDevice() is not None:
+        if self.get_device() is not None:
             self.device.flushOutput()
         return self.device.flush()
 

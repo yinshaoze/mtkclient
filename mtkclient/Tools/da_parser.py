@@ -7,7 +7,7 @@ import inspect
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(0, parent_dir)
-from mtkclient.config.payloads import pathconfig
+from mtkclient.config.payloads import PathConfig
 from mtkclient.Library.utils import read_object
 from mtkclient.Library.utils import find_binary
 
@@ -39,8 +39,8 @@ efusedb = {}
 def main():
     da_setup = []
     loaders = []
-    pc = pathconfig()
-    if len(sys.argv)>1:
+    pc = PathConfig()
+    if len(sys.argv) > 1:
         loaders.append(sys.argv[1])
     else:
         for root, dirs, files in os.walk(pc.get_loader_path(), topdown=False):
@@ -72,9 +72,9 @@ def main():
                 print("sw_version: 0x%04X" % da[0]["sw_version"])
                 print("Reserved1: 0x%04X" % da[0]["reserved1"])
                 print("Reserved3: 0x%04X" % da[0]["reserved3"])
-                for i in range(da[0]["entry_region_count"]):
-                    entry = da[i + 1]
-                    print(f"\t{i}: {hex(entry['m_start_addr'])}")
+                for x in range(da[0]["entry_region_count"]):
+                    entry = da[x + 1]
+                    print(f"\t{x}: {hex(entry['m_start_addr'])}")
                 mbuf = da[3]["m_buf"]
                 m_len = da[3]["m_len"]
                 startaddr = da[3]["m_start_addr"]
@@ -104,7 +104,11 @@ def main():
                             if hashidx is not None:
                                 print("Hash check 3 found.")
                             else:
-                                print("HASH ERROR !!!!")
+                                hashidx = find_binary(data, b"\x04\x50\x00\xE3\x07\x50\x4C\xE3")
+                                if hashidx is not None:
+                                    print("Hash check 4 (V6) found.")
+                                else:
+                                    print("HASH ERROR !!!!")
 
                     fname = os.path.join("loaders",
                                          hex(da[0]["hw_code"])[2:] + "_" + hex(startaddr)[2:] + os.path.basename(
@@ -116,7 +120,7 @@ def main():
                 bootldr.seek(da[2]["m_buf"])
                 tt = bootldr.read(da[2]["m_len"])
                 idx = tt.find(bytes.fromhex("70BB442D27D244A7"))
-                #idx = tt.find(bytes.fromhex("01279360D36013615361"))
+                # idx = tt.find(bytes.fromhex("01279360D36013615361"))
                 if idx != -1:
                     print("V3 Enabled")
                 bootldr.seek(da[3]["m_buf"])

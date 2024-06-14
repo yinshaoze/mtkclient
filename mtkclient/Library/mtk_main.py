@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# MTK Flash Client (c) B.Kerler 2018-2023.
+# MTK Flash Client (c) B.Kerler 2018-2024.
 # Licensed under GPLv3 License
 import os
 import sys
@@ -8,21 +8,23 @@ import time
 from binascii import hexlify
 from struct import unpack, pack
 from mtkclient.Library.mtk_class import Mtk
-from mtkclient.config.payloads import pathconfig
+from mtkclient.config.payloads import PathConfig
 from mtkclient.Library.pltools import PLTools
 from mtkclient.Library.meta import META
-from mtkclient.Library.utils import LogBase, getint
-from mtkclient.config.mtk_config import Mtk_Config
+from mtkclient.Library.utils import LogBase, getint, logsetup
+from mtkclient.config.mtk_config import MtkConfig
 from mtkclient.Library.utils import print_progress
 from mtkclient.Library.error import ErrorHandler
-from mtkclient.Library.DA.mtk_da_handler import DA_handler
-from mtkclient.Library.gpt import gpt_settings
+from mtkclient.Library.DA.mtk_da_handler import DaHandler
+from mtkclient.Library.gpt import GptSettings
 
 metamodes = "[FASTBOOT, FACTFACT, METAMETA, FACTORYM, ADVEMETA, AT+NBOOT]"
 
 
 class ArgHandler(metaclass=LogBase):
     def __init__(self, args, config):
+        self.__logger, self.info, self.debug, self.warning, self.error = logsetup(self, self.__logger,
+                                                                                  config.loglevel, config.gui)
         try:
             config.gpt_file = None
             if args.gpt_file is not None:
@@ -151,17 +153,15 @@ class ArgHandler(metaclass=LogBase):
         except Exception:
             pass
 
-        config.gpt_settings = gpt_settings(gpt_num_part_entries, gpt_part_entry_size,
-                                           gpt_part_entry_start_lba)
+        config.gpt_settings = GptSettings(gpt_num_part_entries, gpt_part_entry_size,
+                                          gpt_part_entry_start_lba)
 
 
 class Main(metaclass=LogBase):
     def __init__(self, args):
-        self.__logger = self.__logger
-        self.info = self.__logger.info
-        self.debug = self.__logger.debug
-        self.error = self.__logger.error
-        self.warning = self.__logger.warning
+        self.__logger, self.info, self.debug, self.warning, self.error = logsetup(self, self.__logger,
+                                                                                  logging.INFO, None)
+        self.eh = None
         self.args = args
         if not os.path.exists("logs"):
             os.mkdir("logs")
@@ -172,7 +172,7 @@ class Main(metaclass=LogBase):
 
     def cmd_stage(self, mtk, filename, stage2addr, stage2file, verifystage2):
         if filename is None:
-            pc = pathconfig()
+            pc = PathConfig()
             stage1file = os.path.join(pc.get_payloads_path(), "generic_stage1_payload.bin")
         else:
             stage1file = filename
@@ -184,7 +184,7 @@ class Main(metaclass=LogBase):
                 self.error(f"Error: {stage2file} doesn't exist !")
                 return False
         else:
-            stage2file = os.path.join(mtk.pathconfig.get_payloads_path(), "stage2.bin")
+            stage2file = os.path.join(mtk.PathConfig.get_payloads_path(), "stage2.bin")
         if mtk.preloader.init():
             mtk = mtk.crasher()
             if mtk.port.cdc.pid == 0x0003:
@@ -269,6 +269,7 @@ class Main(metaclass=LogBase):
                         self.info("Successfully loaded stage2")
 
     def cmd_peek(self, mtk, addr, length, preloader, filename):
+        wwf = None
         if preloader is not None:
             if os.path.exists(preloader):
                 daaddr, dadata = mtk.parse_preloader(preloader)
@@ -284,8 +285,8 @@ class Main(metaclass=LogBase):
                         if mtk.preloader.jump_da(daaddr):
                             self.info(f"Jumped to pl {hex(daaddr)}.")
                             time.sleep(2)
-                            config = Mtk_Config(loglevel=self.__logger.level, gui=mtk.config.gui,
-                                                guiprogress=mtk.config.guiprogress)
+                            config = MtkConfig(loglevel=self.__logger.level, gui=mtk.config.gui,
+                                               guiprogress=mtk.config.guiprogress)
                             mtk = Mtk(loglevel=self.__logger.level, config=config,
                                       serialportname=mtk.port.serialportname)
                             res = mtk.preloader.init()
@@ -304,7 +305,7 @@ class Main(metaclass=LogBase):
             if length % 4:
                 dwords += 1
             if filename is not None:
-                wf = open(filename, "wb")
+                wwf = open(filename, "wb")
             sdata = b""
             print_progress(0, 100, prefix='Progress:',
                            suffix='Starting, addr 0x%08X' % addr, bar_length=50)
@@ -319,7 +320,7 @@ class Main(metaclass=LogBase):
                     data = b"".join(int.to_bytes(val, 4, 'little') for val in mtk.preloader.read32(addr + pos, size))
                 sdata += data
                 if filename is not None:
-                    wf.write(data)
+                    wwf.write(data)
                 pos += len(data)
                 prog = pos / length * 100
                 if round(prog, 1) > old:
@@ -332,7 +333,7 @@ class Main(metaclass=LogBase):
             if filename is None:
                 print(hexlify(sdata).decode('utf-8'))
             else:
-                wf.close()
+                wwf.close()
                 self.info(f"Data from {hex(addr)} with size of {hex(length)} was written to " + filename)
 
     def run(self, parser):
@@ -347,7 +348,7 @@ class Main(metaclass=LogBase):
             loglevel = logging.INFO
             self.__logger.setLevel(logging.INFO)
             pass
-        config = Mtk_Config(loglevel=loglevel, gui=None, guiprogress=None)
+        config = MtkConfig(loglevel=loglevel, gui=None, guiprogress=None)
         ArgHandler(self.args, config)
         self.eh = ErrorHandler()
         serialport = None
@@ -393,7 +394,7 @@ class Main(metaclass=LogBase):
                 preloader = self.args.preloader
             except Exception:
                 preloader = None
-            da_handler = DA_handler(mtk, loglevel)
+            da_handler = DaHandler(mtk, loglevel)
             mtk = da_handler.configure_da(mtk, preloader)
             if mtk is not None:
                 for rcmd in commands:
@@ -525,7 +526,8 @@ class Main(metaclass=LogBase):
                             mtk.port.close()
                             self.close()
                             return
-                        if self.args.startpartition is not None or self.args.offset is not None or self.args.length is not None:
+                        if (self.args.startpartition is not None or self.args.offset is not None or
+                                self.args.length is not None):
                             time.sleep(1)
                             res = mtk.preloader.init()
                             if not res:
@@ -649,7 +651,7 @@ class Main(metaclass=LogBase):
                 preloader = self.args.preloader
             except Exception:
                 preloader = None
-            da_handler = DA_handler(mtk, loglevel)
+            da_handler = DaHandler(mtk, loglevel)
             mtk = da_handler.configure_da(mtk, preloader)
             if mtk is not None:
                 da_handler.handle_da_cmds(mtk, cmd, self.args)
@@ -676,9 +678,9 @@ class Main(metaclass=LogBase):
             plt = PLTools(mtk, self.__logger.level)
             if payloadfile is None:
                 if mtk.config.chipconfig.loader is None:
-                    payloadfile = os.path.join(mtk.pathconfig.get_payloads_path(), "generic_patcher_payload.bin")
+                    payloadfile = os.path.join(mtk.PathConfig.get_payloads_path(), "generic_patcher_payload.bin")
                 else:
-                    payloadfile = os.path.join(mtk.pathconfig.get_payloads_path(), mtk.config.chipconfig.loader)
+                    payloadfile = os.path.join(mtk.PathConfig.get_payloads_path(), mtk.config.chipconfig.loader)
             plt.runpayload(filename=payloadfile)
             if self.args.metamode:
                 mtk.port.run_handshake()

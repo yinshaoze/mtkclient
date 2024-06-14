@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# MTK Stage2 Client (c) B.Kerler 2018-2023.
+# MTK Stage2 Client (c) B.Kerler 2018-2024.
 # Licensed under GPLv3 License
 
 import os
@@ -10,16 +10,18 @@ import argparse
 import hashlib
 from binascii import hexlify
 from struct import pack, unpack
-from mtkclient.Library.Connection.usblib import usb_class
+from mtkclient.Library.Connection.usblib import UsbClass
 from mtkclient.Library.utils import LogBase
-from mtkclient.Library.utils import progress
-from mtkclient.Library.Hardware.hwcrypto import crypto_setup, hwcrypto
-from mtkclient.config.mtk_config import Mtk_Config
+from mtkclient.Library.utils import Progress
+from mtkclient.Library.Hardware.hwcrypto import CryptoSetup, HwCrypto
+from mtkclient.config.mtk_config import MtkConfig
 from mtkclient.config.usb_ids import default_ids
 
 
 class Stage2(metaclass=LogBase):
     def __init__(self, args, loglevel=logging.INFO):
+        self.hwcrypto = None
+        self.config = None
         self.__logger = self.__logger
         self.args = args
         self.loglevel = loglevel
@@ -28,7 +30,7 @@ class Stage2(metaclass=LogBase):
         self.warning = self.__logger.warning
         self.emmc_inited = False
         # Setup HW Crypto chip variables
-        self.setup = crypto_setup()
+        self.setup = CryptoSetup()
 
         if loglevel == logging.DEBUG:
             logfilename = os.path.join("logs", "log.txt")
@@ -40,7 +42,7 @@ class Stage2(metaclass=LogBase):
         else:
             self.__logger.setLevel(logging.INFO)
 
-        self.cdc = usb_class(portconfig=default_ids, loglevel=loglevel, devclass=10)
+        self.cdc = UsbClass(portconfig=default_ids, loglevel=loglevel, devclass=10)
         self.usbread = self.cdc.usbread
         self.usbwrite = self.cdc.usbwrite
 
@@ -50,7 +52,7 @@ class Stage2(metaclass=LogBase):
         except:
             print("Error reading hwcode...aborting.")
             return False
-        self.config = Mtk_Config(self.loglevel)
+        self.config = MtkConfig(self.loglevel)
         self.config.init_hwcode(hwcode)
         self.setup.blacklist = self.config.chipconfig.blacklist
         self.setup.gcpu_base = self.config.chipconfig.gcpu_base
@@ -62,7 +64,7 @@ class Stage2(metaclass=LogBase):
         self.setup.writemem = self.memwrite
         self.setup.meid_addr = self.config.chipconfig.meid_addr
         self.setup.socid_addr = self.config.chipconfig.socid_addr
-        self.hwcrypto = hwcrypto(self.setup, self.loglevel, self.config.gui)
+        self.hwcrypto = HwCrypto(self.setup, self.loglevel, self.config.gui)
         return True
 
     def init_emmc(self):
@@ -133,7 +135,7 @@ class Stage2(metaclass=LogBase):
         if not self.emmc_inited:
             self.init_emmc()
         wf = None
-        pg = progress(pagesize=0x200)
+        pg = Progress(pagesize=0x200)
         buffer = bytearray()
         if filename is not None:
             wf = open(filename, "wb")
@@ -253,6 +255,7 @@ class Stage2(metaclass=LogBase):
         addr = start
         data = b""
         pos = 0
+        wf = None
         if filename is not None:
             wf = open(filename, "wb")
         while bytestoread > 0:
@@ -273,6 +276,7 @@ class Stage2(metaclass=LogBase):
         return data
 
     def memwrite(self, start, data, filename=None):
+        rf = None
         if filename is not None:
             rf = open(filename, "rb")
             bytestowrite = os.stat(filename).st_size
@@ -306,7 +310,7 @@ class Stage2(metaclass=LogBase):
         return ack == b"\xD0\xD0\xD0\xD0"
 
     def rpmb(self, start, length, filename, reverse=False):
-        pg = progress(pagesize=0x100)
+        pg = Progress(pagesize=0x100)
         if not self.emmc_inited:
             self.init_emmc()
         if start == 0:
@@ -333,7 +337,7 @@ class Stage2(metaclass=LogBase):
         old = 0
         bytestoread = sectors * 0x100
         count = sectors
-        pg = progress(pagesize=0x200)
+        pg = Progress(pagesize=0x200)
         if sectors > 0xFFFF:
             count = 0xFFFF
         with open(filename, "wb") as wf:
@@ -582,7 +586,8 @@ def main():
     parser_keys.add_argument('--otp', dest='otp', type=str,
                              help='OTP for keys (dxcc,sej,gcpu)')
     parser_keys.add_argument('--mode', dest='mode', default=None, type=str,
-                             help='keymode (dxcc,sej,gcpu,sej_aes_decrypt,sej_aes_decrypt,sej_sst_decrypt,sej_sst_encrypt')
+                             help='keymode (dxcc,sej,gcpu,sej_aes_decrypt,sej_aes_decrypt,' +
+                                  'sej_sst_decrypt,sej_sst_encrypt')
     parser_keys.add_argument('--data', dest='data', default=None, type=str,
                              help='data')
     args = parser.parse_args()
@@ -677,17 +682,17 @@ def main():
         elif cmd == "reboot":
             st2.reboot()
         elif cmd == "seccfg":
+            critical_lock_state = 0
             if args.flag not in ["unlock", "lock"]:
                 print("Valid flags are: unlock, lock")
-                sys.exit(1)
                 """
-                LKS_DEFAULT = 0x01
-                LKS_MP_DEFAULT = 0x02
-                LKS_UNLOCK = 0x03
-                LKS_LOCK = 0x04
-                LKS_VERIFIED = 0x05
-                LKS_CUSTOM = 0x06
-                """
+                  LKS_DEFAULT = 0x01
+                  LKS_MP_DEFAULT = 0x02
+                  LKS_UNLOCK = 0x03
+                  LKS_LOCK = 0x04
+                  LKS_VERIFIED = 0x05
+                  LKS_CUSTOM = 0x06
+                  """
                 """
                 LKCS_UNLOCK = 0x01
                 LKCS_LOCK = 0x02
@@ -696,6 +701,8 @@ def main():
                 SBOOT_RUNTIME_OFF = 0
                 SBOOT_RUNTIME_ON  = 1
                 """
+                sys.exit(1)
+
             if args.flag == "unlock":
                 lock_state = 3
                 critical_lock_state = 1

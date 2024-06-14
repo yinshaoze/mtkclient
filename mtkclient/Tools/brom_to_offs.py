@@ -41,16 +41,16 @@ def find_binary(data, strf, pos=0):
 def ldr_lit(curpc, instr):
     # LDR (literal), LDR R1, =SEC_REG
     imm8 = instr & 0xFF
-    Rt = (instr >> 8) & 7
+    rt = (instr >> 8) & 7
     pc = curpc // 4 * 4
-    return (pc + (imm8 * 4) + 4), Rt
+    return (pc + (imm8 * 4) + 4), rt
 
 
 def ldr_imm(instr):
     simm5 = (instr >> 6) & 0x1F
-    sRt = instr & 0x7
-    sRn = (instr >> 3) & 0x7
-    return simm5, sRt, sRn
+    s_rt = instr & 0x7
+    s_rn = (instr >> 3) & 0x7
+    return simm5, s_rt, s_rn
 
 
 def main():
@@ -80,7 +80,7 @@ def main():
         usbdl_ptr = None
         if usbdl_put_word:
             mpos = (usbdl_put_word & 0xFFFFF) + 7
-            offset, Rn = ldr_lit(mpos,
+            offset, rn = ldr_lit(mpos,
                                  unpack("<H", data[mpos:mpos + 2])[0])
             usbdl_ptr = (base | offset)
 
@@ -137,7 +137,7 @@ def main():
         sec_sbc = None
         if sla is not None:
             if data[sla + 9] & 0xF0 == 0x60:
-                offset, Rn = ldr_lit(sla + 6,
+                offset, rn = ldr_lit(sla + 6,
                                      unpack("<H", data[sla + 6:sla + 6 + 2])[0])
                 sec_sbc = unpack("<I", data[offset:offset + 4])[0]
                 if data[sla + 8] == 0x51:
@@ -148,15 +148,15 @@ def main():
                 if mpos is not None:
                     mpos -= 1
                     sec_mode = 1
-                    offset, Rn = ldr_lit(mpos,
+                    offset, rn = ldr_lit(mpos,
                                          unpack("<H", data[mpos:mpos + 2])[0])
                     rbase = unpack("<I", data[offset:offset + 4])[0]
-                    simm5, sRt, sRn = ldr_imm(unpack("<H", data[mpos + 2:mpos + 4])[0])
+                    simm5, s_rt, s_rn = ldr_imm(unpack("<H", data[mpos + 2:mpos + 4])[0])
                     sec_sbc = (rbase + (simm5 * 4))
                     instr = unpack("<H", data[sla + 0x12:sla + 0x12 + 2])[0]
-                    offset, Rn = ldr_lit(sla + 0x12, instr)
+                    offset, rn = ldr_lit(sla + 0x12, instr)
                     rbase = unpack("<I", data[offset:offset + 4])[0]
-                    simm5, sRt, sRn = ldr_imm(unpack("<H", data[sla + 0x12 + 2:sla + 0x12 + 4])[0])
+                    simm5, s_rt, s_rn = ldr_imm(unpack("<H", data[sla + 0x12 + 2:sla + 0x12 + 4])[0])
                     sec_sla = (rbase + (simm5 * 4))
 
         func_wdt = None
@@ -181,7 +181,7 @@ def main():
             func_usb_buffer = pos - 1
             for i in range(0, 0x100, 2):
                 if data[func_usb_buffer + i + 1] == 0x48:
-                    offset, Rn = ldr_lit(func_usb_buffer + i,
+                    offset, rn = ldr_lit(func_usb_buffer + i,
                                          unpack("<H", data[func_usb_buffer + i:func_usb_buffer + i + 2])[0])
                     usb_buffer = unpack("<I", data[offset:offset + 4])[0]
                     break
@@ -204,11 +204,11 @@ def main():
             try:
                 for i in range(0, 0x100, 2):
                     if data[vuln_ctrl_handler + i + 1] == 0x49 or data[vuln_ctrl_handler + i + 1] == 0x4C:
-                        offset, Rn = ldr_lit(vuln_ctrl_handler + i,
+                        offset, rn = ldr_lit(vuln_ctrl_handler + i,
                                              unpack("<H", data[vuln_ctrl_handler + i:vuln_ctrl_handler + i + 2])[0])
                         vulnaddr = unpack("<I", data[offset:offset + 4])[0]
                     if data[vuln_ctrl_handler + i + 1] == 0x6A and usb_buffer != 0:
-                        simm5, sRt, sRn = ldr_imm(
+                        simm5, s_rt, s_rn = ldr_imm(
                             unpack("<H", data[vuln_ctrl_handler + i:vuln_ctrl_handler + i + 2])[0])
                         vulnoff = (simm5 * 4)
                         var1 = (usb_buffer - vulnaddr - vulnoff) / 0x34
@@ -253,7 +253,7 @@ def main():
             if pos is not None:
                 pos -= 1
                 instr = unpack("<H", data[pos:pos + 2])[0]
-                offset, Rn = ldr_lit(pos, instr)
+                offset, rn = ldr_lit(pos, instr)
                 wd = unpack("<I", data[offset:offset + 4])[0]
 
         blacklist = None
@@ -265,7 +265,7 @@ def main():
                 if pos is not None:
                     pos += 8
                     instr = unpack("<H", data[pos:pos + 2])[0]
-                    offset, Rn = ldr_lit(pos, instr)
+                    offset, rn = ldr_lit(pos, instr)
                     blacklist_ptr = unpack("<I", data[offset:offset + 4])[0] & 0xFFFFF
                     blacklist = unpack("<I", data[blacklist_ptr - 4:blacklist_ptr - 4 + 4])[0]
             else:
@@ -275,7 +275,7 @@ def main():
 
         if pos is not None and blacklist is None:
             instr = unpack("<H", data[pos:pos + 2])[0]
-            offset, Rn = ldr_lit(pos, instr)
+            offset, rn = ldr_lit(pos, instr)
             blacklist = unpack("<I", data[offset:offset + 4])[0]
 
         blacklistcount = None
@@ -289,24 +289,24 @@ def main():
         if pos is not None:
             pos += 2
             instr = unpack("<H", data[pos:pos + 2])[0]
-            offset, Rn = ldr_lit(pos, instr)
+            offset, rn = ldr_lit(pos, instr)
             bl2 = unpack("<I", data[offset:offset + 4])[0]
             blacklist2 = bl2 + 0x90
 
         pos = 0
-        memread = None
+        memread = 0
         while pos is not None:
             pos = find_binary(data, b"\x10\xB5", pos)
             if pos is not None:
                 if data[pos + 3] == 0x20 and data[pos + 0x9] == 0x49:
                     pos += 8
                     instr = unpack("<H", data[pos:pos + 2])[0]
-                    offset, Rn = ldr_lit(pos, instr)
+                    offset, rn = ldr_lit(pos, instr)
                     memread = unpack("<I", data[offset:offset + 4])[0]
                     break
                 pos += 1
 
-        payload_addr = None
+        payload_addr = 0
         while pos is not None:
             pos = find_binary(data, "C40811A9", pos)
             if pos is not None:
@@ -316,7 +316,7 @@ def main():
 
         coffs = (usbdl_put_data & 0xFFFFF) + 1
         try:
-            offset, Rn = ldr_lit(coffs,
+            offset, rn = ldr_lit(coffs,
                                  unpack("<H", data[coffs:coffs + 2])[0])
         except:
             print("Err:" + sys.argv[1])
@@ -333,7 +333,7 @@ def main():
         if pos is not None:
             pos += 0xA
             instr = unpack("<H", data[pos:pos + 2])[0]
-            offset, Rn = ldr_lit(pos, instr)
+            offset, rn = ldr_lit(pos, instr)
             socid_addr = unpack("<I", data[offset:offset + 4])[0]
 
         meid_addr = None
@@ -341,7 +341,7 @@ def main():
         if pos is not None:
             pos += 0xA
             instr = unpack("<H", data[pos:pos + 2])[0]
-            offset, Rn = ldr_lit(pos, instr)
+            offset, rn = ldr_lit(pos, instr)
             meid_addr = unpack("<I", data[offset:offset + 4])[0]
 
         brom_register_access = None
@@ -353,15 +353,15 @@ def main():
             if pos is not None:
                 pos += 2
                 instr = unpack("<H", data[pos:pos + 2])[0]
-                offset, Rn = ldr_lit(pos, instr)
+                offset, rn = ldr_lit(pos, instr)
                 brom_register_access_ptr = base | pos2
                 brom_register_access_ptr_offset = base | offset
             else:
                 pos = find_binary(data, "194D1B49", pos2)
                 if pos is not None:
                     instr = unpack("<H", data[pos:pos + 2])[0]
-                    offset, Rn = ldr_lit(pos, instr)
-                    da_range = offset
+                    offset, rn = ldr_lit(pos, instr)
+                    # da_range = offset
 
         print("Base: \t\t\t\t\t\t0x%08X" % base)
         print("usbdl_put_data:\t\t\t\t0x%08X" % usbdl_put_data)
@@ -421,7 +421,8 @@ def main():
             print("*cmd_handler:\t\t\t\t0x%08X" % cmd_handler)
         if brom_register_access_ptr:
             print(
-                f"brom_register_access_ptr:\t\t\t\t\t({hex(brom_register_access_ptr)},{hex(brom_register_access_ptr_offset)}),")
+                f"brom_register_access_ptr:\t\t\t\t\t({hex(brom_register_access_ptr)}," +
+                f"{hex(brom_register_access_ptr_offset)}),")
         if meid_addr:
             print(f"meid_addr:\t\t\t\t\t{hex(meid_addr)}")
         if socid_addr:

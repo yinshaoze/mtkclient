@@ -167,6 +167,7 @@ def hook_code(uc, access, address, size):
 
 
 def hook_mem_invalid(uc, access, address, size, value, user_data):
+    info = ""
     pc = uc.reg_read(UC_ARM_REG_PC)
     if access == UC_MEM_WRITE:
         info = ("invalid WRITE of 0x%x at 0x%X, data size = %u, data value = 0x%x" % (address, pc, size, value))

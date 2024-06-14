@@ -1,4 +1,4 @@
-from Crypto.Cipher import AES
+from Cryptodome.Cipher import AES
 from struct import unpack, pack
 from binascii import hexlify
 

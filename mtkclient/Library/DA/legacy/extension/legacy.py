@@ -2,13 +2,13 @@ import os
 import sys
 from struct import unpack, pack
 
-from mtkclient.config.payloads import pathconfig
+from mtkclient.config.payloads import PathConfig
 from mtkclient.Library.error import ErrorHandler
-from mtkclient.Library.Hardware.hwcrypto import crypto_setup, hwcrypto
+from mtkclient.Library.Hardware.hwcrypto import CryptoSetup, HwCrypto
 from mtkclient.Library.utils import LogBase, logsetup, find_binary
-from mtkclient.Library.Hardware.seccfg import seccfgV4, seccfgV3
+from mtkclient.Library.Hardware.seccfg import SecCfgV4, SecCfgV3
 from binascii import hexlify
-from mtkclient.Library.utils import mtktee
+from mtkclient.Library.utils import MTKTee
 import hashlib
 import json
 
@@ -20,10 +20,11 @@ class LCmd:
     NACK = b"\xA5"
 
 
-class legacyext(metaclass=LogBase):
+class LegacyExt(metaclass=LogBase):
     def __init__(self, mtk, legacy, loglevel):
-        self.pathconfig = pathconfig()
-        self.__logger = logsetup(self, self.__logger, loglevel, mtk.config.gui)
+        self.pathconfig = PathConfig()
+        self.__logger, self.info, self.debug, self.warning, self.error = logsetup(self, self.__logger, 
+                                                                                  loglevel, mtk.config.gui)
         self.mtk = mtk
         self.loglevel = loglevel
         self.__logger = self.__logger
@@ -72,9 +73,10 @@ class legacyext(metaclass=LogBase):
             POP.W           {R4-R6,LR}
             BX              R3
             """
-            cmdF0 = bytes.fromhex(
-                "70 B5 4A F2 C8 64 C8 F2 04 04 63 6A 98 47 63 6A 05 46 98 47 06 46 4F F0 00 01 28 68 05 F1 04 05 A3 6A 98 47 A6 F1 01 06 00 2E F6 D1 5A 20 23 69 BD E8 70 40 18 47")
-            da2patched[check_addr2:check_addr2 + len(cmdF0)] = cmdF0
+            cmd_f0 = bytes.fromhex(
+                "70 B5 4A F2 C8 64 C8 F2 04 04 63 6A 98 47 63 6A 05 46 98 47 06 46 4F F0 00 01 28 68 05 F1 04 05 A3 " +
+                "6A 98 47 A6 F1 01 06 00 2E F6 D1 5A 20 23 69 BD E8 70 40 18 47")
+            da2patched[check_addr2:check_addr2 + len(cmd_f0)] = cmd_f0
             self.info("Legacy DA2 CMD F0 is patched.")
         else:
             self.warning("Legacy DA2 CMD F0 not patched.")
@@ -148,7 +150,7 @@ class legacyext(metaclass=LogBase):
         hwc.sej.sej_set_otp(otp)
 
     def cryptosetup(self):
-        setup = crypto_setup()
+        setup = CryptoSetup()
         setup.blacklist = self.config.chipconfig.blacklist
         setup.gcpu_base = self.config.chipconfig.gcpu_base
         setup.dxcc_base = self.config.chipconfig.dxcc_base
@@ -158,7 +160,7 @@ class legacyext(metaclass=LogBase):
         setup.read32 = self.readmem
         setup.write32 = self.writeregister
         setup.writemem = self.writemem
-        return hwcrypto(setup, self.loglevel, self.config.gui)
+        return HwCrypto(setup, self.loglevel, self.config.gui)
 
     def seccfg(self, lockflag):
         if lockflag not in ["unlock", "lock"]:
@@ -180,10 +182,10 @@ class legacyext(metaclass=LogBase):
         hwc = self.cryptosetup()
         if seccfg_data[:0xC] == b"AND_SECCFG_v":
             self.info("Detected V3 Lockstate")
-            sc_org = seccfgV3(hwc, self.mtk)
+            sc_org = SecCfgV3(hwc, self.mtk)
         elif seccfg_data[:4] == b"\x4D\x4D\x4D\x4D":
             self.info("Detected V4 Lockstate")
-            sc_org = seccfgV4(hwc, self.mtk)
+            sc_org = SecCfgV4(hwc, self.mtk)
         else:
             return False, "Unknown lockstate or no lockstate"
         if not sc_org.parse(seccfg_data):
@@ -205,7 +207,7 @@ class legacyext(metaclass=LogBase):
             while idx != -1:
                 idx = data.find(b"EET KTM ", idx + 1)
                 if idx != -1:
-                    mt = mtktee()
+                    mt = MTKTee()
                     mt.parse(data[idx:])
                     rdata = hwc.mtee(data=mt.data, keyseed=mt.keyseed, ivseed=mt.ivseed,
                                      aeskey1=aeskey1, aeskey2=aeskey2)

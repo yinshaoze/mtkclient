@@ -5,17 +5,21 @@ import logging
 from struct import pack, unpack
 from binascii import hexlify
 from mtkclient.Library.utils import LogBase, logsetup, getint
-from mtkclient.config.payloads import pathconfig
+from mtkclient.config.payloads import PathConfig
 from mtkclient.Library.error import ErrorHandler
-from mtkclient.Library.utils import progress
-from mtkclient.config.brom_config import efuse, damodes
+from mtkclient.Library.utils import Progress
+from mtkclient.config.brom_config import Efuse, DAmodes
 from mtkclient.Library.Filesystem.mtkdafs import MtkDaFS
-from fuse import FUSE
+try:
+    from fuse import FUSE
+except ImportError:
+    FUSE = None
 
 
-class DA_handler(metaclass=LogBase):
+class DaHandler(metaclass=LogBase):
     def __init__(self, mtk, loglevel=logging.INFO):
-        self.__logger = self.__logger
+        self.__logger, self.info, self.debug, self.warning, self.error = logsetup(self, self.__logger,
+                                                                                  loglevel, mtk.config.gui)
         self.info = self.__logger.info
         self.debug = self.__logger.debug
         self.error = self.__logger.error
@@ -25,8 +29,9 @@ class DA_handler(metaclass=LogBase):
         self.vid = mtk.config.vid
         self.pid = mtk.config.pid
         self.interface = mtk.config.interface
-        self.pathconfig = pathconfig()
-        self.__logger = logsetup(self, self.__logger, loglevel, mtk.config.gui)
+        self.pathconfig = PathConfig()
+        self.__logger, self.info, self.debug, self.warning, self.error = logsetup(self, self.__logger, 
+                                                                                  loglevel, mtk.config.gui)
         self.eh = ErrorHandler()
         self.mtk = mtk
 
@@ -69,7 +74,8 @@ class DA_handler(metaclass=LogBase):
                                 with open(filename, "wb") as wf:
                                     wf.write(preloader)
                                     print(f"Successfully extracted preloader for this device to: {filename}")
-                            except Exception:
+                            except Exception as err:
+                                self.error(err)
                                 pass
                 return preloader
         except Exception as err:
@@ -83,7 +89,7 @@ class DA_handler(metaclass=LogBase):
         else:
             if mtk.serialportname is not None:
                 mtk.preloader.init()
-            if mtk.port.cdc.connected and os.path.exists(os.path.join(mtk.config.hwparam_path,".state")):
+            if mtk.port.cdc.connected and os.path.exists(os.path.join(mtk.config.hwparam_path, ".state")):
                 mtk.daloader.reinit()
                 return mtk
         if mtk.config.target_config is None:
@@ -179,7 +185,7 @@ class DA_handler(metaclass=LogBase):
             self.close()
         if parttype == "user" or parttype is None:
             i = 0
-            countDump = 0
+            count_dump = 0
             self.info("Requesting available partitions ....")
             gpttable = self.mtk.daloader.get_partition_data(parttype=parttype)
             for partition in partitions:
@@ -189,7 +195,7 @@ class DA_handler(metaclass=LogBase):
                     self.mtk.daloader.readflash(addr=0,
                                                 length=0x16000,
                                                 filename=partfilename, parttype=parttype)
-                    countDump += 1
+                    count_dump += 1
                     continue
                 else:
                     rpartition = None
@@ -204,18 +210,18 @@ class DA_handler(metaclass=LogBase):
                                                        filename=partfilename, parttype=parttype):
                             self.info(f"Dumped sector {str(rpartition.sector)} with sector count " +
                                       f"{str(rpartition.sectors)} as {partfilename}.")
-                            countDump += 1
+                            count_dump += 1
                         else:
                             self.info(f"Failed to dump sector {str(rpartition.sector)} with sector count " +
                                       f"{str(rpartition.sectors)} as {partfilename}.")
-                            countDump += 1
+                            count_dump += 1
                     else:
                         self.error(f"Error: Couldn't detect partition: {partition}\nAvailable partitions:")
                         for rpartition in gpttable:
                             self.info(rpartition.name)
-            if countDump > 1 and countDump == len(filenames):
+            if count_dump > 1 and count_dump == len(filenames):
                 self.info("All partitions were dumped")
-            elif countDump > 1 and countDump != len(filenames):
+            elif count_dump > 1 and count_dump != len(filenames):
                 self.info("Failed to dump some partitions")
         else:
             i = 0
@@ -249,7 +255,7 @@ class DA_handler(metaclass=LogBase):
             with open(sfilename, "wb") as wf:
                 wf.write(data[self.config.pagesize * 2:])
 
-            countGPT = 0
+            count_gpt = 0
             for partition in guid_gpt.partentries:
                 partitionname = partition.name
                 if partition.name in skip:
@@ -264,14 +270,14 @@ class DA_handler(metaclass=LogBase):
                                                filename=filename,
                                                parttype=parttype):
 
-                    countGPT += 1
+                    count_gpt += 1
                     self.info(f"Dumped partition {str(partition.name)} as {str(filename)}.")
                 else:
-                    countGPT -= 1
+                    count_gpt -= 1
                     self.error(f"Failed to dump partition {str(partition.name)} as {str(filename)}.")
 
-            partitionsForRead = len(guid_gpt.partentries) - len(skip)
-            if countGPT == partitionsForRead:
+            partitions_for_read = len(guid_gpt.partentries) - len(skip)
+            if count_gpt == partitions_for_read:
                 self.info("All Dumped partitions success.")
             else:
                 self.error("Failed to dump all partitions")
@@ -448,7 +454,7 @@ class DA_handler(metaclass=LogBase):
                                             parttype=parttype)
 
     def da_erase(self, partitions: list, parttype: str):
-        countFP = 0
+        count_fp = 0
         if parttype == "user" or parttype is None:
             i = 0
             for partition in partitions:
@@ -462,19 +468,19 @@ class DA_handler(metaclass=LogBase):
                         print(
                             f"Formatted sector {str(rpartition.sector)} with " +
                             f"sector count {str(rpartition.sectors)}.")
-                        countFP += 1
+                        count_fp += 1
                     else:
                         print(
                             f"Failed to format sector {str(rpartition.sector)} with " +
                             f"sector count {str(rpartition.sectors)}.")
-                        countFP -= 1
+                        count_fp -= 1
                 else:
                     self.error(f"Error: Couldn't detect partition: {partition}\nAvailable partitions:")
                     for rpartition in res[1]:
                         self.info(rpartition.name)
-        if countFP == len(partitions) and countFP > 1:
+        if count_fp == len(partitions) and count_fp > 1:
             print("All partitions formatted.")
-        elif countFP != len(partitions) and countFP > 1:
+        elif count_fp != len(partitions) and count_fp > 1:
             print("Failed to format all partitions.")
 
     def da_ess(self, sector: int, sectors: int, parttype: str):
@@ -576,7 +582,7 @@ class DA_handler(metaclass=LogBase):
         if self.mtk.config.chipconfig.efuse_addr is not None:
             base = self.mtk.config.chipconfig.efuse_addr
             hwcode = self.mtk.config.hwcode
-            efuseconfig = efuse(base, hwcode)
+            efuseconfig = Efuse(base, hwcode)
             for idx in range(len(efuseconfig.efuses)):
                 addr = efuseconfig.efuses[idx]
                 if addr < 0x1000:
@@ -592,9 +598,9 @@ class DA_handler(metaclass=LogBase):
         bytestoread = length
         pos = 0
         pagesize = 0x200
-        if self.mtk.daloader.flashmode == damodes.XFLASH:
+        if self.mtk.daloader.flashmode == DAmodes.XFLASH:
             pagesize = self.mtk.daloader.get_packet_length()
-        pg = progress(pagesize)
+        pg = Progress(pagesize)
         bytesread = 0
         wf = None
         if filename is not None:
@@ -612,7 +618,8 @@ class DA_handler(metaclass=LogBase):
                 pos += len(data)
                 bytesread += len(data)
                 bytestoread -= len(data)
-            except Exception:
+            except Exception as err:
+                self.error(err)
                 pass
         pg.show_progress("Dump:", 100, 100)
         if filename is not None:
@@ -690,9 +697,10 @@ class DA_handler(metaclass=LogBase):
             else:
                 print(f"Failed to dump offset {hex(start)} with length {hex(length)} as {filename}.")
         elif cmd == "fs":
-            print(f'Mounting FUSE fs at: {args.mountpoint}...')
-            fs = FUSE(MtkDaFS(self, rw=args.rw), mountpoint=args.mountpoint, foreground=True, allow_other=True,
-                      nothreads=True)
+            if FUSE is not None:
+                print(f'Mounting FUSE fs at: {args.mountpoint}...')
+                fs = FUSE(MtkDaFS(self, rw=args.rw), mountpoint=args.mountpoint, foreground=True, allow_other=True,
+                          nothreads=True)
         elif cmd == "footer":
             filename = args.filename
             self.da_footer(filename=filename)

@@ -15,16 +15,17 @@ from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QCheckBox, QVB
     QPushButton
 
 from mtkclient.Library.mtk_class import Mtk
-from mtkclient.Library.DA.mtk_da_handler import DA_handler
-from mtkclient.Library.gpt import gpt_settings
-from mtkclient.Library.mtk_main import Main, Mtk_Config
+from mtkclient.Library.DA.mtk_da_handler import DaHandler
+from mtkclient.Library.gpt import GptSettings
+from mtkclient.Library.mtk_main import Main
+from mtkclient.config.mtk_config import MtkConfig
 
 from mtkclient.gui.readFlashPartitions import ReadFlashWindow
 from mtkclient.gui.writeFlashPartitions import WriteFlashWindow
 from mtkclient.gui.eraseFlashPartitions import EraseFlashWindow
 from mtkclient.gui.toolsMenu import generateKeysMenu, UnlockMenu
 from mtkclient.gui.toolkit import asyncThread, trap_exc_during_debug, convert_size, CheckBox, FDialog, TimeEstim
-from mtkclient.config.payloads import pathconfig
+from mtkclient.config.payloads import PathConfig
 from mtkclient.gui.main_gui import Ui_MainWindow
 import os
 
@@ -39,7 +40,7 @@ sys.excepthook = trap_exc_during_debug
 variables = mock.Mock()
 variables.cmd = "stage"
 variables.debugmode = True
-path = pathconfig()
+path = PathConfig()
 # if sys.platform.startswith('darwin'):
 #    config.ptype = "kamakiri" #Temp for Mac testing
 MtkTool = Main(variables)
@@ -56,47 +57,47 @@ class DeviceHandler(QObject):
 
     def __init__(self, parent, preloader: str = None, loglevel=logging.INFO, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        config = Mtk_Config(loglevel=logging.INFO, gui=self.sendToLogSignal, guiprogress=self.sendToProgressSignal,
-                            update_status_text=self.update_status_text)
-        config.gpt_settings = gpt_settings(gpt_num_part_entries='0', gpt_part_entry_size='0',
-                                           gpt_part_entry_start_lba='0')  # This actually sets the right GPT settings..
+        config = MtkConfig(loglevel=logging.INFO, gui=self.sendToLogSignal, guiprogress=self.sendToProgressSignal,
+                           update_status_text=self.update_status_text)
+        config.gpt_settings = GptSettings(gpt_num_part_entries='0', gpt_part_entry_size='0',
+                                          gpt_part_entry_start_lba='0')  # This actually sets the right GPT settings..
         config.reconnect = True
         config.uartloglevel = 2
         self.loglevel = logging.DEBUG
-        self.da_handler = DA_handler(Mtk(config=config, loglevel=logging.INFO), loglevel)
+        self.da_handler = DaHandler(Mtk(config=config, loglevel=logging.INFO), loglevel)
 
 
 def getDevInfo(self, parameters):
     # loglevel = parameters[0]
-    phoneInfo = parameters[1]
-    devhandler = parameters[2]
+    phone_info = parameters[1]
+    _devhandler = parameters[2]
 
-    mtkClass = devhandler.da_handler.mtk
-    da_handler = devhandler.da_handler
+    mtk_class = _devhandler.da_handler.mtk
+    da_handler = _devhandler.da_handler
     try:
-        if not mtkClass.port.cdc.connect():
-            mtkClass.preloader.init()
+        if not mtk_class.port.cdc.connect():
+            mtk_class.preloader.init()
         else:
-            phoneInfo['cdcInit'] = True
+            phone_info['cdcInit'] = True
     except Exception:
-        phoneInfo['cantConnect'] = True
-    phoneInfo['chipset'] = (str(mtkClass.config.chipconfig.name) + " (" + str(mtkClass.config.chipconfig.description) +
-                            ")")
+        phone_info['cantConnect'] = True
+    phone_info['chipset'] = (str(mtk_class.config.chipconfig.name) +
+                             " (" + str(mtk_class.config.chipconfig.description) + ")")
     self.sendUpdateSignal.emit()
-    mtkClass = da_handler.configure_da(mtkClass, preloader=None)
-    if mtkClass:
-        phoneInfo['daInit'] = True
-        phoneInfo['chipset'] = (str(mtkClass.config.chipconfig.name) + " (" +
-                                str(mtkClass.config.chipconfig.description) + ")")
-        if mtkClass.config.is_brom:
-            phoneInfo['bootMode'] = "Bootrom mode"
-        elif mtkClass.config.chipconfig.damode:
-            phoneInfo['bootMode'] = "DA mode"
+    mtk_class = da_handler.configure_da(mtk_class, preloader=None)
+    if mtk_class:
+        phone_info['daInit'] = True
+        phone_info['chipset'] = (str(mtk_class.config.chipconfig.name) +
+                                 " (" + str(mtk_class.config.chipconfig.description) + ")")
+        if mtk_class.config.is_brom:
+            phone_info['bootMode'] = "Bootrom mode"
+        elif mtk_class.config.chipconfig.damode:
+            phone_info['bootMode'] = "DA mode"
         else:
-            phoneInfo['bootMode'] = "Preloader mode"
+            phone_info['bootMode'] = "Preloader mode"
         self.sendUpdateSignal.emit()
     else:
-        phoneInfo['cantConnect'] = True
+        phone_info['cantConnect'] = True
         self.sendUpdateSignal.emit()
 
 
@@ -124,6 +125,7 @@ def load_translations(application):
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.readpartitionCheckboxes = None
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.fdialog = FDialog(self)
@@ -153,39 +155,45 @@ class MainWindow(QMainWindow):
     def updateState(self):
         global lock
         lock.acquire()
-        doneBytes = 0
-        curpartBytes = self.Status[f"currentPartitionSize{'Done' if 'currentPartitionSizeDone' in self.Status else ''}"]
+        done_bytes = 0
+        curpart_bytes = (
+            self.Status)[f"currentPartitionSize{'Done' if 'currentPartitionSizeDone' in self.Status else ''}"]
 
         if "allPartitions" in self.Status:
             for partition in self.Status["allPartitions"]:
                 if self.Status["allPartitions"][partition]['done'] and partition != self.Status["currentPartition"]:
-                    doneBytes = doneBytes + self.Status["allPartitions"][partition]['size']
-            doneBytes = curpartBytes + doneBytes
-            totalBytes = self.Status["totalsize"]
-            fullPercentageDone = int((doneBytes / totalBytes) * 100)
-            self.ui.fullProgress.setValue(fullPercentageDone)
-            timeinfototal = self.timeEstTotal.update(fullPercentageDone, 100)
-            self.ui.fullProgressText.setText(f"<table width='100%'><tr><td><b>Total:</b> {convert_size(doneBytes)} / {convert_size(totalBytes)}</td><td align='right'>{timeinfototal}{QCoreApplication.translate('main', ' left')}</td></tr></table>")
+                    done_bytes = done_bytes + self.Status["allPartitions"][partition]['size']
+            done_bytes = curpart_bytes + done_bytes
+            total_bytes = self.Status["totalsize"]
+            full_percentage_done = int((done_bytes / total_bytes) * 100)
+            self.ui.fullProgress.setValue(full_percentage_done)
+            timeinfototal = self.timeEstTotal.update(full_percentage_done, 100)
+            self.ui.fullProgressText.setText(f"<table width='100%'><tr><td><b>Total:</b> " +
+                                             f"{convert_size(done_bytes)} / {convert_size(total_bytes)}" +
+                                             f"</td><td align='right'>{timeinfototal}" +
+                                             f"{QCoreApplication.translate('main', ' left')}" +
+                                             f"</td></tr></table>")
         else:
-            partBytes = self.Status["currentPartitionSize"]
-            doneBytes = self.Status["currentPartitionSizeDone"]
-            fullPercentageDone = int((doneBytes / partBytes) * 100)
-            self.ui.fullProgress.setValue(fullPercentageDone)
-            timeinfototal = self.timeEstTotal.update(fullPercentageDone, 100)
+            part_bytes = self.Status["currentPartitionSize"]
+            done_bytes = self.Status["currentPartitionSizeDone"]
+            full_percentage_done = int((done_bytes / part_bytes) * 100)
+            self.ui.fullProgress.setValue(full_percentage_done)
+            timeinfototal = self.timeEstTotal.update(full_percentage_done, 100)
             self.ui.fullProgressText.setText("<table width='100%'><tr><td><b>Total:</b> " +
-                                             convert_size(doneBytes) + " / " + convert_size(partBytes) +
+                                             convert_size(done_bytes) + " / " + convert_size(part_bytes) +
                                              "</td><td align='right'>" +
                                              timeinfototal + QCoreApplication.translate("main",
                                                                                         " left") + "</td></tr></table>")
 
         if "currentPartitionSize" in self.Status:
-            partBytes = self.Status["currentPartitionSize"]
-            partDone = (curpartBytes / partBytes) * 100
-            self.ui.partProgress.setValue(partDone)
-            timeinfo = self.timeEst.update(curpartBytes, partBytes)
-            txt = "<table width='100%'><tr><td><b>Current partition:</b> " + self.Status["currentPartition"] + \
-                  " (" + convert_size(curpartBytes) + " / " + convert_size(partBytes) + ") </td><td align='right'>" + \
-                  timeinfo + QCoreApplication.translate("main", " left") + "</td></tr></table>"
+            part_bytes = self.Status["currentPartitionSize"]
+            part_done = (curpart_bytes / part_bytes) * 100
+            self.ui.partProgress.setValue(part_done)
+            timeinfo = self.timeEst.update(curpart_bytes, part_bytes)
+            txt = ("<table width='100%'><tr><td><b>Current partition:</b> " + self.Status["currentPartition"] +
+                   " (" + convert_size(curpart_bytes) + " / " + convert_size(part_bytes) +
+                   ") </td><td align='right'>" +
+                   timeinfo + QCoreApplication.translate("main", " left") + "</td></tr></table>")
             self.ui.partProgressText.setText(txt)
 
         lock.release()
@@ -331,11 +339,13 @@ class MainWindow(QMainWindow):
 
     def getpartitions(self):
         data, guid_gpt = self.devhandler.da_handler.mtk.daloader.get_gpt()
-        self.ui.readtitle.setText(QCoreApplication.translate("main", "Error reading gpt" if guid_gpt is None else "Select partitions to dump"))
-        readpartitionListWidgetVBox = QVBoxLayout()
-        readpartitionListWidget = QWidget(self)
-        readpartitionListWidget.setLayout(readpartitionListWidgetVBox)
-        self.ui.readpartitionList.setWidget(readpartitionListWidget)
+        self.ui.readtitle.setText(QCoreApplication.translate("main",
+                                                             "Error reading gpt" if guid_gpt is None
+                                                             else "Select partitions to dump"))
+        readpartition_list_widget_v_box = QVBoxLayout()
+        readpartition_list_widget = QWidget(self)
+        readpartition_list_widget.setLayout(readpartition_list_widget_v_box)
+        self.ui.readpartitionList.setWidget(readpartition_list_widget)
         self.ui.readpartitionList.setWidgetResizable(True)
         # self.ui.readpartitionList.setGeometry(10,40,380,320)
         self.ui.readpartitionList.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
@@ -346,15 +356,14 @@ class MainWindow(QMainWindow):
             self.readpartitionCheckboxes[partition.name] = {}
             self.readpartitionCheckboxes[partition.name]['size'] = (partition.sectors * guid_gpt.sectorsize)
             self.readpartitionCheckboxes[partition.name]['box'] = QCheckBox()
-            self.readpartitionCheckboxes[partition.name]['box'].setText(partition.name + " (" +
-                                                                        convert_size(
-                                                                            partition.sectors * guid_gpt.sectorsize) + ")")
-            readpartitionListWidgetVBox.addWidget(self.readpartitionCheckboxes[partition.name]['box'])
+            self.readpartitionCheckboxes[partition.name]['box'].setText(
+                partition.name + " (" + convert_size(partition.sectors * guid_gpt.sectorsize) + ")")
+            readpartition_list_widget_v_box.addWidget(self.readpartitionCheckboxes[partition.name]['box'])
 
-        writepartitionListWidgetVBox = QVBoxLayout()
-        writepartitionListWidget = QWidget(self)
-        writepartitionListWidget.setLayout(writepartitionListWidgetVBox)
-        self.ui.writepartitionList.setWidget(writepartitionListWidget)
+        writepartition_list_widget_v_box = QVBoxLayout()
+        writepartition_list_widget = QWidget(self)
+        writepartition_list_widget.setLayout(writepartition_list_widget_v_box)
+        self.ui.writepartitionList.setWidget(writepartition_list_widget)
         self.ui.writepartitionList.setWidgetResizable(True)
         # self.ui.writepartitionList.setGeometry(10,40,380,320)
         self.ui.writepartitionList.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
@@ -377,12 +386,12 @@ class MainWindow(QMainWindow):
             vb.addLayout(hc)
             ll.setDisabled(True)
             self.writepartitionCheckboxes[partition.name]['box'] = [qc, ll, lb]
-            writepartitionListWidgetVBox.addLayout(vb)
+            writepartition_list_widget_v_box.addLayout(vb)
 
-        erasepartitionListWidgetVBox = QVBoxLayout()
-        erasepartitionListWidget = QWidget(self)
-        erasepartitionListWidget.setLayout(erasepartitionListWidgetVBox)
-        self.ui.erasepartitionList.setWidget(erasepartitionListWidget)
+        erasepartition_list_widget_v_box = QVBoxLayout()
+        erasepartition_list_widget = QWidget(self)
+        erasepartition_list_widget.setLayout(erasepartition_list_widget_v_box)
+        self.ui.erasepartitionList.setWidget(erasepartition_list_widget)
         self.ui.erasepartitionList.setWidgetResizable(True)
         # self.ui.erasepartitionList.setGeometry(10,40,380,320)
         self.ui.erasepartitionList.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
@@ -392,10 +401,9 @@ class MainWindow(QMainWindow):
             self.erasepartitionCheckboxes[partition.name] = {}
             self.erasepartitionCheckboxes[partition.name]['size'] = (partition.sectors * guid_gpt.sectorsize)
             self.erasepartitionCheckboxes[partition.name]['box'] = QCheckBox()
-            self.erasepartitionCheckboxes[partition.name]['box'].setText(partition.name + " (" +
-                                                                         convert_size(
-                                                                             partition.sectors * guid_gpt.sectorsize) + ")")
-            erasepartitionListWidgetVBox.addWidget(self.erasepartitionCheckboxes[partition.name]['box'])
+            self.erasepartitionCheckboxes[partition.name]['box'].setText(
+                partition.name + " (" + convert_size(partition.sectors * guid_gpt.sectorsize) + ")")
+            erasepartition_list_widget_v_box.addWidget(self.erasepartitionCheckboxes[partition.name]['box'])
 
     def selectWriteFile(self, partition, checkbox, lineedit):
         fname = self.fdialog.open(partition + ".bin")
@@ -427,7 +435,8 @@ class MainWindow(QMainWindow):
                                                                         "Phone detected:\n" + phoneInfo[
                                                                             'chipset'] + "\n" + phoneInfo['bootMode']))
         # Disabled due to graphical steps. Maybe this should come back somewhere else.
-        # self.ui.status.setText(QCoreApplication.translate("main","Device detected, please wait.\nThis can take a while..."))
+        # self.ui.status.setText(QCoreApplication.translate("main","Device detected, please wait.\n" +
+        #   "This can take a while..."))
         if phoneInfo['daInit']:
             # self.ui.status.setText(QCoreApplication.translate("main","Device connected :)"))
             self.ui.menubar.setEnabled(True)
@@ -459,10 +468,10 @@ class MainWindow(QMainWindow):
     def spinnerAnimRot(self, angle):
         # trans = QTransform()
         # dimension = self.pixmap.width() / math.sqrt(2)
-        newPixmap = self.pixmap.transformed(QTransform().rotate(angle), Qt.SmoothTransformation)
-        xoffset = (newPixmap.width() - self.pixmap.width()) / 2
-        yoffset = (newPixmap.height() - self.pixmap.height()) / 2
-        rotated = newPixmap.copy(xoffset, yoffset, self.pixmap.width(), self.pixmap.height())
+        new_pixmap = self.pixmap.transformed(QTransform().rotate(angle), Qt.SmoothTransformation)
+        xoffset = (new_pixmap.width() - self.pixmap.width()) // 2
+        yoffset = (new_pixmap.height() - self.pixmap.height()) // 2
+        rotated = new_pixmap.copy(xoffset, yoffset, self.pixmap.width(), self.pixmap.height())
         self.ui.spinner_pic.setPixmap(rotated)
 
     def initpixmap(self):
@@ -479,8 +488,8 @@ class MainWindow(QMainWindow):
         logo = QPixmap(path.get_images_path("logo_256.png"))
         self.ui.logoPic.setPixmap(logo)
 
-        initSteps = QPixmap(path.get_images_path("initsteps.png"))
-        self.ui.initStepsImage.setPixmap(initSteps)
+        init_steps = QPixmap(path.get_images_path("initsteps.png"))
+        self.ui.initStepsImage.setPixmap(init_steps)
 
         self.spinnerAnim = QVariantAnimation()
         self.spinnerAnim.setDuration(3000)
@@ -519,7 +528,7 @@ if __name__ == '__main__':
     addTopMargin = 20
     if sys.platform.startswith('darwin'):  # MacOS has the toolbar in the top bar insted of in the app...
         addTopMargin = 0
-    win.setWindowTitle("MTKClient - Version 2.0")
+    win.setWindowTitle("MTKClient - Version 2.01")
     # lay = QVBoxLayout(self)
 
     win.show()
