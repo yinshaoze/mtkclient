@@ -72,7 +72,7 @@ class Mtk_Config(metaclass=LogBase):
         self.dram = None
         self.otp = None
         if loglevel == logging.DEBUG:
-            logfilename = os.path.join(self.hwparam_path, "log.txt")
+            logfilename = os.path.join("logs", "log.txt")
             fh = logging.FileHandler(logfilename)
             self.__logger.addHandler(fh)
             self.__logger.setLevel(logging.DEBUG)
