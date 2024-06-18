@@ -1,7 +1,3 @@
-try:
-    from fuse import Operations, LoggingMixIn
-except ImportError:
-    raise ImportError('fuse library not installed')
 from stat import S_IFDIR, S_IFREG
 from tempfile import NamedTemporaryFile
 from time import time
@@ -12,7 +8,10 @@ if not os.environ.get('FUSE_LIBRARY_PATH') and os.name == 'nt':
     os.environ.setdefault('FUSE_LIBRARY_PATH',
                           os.path.join(os.path.dirname(__file__),
                                        r"bin\winfsp-%s.dll" % ("x64" if sys.maxsize > 0xffffffff else "x86")))
-
+try:
+    from fuse import Operations, LoggingMixIn
+except ImportError:
+    raise ImportError('fuse library not installed')
 
 class MtkDaFS(LoggingMixIn, Operations):
     def __init__(self, da_handler, rw=False):
