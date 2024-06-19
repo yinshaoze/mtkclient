@@ -80,6 +80,9 @@ the "/etc/modprobe.d/blacklist.conf".
 - If you install python from microsoft store, "python setup.py install" will fail, but that step isn't required.
 - WIN+R ```cmd```
 
+#### Install Winfsp (for fuse)
+Download and install [here](https://winfsp.dev/rel/)
+
 #### Grab files and install
 ```
 git clone https://github.com/bkerler/mtkclient
