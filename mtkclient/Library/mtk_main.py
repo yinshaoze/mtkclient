@@ -184,7 +184,7 @@ class Main(metaclass=LogBase):
                 self.error(f"Error: {stage2file} doesn't exist !")
                 return False
         else:
-            stage2file = os.path.join(mtk.PathConfig.get_payloads_path(), "stage2.bin")
+            stage2file = os.path.join(mtk.pathconfig.get_payloads_path(), "stage2.bin")
         if mtk.preloader.init():
             mtk = mtk.crasher()
             if mtk.port.cdc.pid == 0x0003:
