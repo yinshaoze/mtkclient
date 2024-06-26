@@ -678,9 +678,9 @@ class Main(metaclass=LogBase):
             plt = PLTools(mtk, self.__logger.level)
             if payloadfile is None:
                 if mtk.config.chipconfig.loader is None:
-                    payloadfile = os.path.join(mtk.PathConfig.get_payloads_path(), "generic_patcher_payload.bin")
+                    payloadfile = os.path.join(mtk.pathconfig.get_payloads_path(), "generic_patcher_payload.bin")
                 else:
-                    payloadfile = os.path.join(mtk.PathConfig.get_payloads_path(), mtk.config.chipconfig.loader)
+                    payloadfile = os.path.join(mtk.pathconfig.get_payloads_path(), mtk.config.chipconfig.loader)
             plt.runpayload(filename=payloadfile)
             if self.args.metamode:
                 mtk.port.run_handshake()
