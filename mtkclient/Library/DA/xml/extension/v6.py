@@ -274,16 +274,10 @@ class XmlFlashExt(metaclass=LogBase):
                     da2patched[idx2:idx2 + 8] = b"\x00\x00\xA0\xE3\x1E\xFF\x2F\xE1"
                     self.info("Patched Vivo Remote SLA authentification.")
                 else:
-                    pubkey = bytes.fromhex(
-                        "A243F6694336D527C5B3ED569DDD0386D309C6592841E4C033DCB461EEA7B6F8535FC4939E403060" +
-                        "646A970DD81DE367CF003848146F19D259F50A385015AF6309EAA71BFED6B098C7A24D4871B4B82A" +
-                        "AD7DC6E2856C301BE7CDB46DC10795C0D30A68DD8432B5EE5DA42BA22124796512FCA21D811D50B3" +
-                        "4C2F672E25BCC2594D9C012B34D473EE222D1E56B90E7D697CEA97E8DD4CCC6BED5FDAECE1A43F96" +
-                        "495335F322CCE32612DAB462B024281841F553FF7FF33E0103A7904037F8FE5D9BE293ACD7485CDB" +
-                        "50957DB11CA6DB28AF6393C3E78D9FBCD4567DEBCA2601622F0F2EB19DA9192372F9EA3B28B10794" +
-                        "09C0A09E3D51D64A4C4CE026FAD24CD")
+                    n = "9BB734774443D77557A76E24B10733787750D90D09C869CD606D54F28978EA6220DC9948B3C9E89284F8551D6166F3754B6A3B890AC9CDA9E37DFAA0C1317E351CE5107C4273795949C6CCE638314AB1A345385D7642CB8D055A1F410C7D7E24A6F0A2AAB8184E773D21B3754A947541680F2C1A8D6BA5BEFD3B6E1FC28EC0B61D55B1454383F2C3E8BD27170A25978608F6788B90A2FC34F0CE35056BF7520795C8C60232CBBC0B0399367AF937869CA45CF737A8A066127893E93166C433298DD6FD009E6790E743B3392ACA8EA99F61DFC77BD99416DDA4B8A9D7E4DA24217427F3584119A4932016F1735CC63B12650FDDDA73C8FCFBC79E058F36219D3D"
+                    pubkey = bytes.fromhex(n)
                     # Generic SLA patch, just replace the public key with a known one
-                    idx2 = find_binary(da2patched, b"01000100")
+                    idx2 = da2patched.rfind(b"\x01\x00\x01\x00")
                     # Infinix / Tecno
                     if idx2 is not None:
                         da2patched[idx2 - 0x100:idx2] = pubkey
@@ -292,7 +286,7 @@ class XmlFlashExt(metaclass=LogBase):
                         idx2 = find_binary(da2patched, b"0123456789ABCDEF0123456789abcdef")
                         if idx2 is not None:
                             da2patched[idx2 - 0x100:idx2] = pubkey
-                self.warning("SLA authentification not patched.")
+                        self.warning("SLA authentification not patched.")
 
         # open("da.patched.bin",
         # "wb").write(da2patched)

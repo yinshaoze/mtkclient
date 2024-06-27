@@ -248,6 +248,9 @@ class DAXML(metaclass=LogBase):
             da2 = self.xmlft.patch_da2(da2)
             da1 = self.mtk.daloader.fix_hash(da1, da2, hashaddr, hashmode, hashlen)
             self.mtk.daloader.patch = True
+            self.daconfig.da2 = da2[:hashlen]
+            # open("/tmp/_da1","wb").write(da1)
+            # open("/tmp/_da2", "wb").write(self.daconfig.da2)
         else:
             self.mtk.daloader.patch = False
             self.daconfig.da2 = da2[:-da2sig_len]
@@ -283,6 +286,7 @@ class DAXML(metaclass=LogBase):
             if self.patch or not self.config.target_config["sbc"]:
                 da1, da2 = self.patch_da(da1, da2)
                 self.patch = True
+                self.daconfig.da2 = da2
             else:
                 self.patch = False
             self.daconfig.da2 = da2[:-da2sig_len]
@@ -616,11 +620,10 @@ class DAXML(metaclass=LogBase):
                         found = False
                         for key in da_sla_keys:
                             if da2.find(bytes.fromhex(key.n)) != -1:
-                                sla_signature = generate_da_sla_signature(data=self.dev_info["rnd"], d=key.d, n=key.n,
-                                                                          e=key.e)
-                                self.handle_sla(data=sla_signature)
-                                found = True
-                                break
+                                sla_signature = generate_da_sla_signature(data=self.dev_info["rnd"], key=key.key)
+                                if self.handle_sla(data=sla_signature):
+                                    found = True
+                                    break
                         if not found:
                             print("No valid sla key found, using dummy auth ....")
                             sla_signature = b"\x00" * 0x100

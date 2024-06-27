@@ -40,7 +40,7 @@ Issues = "https://github.com/bkerler/mtkclient/issues"
 
 [project.scripts]
 mtk = "mtk:main"
-stage2 = "mtkclient.Tools.stage2:main"
+stage2 = "stage2:main"
 da_parser = "mtkclient.Tools.da_parser:main"
 brom_to_offs = "mtkclient.Tools.brom_to_offs:main"
 

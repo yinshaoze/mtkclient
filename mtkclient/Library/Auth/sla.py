@@ -22,7 +22,7 @@ def customized_sign(n, e, msg):
     return signature
 
 
-def generate_brom_sla_challenge(d, e, data):
+def generate_brom_sla_challenge(data, d, e):
     d = bytes_to_long(bytes.fromhex(d))
     e = bytes_to_long(bytes.fromhex(e))
     for i in range(0, len(data), 2):
@@ -33,11 +33,7 @@ def generate_brom_sla_challenge(d, e, data):
     return msg
 
 
-def generate_da_sla_signature(data, d, n, e):
-    d_da = bytes_to_long(bytes.fromhex(d))
-    n_da = bytes_to_long(bytes.fromhex(n))
-    e_da = bytes_to_long(bytes.fromhex(e))
-    pprivate_key = RSA.construct((n_da, d_da, e_da))
-    cipher = PKCS1_OAEP.new(pprivate_key, SHA256, mgfunc=lambda x, y: PKCS1_OAEP.MGF1(x, y, SHA256))
+def generate_da_sla_signature(data, key):
+    cipher = PKCS1_OAEP.new(key, SHA256, mgfunc=lambda x, y: PKCS1_OAEP.MGF1(x, y, SHA256))
     ciphertext = cipher.encrypt(data)
     return ciphertext

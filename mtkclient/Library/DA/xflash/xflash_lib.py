@@ -6,6 +6,9 @@ import time
 import os
 from binascii import hexlify
 from struct import pack, unpack
+
+from mtkclient.Library.Auth.sla import generate_da_sla_signature
+from mtkclient.Library.Auth.sla_keys import da_sla_keys
 from mtkclient.Library.DA.xflash.xflash_flash_param import NandExtension
 from mtkclient.Library.DA.xflash.xflash_param import Cmd, ChecksumAlgorithm, FtSystemOSE, DataType
 from mtkclient.Library.utils import LogBase, logsetup
@@ -738,6 +741,17 @@ class DAXFlash(metaclass=LogBase):
                 self.error(f"Error on getting packet length: {self.eh.status(status)}")
         return None
 
+    def get_sla_status(self):
+        resp = self.send_devctrl(self.Cmd.SLA_ENABLED_STATUS)
+        if resp != b"":
+            status = self.status()
+            if status == 0:
+
+                return int.from_bytes(resp,'little')
+            else:
+                self.error(f"Error on getting sla enabled status: {self.eh.status(status)}")
+        return None
+
     def get_usb_speed(self):
         resp = self.send_devctrl(self.Cmd.GET_USB_SPEED)
         if resp != b"":
@@ -1115,6 +1129,26 @@ class DAXFlash(metaclass=LogBase):
             self.mtk.port.cdc.set_fast_mode(True)
             self.config.set_gui_status(self.config.tr("Connected to stage2 with higher speed"))
 
+    def set_remote_sec_policy(self, data):
+        return self.send_devctrl(self.Cmd.SET_REMOTE_SEC_POLICY, data)
+
+    def handle_sla(self, da2):
+        res = self.get_dev_fw_info()
+        if res!=b"":
+            data = res[4:4+0x10]
+            found = False
+            for key in da_sla_keys:
+                if da2.find(bytes.fromhex(key.n)) != -1:
+                    sla_signature = generate_da_sla_signature(data=data, key=key.key)
+                    found = not self.set_remote_sec_policy(data=sla_signature)
+            if not found:
+                print("No valid sla key found, using dummy auth ....")
+                sla_signature = b"\x00" * 0x100
+                found = not self.set_remote_sec_policy(data=sla_signature)
+            if found:
+                print("SLA Signature was accepted.")
+            return found
+
     def upload_da(self):
         if not self.mtk.daloader.patch:
             if (self.kamakiri_pl is not None and not self.mtk.config.chipconfig.damode == 6 and
@@ -1184,6 +1218,14 @@ class DAXFlash(metaclass=LogBase):
                     loaded = self.boot_to(self.daconfig.da_loader.region[stage].m_start_addr, self.daconfig.da2)
                 if loaded:
                     self.info("Successfully uploaded stage 2")
+                    sla_enabled = self.get_sla_status()
+                    if sla_enabled:
+                        self.info("DA SLA is enabled")
+                        if not self.handle_sla(self.daconfig.da2):
+                            self.error("Can't bypass DA SLA")
+                            sys.exit(1)
+                    else:
+                        self.info("DA SLA is disabled")
                     self.reinit(True)
                     daextdata = self.xft.patch()
                     if daextdata is not None:

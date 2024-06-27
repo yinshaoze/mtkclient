@@ -665,7 +665,7 @@ class Preloader(metaclass=LogBase):
                     d = key.d
                     challenge_length = self.rdword()
                     challenge = self.rbyte(challenge_length)
-                    response = generate_brom_sla_challenge(n, d, challenge)
+                    response = generate_brom_sla_challenge(data=challenge, d=n, e=d)
                     resplen = len(response)  # 0x80, 0x100, 0x180
                     self.usbwrite(int.to_bytes(resplen, 4, 'little'))
                     rlen = self.rdword()
