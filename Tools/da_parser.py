@@ -5,7 +5,7 @@ import sys
 from struct import unpack
 import inspect
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parent_dir = os.path.dirname(os.path.dirname(current_dir))
+parent_dir =os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 from mtkclient.config.payloads import PathConfig
 from mtkclient.Library.utils import read_object
@@ -92,6 +92,9 @@ def main():
                 with open(loader, "rb") as rf:
                     rf.seek(mbuf)
                     data = rf.read(m_len)
+                    test=data.find(b"\x08\x00\xa8\x52\xff\x02\x08\xeb")
+                    if test != -1:
+                        print("Device is patched against carbonara :(")
                     hashidx = data.find(int.to_bytes(0xC0070004, 4, 'little'))
                     if hashidx != -1:
                         print("Hash check found.")

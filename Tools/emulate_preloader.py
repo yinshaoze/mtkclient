@@ -226,7 +226,7 @@ def do_generic_emu_setup(mu, reg):
 
 
 def main():
-    pfilename = os.path.join("..", "Loader", "Preloader", "preloader_k71v1_64_bsp.bin")
+    pfilename = os.path.join("../mtkclient", "Loader", "Preloader", "preloader_k71v1_64_bsp.bin")
     payload = open(pfilename, "rb").read()
 
     mu = Uc(UC_ARCH_ARM, UC_MODE_THUMB)

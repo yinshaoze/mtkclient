@@ -5,7 +5,7 @@ from struct import unpack, pack
 
 def main():
     loaders = []
-    for root, dirs, files in os.walk(".", topdown=False):
+    for root, dirs, files in os.walk("", topdown=False):
         for file in files:
             loaders.append(os.path.join(root, file))
 
