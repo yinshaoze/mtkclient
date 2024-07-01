@@ -63,6 +63,7 @@ packages = [
     "mtkclient.Library.Exploit",
     "mtkclient.Library.Filesystem",
     "mtkclient.Library.Hardware",
+    "Tools"
 ]
 # We want to install all the files in the package directories...
 include-package-data = true
