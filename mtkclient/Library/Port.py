@@ -136,8 +136,7 @@ class Port(metaclass=LogBase):
         try:
             while i < length:
                 if ep_out(int.to_bytes(startcmd[i], 1, 'little')):
-                    v = ep_in(maxinsize)
-                    if len(v) == 1 and v[0] == ~(startcmd[i]) & 0xFF:
+                    if ep_in(maxinsize)[-1] == ~(startcmd[i]) & 0xFF:
                         i += 1
                     else:
                         i = 0
