@@ -35,7 +35,7 @@ User: user, Password:user (based on Ubuntu 22.04 LTS)
 
 ## Install
 
-### Linux  / Mac OS - (Ubuntu recommended, no patched kernel needed except for kamakiri)
+### Linux - (Ubuntu recommended, no patched kernel needed except for kamakiri)
 
 #### Install python >=3.8, git and other deps
 
@@ -70,6 +70,34 @@ sudo udevadm control -R
 Make sure to reboot after adding the user to dialout/plugdev. If the device
 has a vendor interface 0xFF (like LG), make sure to add "blacklist qcaux" to
 the "/etc/modprobe.d/blacklist.conf".
+
+---------------------------------------------------------------------------------------------------------------
+
+### macOS
+
+#### Install brew, macFUSE, OpenSSL
+
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install macfuse openssl
+```
+
+You may need to **reboot**
+
+#### Grab files 
+```
+git clone https://github.com/bkerler/mtkclient
+cd mtkclient
+```
+
+#### Create python 3.9 venv and install dependencies
+```
+python3.9 -m venv mtk_venv
+source mtk_venv/bin/activate
+pip3 install --pre --no-binary capstone capstone
+pip3 install PySide6 libusb
+pip3 install -r requirements.txt
+```
 
 ---------------------------------------------------------------------------------------------------------------
 
