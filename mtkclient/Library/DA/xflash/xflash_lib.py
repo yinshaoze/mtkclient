@@ -891,7 +891,7 @@ class DAXFlash(metaclass=LogBase):
             if status == 0:
                 hasflags = 0
                 # bootmode 0: shutdown 1: home screen, 2: fastboot
-                if async_mode or dl_bit or bootmode != bootmode.NORMAL:
+                if async_mode or dl_bit or bootmode != self.ShutDownModes.NORMAL:
                     hasflags = 1
                 enablewdt = 0  # Disable wdt
                 dont_resetrtc = 0  # Reset RTC
