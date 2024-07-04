@@ -41,10 +41,7 @@ class MtkConfig(metaclass=LogBase):
         self.iot = False
         self.gpt_file = None
         self.tr = QObject().tr
-        if sys.platform.startswith('darwin'):
-            self.ptype = "kamakiri"
-        else:
-            self.ptype = "kamakiri2"
+        self.ptype = "kamakiri2"
         self.generatekeys = None
         self.daconfig = None
         self.bmtflag = None
