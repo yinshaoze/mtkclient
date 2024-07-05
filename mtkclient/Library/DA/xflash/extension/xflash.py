@@ -313,14 +313,20 @@ class XFlashExt(metaclass=LogBase):
         return False
 
     def custom_read(self, addr, length):
-        if self.cmd(XCmd.CUSTOM_READ):
-            self.xsend(data=addr, is64bit=True)
-            self.xsend(length)
-            data = self.xread()
-            status = self.status()
-            if status == 0:
-                return data
-        return b""
+        data = bytearray()
+        pos = 0
+        while pos<length:
+            if self.cmd(XCmd.CUSTOM_READ):
+                self.xsend(data=addr+pos, is64bit=True)
+                sz = min(length,0x10000)
+                self.xsend(sz)
+                tmp = self.xread()
+                data.extend(tmp)
+                pos += len(tmp)
+                status = self.status()
+                if status != 0:
+                    break
+        return data[:length]
 
     def custom_readregister(self, addr):
         if self.cmd(XCmd.CUSTOM_READREGISTER):

@@ -155,8 +155,7 @@ class Port(metaclass=LogBase):
                 if maxtries is not None and counter == maxtries:
                     break
                 counter += 1
-                self.cdc.connected = self.cdc.connect()
-                if self.cdc.connected and self.run_handshake():
+                if self.cdc.connect() and self.run_handshake():
                     return True
                 else:
                     if loop == 5:

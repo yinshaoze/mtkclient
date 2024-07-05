@@ -240,6 +240,8 @@ class Preloader(metaclass=LogBase):
                 self.send_auth(authdata)
             else:
                 self.error(f"Couldn't find auth file {self.config.auth}")
+        elif self.config.is_brom and self.config.target_config["daa"]:
+            self.warning("Auth file is required. Use --auth option.")
         if self.config.cert is not None and self.config.is_brom and self.config.target_config["daa"]:
             if os.path.exists(self.config.cert):
                 certdata = open(self.config.cert, "rb").read()
@@ -640,6 +642,7 @@ class Preloader(metaclass=LogBase):
                     pos += size
                 self.usbwrite(b"")
                 time.sleep(0.035)
+                crc = self.rword()
                 status = self.rword()
                 if 0x0 <= status <= 0xFF:
                     return True

@@ -66,8 +66,8 @@ class DAXFlash(metaclass=LogBase):
 
         try:
             from mtkclient.Library.Exploit.kamakiripl import KamakiriPl
-            self.kamakiri_pl = KamakiriPl(self.mtk, loglevel)
-            # self.kamakiri_pl = None
+            # self.kamakiri_pl = KamakiriPl(self.mtk, loglevel)
+            self.kamakiri_pl = None
         except Exception:
             self.kamakiri_pl = None
 
