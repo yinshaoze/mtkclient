@@ -6,10 +6,7 @@ import os
 from struct import pack, unpack
 from queue import Queue
 from threading import Thread
-from Cryptodome.Hash import SHA256
-from Cryptodome.Util.number import bytes_to_long, size
-from Cryptodome.Cipher import PKCS1_OAEP
-from Cryptodome.PublicKey import RSA
+from Cryptodome.Util.number import size
 from mtkclient.Library.DA.xml.xml_param import DataType, FtSystemOSE, LogLevel
 from mtkclient.Library.utils import logsetup, LogBase
 from mtkclient.Library.error import ErrorHandler
@@ -20,7 +17,7 @@ from mtkclient.Library.thread_handling import writedata
 from mtkclient.Library.DA.xml.xml_cmd import XMLCmd, BootModes
 from mtkclient.Library.DA.xml.extension.v6 import XmlFlashExt
 from mtkclient.Library.Auth.sla import generate_da_sla_signature
-from mtkclient.Library.Auth.sla_keys import da_sla_keys
+from mtkclient.Library.Auth.sla_keys import da_sla_keys, SlaKey
 
 rq = Queue()
 
@@ -619,11 +616,12 @@ class DAXML(metaclass=LogBase):
                         self.dev_info = self.get_dev_info()
                         found = False
                         for key in da_sla_keys:
-                            if da2.find(bytes.fromhex(key.n)) != -1:
-                                sla_signature = generate_da_sla_signature(data=self.dev_info["rnd"], key=key.key)
-                                if self.handle_sla(data=sla_signature):
-                                    found = True
-                                    break
+                            if isinstance(key, SlaKey):
+                                if da2.find(bytes.fromhex(key.n)) != -1:
+                                    sla_signature = generate_da_sla_signature(data=self.dev_info["rnd"], key=key.key)
+                                    if self.handle_sla(data=sla_signature):
+                                        found = True
+                                        break
                         if not found:
                             print("No valid sla key found, using dummy auth ....")
                             sla_signature = b"\x00" * 0x100
@@ -848,8 +846,7 @@ class DAXML(metaclass=LogBase):
                 if self.daconfig.flashtype == "emmc":
                     length = min(length, self.emmc.gp1_size)
             else:
-                self.error("Unknown parttype. Known parttypes are \"boot1\",\"boot2\",\"gp1\"," +
-                           "\"gp2\",\"gp3\",\"gp4\",\"rpmb\"")
+                self.error("Unknown parttype. Known parttypes are \"boot1\",\"boot2\",\"gp1\",\"gp2\",\"gp3\",\"gp4\",\"rpmb\"")
                 return []
         elif storage == DaStorage.MTK_DA_STORAGE_UFS:
             if parttype is None or parttype == "lu3" or parttype == "user":  # USER
