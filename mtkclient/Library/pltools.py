@@ -75,12 +75,12 @@ class PLTools(metaclass=LogBase):
             self.info(f"Couldn't open {filename} for reading.")
             return False
 
-        ack = self.exploit.runpayload(payload, ack, addr, dontack)
-        if ack == ack:
+        response_ack = self.exploit.runpayload(payload, ack, addr, dontack)
+        if response_ack == ack:
             self.info(f"Successfully sent payload: {filename}")
             self.mtk.daloader.patch = True
             return True
-        elif ack == b"\xc1\xc2\xc3\xc4":
+        elif response_ack == b"\xc1\xc2\xc3\xc4":
             if "preloader" in rf.name:
                 ack = self.mtk.port.usbread(4)
                 if ack == b"\xC0\xC0\xC0\xC0":
