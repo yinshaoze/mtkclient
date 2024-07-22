@@ -268,8 +268,7 @@ class XmlFlashExt(metaclass=LogBase):
                     self.info("Patched Oppo Allowance flag.")
             else:
                 idx2 = find_binary(da2patched,
-                                   b"\xF0\x4D\x2D\xE9\x18\xB0\x8D\xE2\x82\xDF\x4D\xE2\x01\x60\xA0" +
-                                   b"\xE1\x38\x19\x0F\xE3\x00\x70\xA0\xE1\x42\x0F\x8D\xE2")
+                                   b"\xF0\x4D\x2D\xE9\x18\xB0\x8D\xE2\x82\xDF\x4D\xE2\x01\x60\xA0\xE1\x38\x19\x0F\xE3\x00\x70\xA0\xE1\x42\x0F\x8D\xE2")
                 if idx2 is not None:
                     da2patched[idx2:idx2 + 8] = b"\x00\x00\xA0\xE3\x1E\xFF\x2F\xE1"
                     self.info("Patched Vivo Remote SLA authentification.")
