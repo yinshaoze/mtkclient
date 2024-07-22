@@ -695,7 +695,7 @@ class XmlFlashExt(metaclass=LogBase):
         if self.mtk.config.chipconfig.efuse_addr is not None:
             base = self.mtk.config.chipconfig.efuse_addr
             addr = base + 0x90
-            data = bytearray(self.mtk.daloader.peek_reg(addr=addr, length=0x20))
+            data = bytearray(self.mtk.daloader.peek_reg(addr=addr, length=0x30))
             return data
         return None
 

@@ -748,7 +748,7 @@ class DAXFlash(metaclass=LogBase):
             status = self.status()
             if status == 0:
 
-                return int.from_bytes(resp,'little')
+                return int.from_bytes(resp, 'little')
             else:
                 self.error(f"Error on getting sla enabled status: {self.eh.status(status)}")
         return None
@@ -1140,23 +1140,26 @@ class DAXFlash(metaclass=LogBase):
         return self.send_devctrl(self.Cmd.SET_REMOTE_SEC_POLICY, data)
 
     def handle_sla(self, da2):
-        res = self.get_dev_fw_info()
-        if res!=b"":
-            data = res[4:4+0x10]
-            found = False
-            for key in da_sla_keys:
-                if da2.find(bytes.fromhex(key.n)) != -1:
-                    sla_signature = generate_da_sla_signature(data=data, key=key.key)
-                    found = self.set_remote_sec_policy(data=sla_signature)
-                    if found:
-                        break
-            if not found:
-                print("No valid sla key found, using dummy auth ....")
-                sla_signature = b"\x00" * 0x100
-                found = self.set_remote_sec_policy(data=sla_signature)
-            if found:
+        rsakey = None
+        for key in da_sla_keys:
+            if da2.find(bytes.fromhex(key.n)) != -1:
+                rsakey = key
+                break
+        if rsakey is None:
+            print("No valid sla key found, trying dummy auth ....")
+            sla_signature = b"\x00" * 0x100
+            if self.set_remote_sec_policy(data=sla_signature):
                 print("SLA Signature was accepted.")
-            return found
+                return True
+        else:
+            res = self.get_dev_fw_info()
+            if res != b"":
+                data = res[4:4 + 0x10]
+                sla_signature = generate_da_sla_signature(data=data, key=rsakey.key)
+                if self.set_remote_sec_policy(data=sla_signature):
+                    print("SLA Signature was accepted.")
+                    return True
+        return False
 
     def upload_da(self):
         if not self.mtk.daloader.patch:

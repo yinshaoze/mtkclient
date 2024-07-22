@@ -9,7 +9,7 @@ Once the mtk script is running, boot into brom mode by powering off device, pres
 vol up + power or vol down + power and connect the phone. Once detected by the tool,
 release the buttons.
 
-## MT678x, MT689x, MT688x, MT698x
+## MT6781, MT6789, MT6855, MT6886, MT6895, MT6983, MT8985
 - These chipsets use a new protocol called V6 and the bootrom is patched, thus you need a valid da via --loader option. 
 - On some devices, preloader is deactivated, but you still use it by running "adb reboot edl".
 - This only works with UNFUSED devices currently.
