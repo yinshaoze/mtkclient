@@ -635,12 +635,14 @@ class XmlFlashExt(metaclass=LogBase):
             if rpartition.name == "seccfg":
                 partition = rpartition
                 seccfg_data = self.xflash.readflash(
-                    addr=partition.sector * self.mtk.daloader.daconfig.pagesize,
-                    length=partition.sectors * self.mtk.daloader.daconfig.pagesize,
+                    addr=partition.sector * guid_gpt.sectorsize,
+                    length=partition.sectors * guid_gpt.sectorsize,
                     filename="", parttype="user", display=False)
                 break
         if seccfg_data is None:
             return False, "Couldn't detect existing seccfg partition. Aborting unlock."
+        if seccfg_data.find(b"\x4D\x4D\x4D\x4D") == -1:
+            return False, "SecCfg is empty. Aborting unlock."
         if seccfg_data[:4] != pack("<I", 0x4D4D4D4D):
             return False, "Unknown seccfg partition header. Aborting unlock."
         hwc = self.cryptosetup()
@@ -766,6 +768,8 @@ class XmlFlashExt(metaclass=LogBase):
             self.info(f"CID         : {cid}")
             retval["cid"] = cid
         if self.config.chipconfig.dxcc_base is not None:
+            # self.info("Generating provision key...")
+            # platkey, provkey = hwc.aes_hwcrypt(btype="dxcc", mode="prov")
             self.info("Generating dxcc rpmbkey...")
             rpmbkey = hwc.aes_hwcrypt(btype="dxcc", mode="rpmb")
             self.info("Generating dxcc mirpmbkey...")

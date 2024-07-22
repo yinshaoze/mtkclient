@@ -82,8 +82,8 @@ class PLTools(metaclass=LogBase):
             return True
         elif response_ack == b"\xc1\xc2\xc3\xc4":
             if "preloader" in rf.name:
-                ack = self.mtk.port.usbread(4)
-                if ack == b"\xC0\xC0\xC0\xC0":
+                rack = self.mtk.port.usbread(4)
+                if rack == b"\xC0\xC0\xC0\xC0":
                     with open("preloader.bin", 'wb') as wf:
                         print_progress(0, 100, prefix='Progress:', suffix='Complete', bar_length=50)
                         for pos in range(0, 0x40000, 64):

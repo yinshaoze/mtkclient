@@ -832,22 +832,28 @@ class DAXFlash(metaclass=LogBase):
                 worker.start()
                 while bytestoread > 0:
                     status = self.usbread(4 + 4 + 4)
-                    magic, datatype, slength = unpack("<III", status)
-                    if magic == 0xFEEEEEEF:
-                        resdata = self.usbread(slength)
-                        if slength > 4:
-                            rq.put(resdata)
-                            stmp = pack("<III", self.Cmd.MAGIC, self.DataType.DT_PROTOCOL_FLOW, 4)
-                            data = pack("<I", 0)
-                            self.usbwrite(stmp)
-                            self.usbwrite(data)
-                            bytestoread -= len(resdata)
-                            bytesread += len(resdata)
-                            if display:
-                                self.mtk.daloader.progress.show_progress("Read", bytesread, total, display)
-                        elif slength == 4:
-                            if unpack("<I", resdata)[0] != 0:
-                                break
+                    try:
+                        magic, datatype, slength = unpack("<III", status)
+                        if magic == 0xFEEEEEEF:
+                            resdata = self.usbread(slength, w_max_packet_size=slength)
+                            if slength > 4:
+                                rq.put(resdata)
+                                stmp = pack("<III", self.Cmd.MAGIC, self.DataType.DT_PROTOCOL_FLOW, 4)
+                                data = pack("<I", 0)
+                                self.usbwrite(stmp)
+                                self.usbwrite(data)
+                                bytestoread -= len(resdata)
+                                bytesread += len(resdata)
+                                if display:
+                                    self.mtk.daloader.progress.show_progress("Read", bytesread, total, display)
+                            elif slength == 4:
+                                if unpack("<I", resdata)[0] != 0:
+                                    break
+                            else:
+                                print("Error: Invalid slength")
+                    except:
+                        print("Error: Timeout")
+
                 status = self.usbread(4 + 4 + 4)
                 magic, datatype, slength = unpack("<III", status)
                 if magic == 0xFEEEEEEF:
@@ -1054,7 +1060,7 @@ class DAXFlash(metaclass=LogBase):
             da2sig_len = self.daconfig.da_loader.region[2].m_sig_len
             bootldr.seek(da2offset)
             da2 = bootldr.read(self.daconfig.da_loader.region[2].m_len)
-            if self.patch or not self.config.target_config["sbc"]:
+            if self.patch or not self.config.target_config["sbc"] and not self.config.stock:
                 da1, da2 = self.patch_da(da1, da2)
             else:
                 self.patch = False
@@ -1141,11 +1147,13 @@ class DAXFlash(metaclass=LogBase):
             for key in da_sla_keys:
                 if da2.find(bytes.fromhex(key.n)) != -1:
                     sla_signature = generate_da_sla_signature(data=data, key=key.key)
-                    found = not self.set_remote_sec_policy(data=sla_signature)
+                    found = self.set_remote_sec_policy(data=sla_signature)
+                    if found:
+                        break
             if not found:
                 print("No valid sla key found, using dummy auth ....")
                 sla_signature = b"\x00" * 0x100
-                found = not self.set_remote_sec_policy(data=sla_signature)
+                found = self.set_remote_sec_policy(data=sla_signature)
             if found:
                 print("SLA Signature was accepted.")
             return found
@@ -1210,12 +1218,10 @@ class DAXFlash(metaclass=LogBase):
             if stage == 1:
                 self.info("Uploading stage 2...")
                 stage = stage + 1
-                if not self.mtk.daloader.patch:
-                    #if self.carbonara is not None:
-                    #    loaded = self.carbonara.patchda1_and_upload_da2()
-                    #else:
+                loaded = False
+                if not self.mtk.daloader.patch and not self.mtk.config.stock and connagent == b"preloader":
                     loaded = self.boot_to(self.daconfig.da_loader.region[stage].m_start_addr, self.daconfig.da2)
-                else:
+                if not loaded:
                     loaded = self.boot_to(self.daconfig.da_loader.region[stage].m_start_addr, self.daconfig.da2)
                 if loaded:
                     self.info("Successfully uploaded stage 2")
@@ -1224,7 +1230,6 @@ class DAXFlash(metaclass=LogBase):
                         self.info("DA SLA is enabled")
                         if not self.handle_sla(self.daconfig.da2):
                             self.error("Can't bypass DA SLA")
-                            sys.exit(1)
                     else:
                         self.info("DA SLA is disabled")
                     self.reinit(True)
