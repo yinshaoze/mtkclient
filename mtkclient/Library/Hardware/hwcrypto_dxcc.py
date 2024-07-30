@@ -1286,7 +1286,7 @@ class Dxcc(metaclass=LogBase):
 
     def sbrom_key_derivation(self, aeskeytype, label, salt, requestedlen, destaddr):
         result = bytearray()
-        if aeskeytype <= HwCryptoKey.PLATFORM_KEY or (1 << (aeskeytype - 1) & 0x17) == 0:
+        if aeskeytype > HwCryptoKey.PLATFORM_KEY or (1 << (aeskeytype - 1) & 0x17) == 0:
             return 0xF2000002
         if requestedlen > 0xFF or (requestedlen << 28) & 0xFFFFFFFF:
             return 0xF2000003
