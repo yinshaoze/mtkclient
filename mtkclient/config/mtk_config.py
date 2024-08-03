@@ -112,7 +112,6 @@ class MtkConfig(metaclass=LogBase):
         self.hwparam.writesetting("hwcode", hex(hwcode))
 
     def set_meid(self, meid):
-        self.hwparam = HwParam(self, meid, self.hwparam_path)
         self.meid = meid
         self.hwparam.writesetting("meid", hexlify(meid).decode('utf-8'))
 

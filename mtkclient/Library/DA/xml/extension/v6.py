@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import os
 import sys
@@ -135,6 +136,7 @@ class XmlFlashExt(metaclass=LogBase):
             ufshcd_queuecommand_ptr = daextdata.find(b"\x55\x55\x55\x55")
             ufshcd_get_free_tag_ptr = daextdata.find(b"\x66\x66\x66\x66")
             ptr_g_ufs_hba_ptr = daextdata.find(b"\x77\x77\x77\x77")
+            efuse_addr_ptr = daextdata.find(b"\x88\x88\x88\x88")
 
             # register_xml_cmd("CMD:GET-SYS-PROPERTY", & a1, cmd_get_sys_property);
 
@@ -181,6 +183,7 @@ class XmlFlashExt(metaclass=LogBase):
             if mmc_rpmb_send_command is None:
                 mmc_rpmb_send_command = 0
 
+            efuse_addr = self.config.chipconfig.efuse_addr
             #########################################
             if register_ptr != -1:
                 if register_xml_cmd:
@@ -196,6 +199,7 @@ class XmlFlashExt(metaclass=LogBase):
                 daextdata[ufshcd_get_free_tag_ptr:ufshcd_get_free_tag_ptr + 4] = pack("<I", ufshcd_get_free_tag)
                 daextdata[ufshcd_queuecommand_ptr:ufshcd_queuecommand_ptr + 4] = pack("<I", ufshcd_queuecommand)
                 daextdata[ptr_g_ufs_hba_ptr:ptr_g_ufs_hba_ptr + 4] = pack("<I", g_ufs_hba)
+                daextdata[efuse_addr_ptr:efuse_addr_ptr + 4] = pack("<I", efuse_addr)
 
                 # print(hexlify(daextdata).decode('utf-8'))
                 # open("daext.bin","wb").write(daextdata)
@@ -358,7 +362,8 @@ class XmlFlashExt(metaclass=LogBase):
             if meid != b"\x00" * 16:
                 # self.config.set_meid(meid)
                 self.info("Generating sej rpmbkey...")
-                rpmbkey = hwc.aes_hwcrypt(mode="rpmb", data=meid, btype="sej", otp=otp)
+                rpmbkey = hwc.aes_hwcrypt(btype="dxcc", mode="rpmb")
+                #rpmbkey = hwc.aes_hwcrypt(mode="rpmb", data=meid, btype="sej", otp=otp)
                 if rpmbkey is not None:
                     xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMRPMBKEY")
                     if self.xsend(xmlcmd):
@@ -375,9 +380,7 @@ class XmlFlashExt(metaclass=LogBase):
                             if rpmbkey == read_key:
                                 self.info("Setting rpmbkey: ok")
         ufs = False
-        if self.xflash.emmc.rpmb_size != 0:
-            ufs = False
-        elif self.xflash.ufs.block_size != 0:
+        if self.xflash.emmc is None:
             ufs = True
         xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMMMCINIT")
         if ufs:

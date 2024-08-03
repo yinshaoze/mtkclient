@@ -10,6 +10,7 @@ from mtkclient.Library.error import ErrorHandler
 from mtkclient.Library.utils import Progress
 from mtkclient.config.brom_config import Efuse, DAmodes
 from mtkclient.Library.Filesystem.mtkdafs import MtkDaFS
+
 try:
     from fuse import FUSE
 except ImportError:
@@ -30,7 +31,7 @@ class DaHandler(metaclass=LogBase):
         self.pid = mtk.config.pid
         self.interface = mtk.config.interface
         self.pathconfig = PathConfig()
-        self.__logger, self.info, self.debug, self.warning, self.error = logsetup(self, self.__logger, 
+        self.__logger, self.info, self.debug, self.warning, self.error = logsetup(self, self.__logger,
                                                                                   loglevel, mtk.config.gui)
         self.eh = ErrorHandler()
         self.mtk = mtk

@@ -145,6 +145,7 @@ class DAloader(metaclass=LogBase):
                 self.config.meid = bytes.fromhex(config["meid"])
             if "socid" in config:
                 self.config.socid = bytes.fromhex(config["socid"])
+            self.config.hwparam = HwParam(self.mtk.config, self.config.meid.hex(), self.mtk.config.hwparam_path)
             if config["flashmode"] == "LEGACY":
                 self.mtk.config.chipconfig.damode = DAmodes.LEGACY
                 self.flashmode = DAmodes.LEGACY
@@ -155,8 +156,6 @@ class DAloader(metaclass=LogBase):
                 self.mtk.config.chipconfig.damode = DAmodes.XML
                 self.flashmode = DAmodes.XML
             self.config.init_hwcode(self.config.hwcode)
-            if self.config.meid is not None:
-                self.config.hwparam = HwParam(self.mtk.config, self.config.meid.hex(), self.mtk.config.hwparam_path)
             if self.flashmode == DAmodes.XML:
                 self.da = DAXML(self.mtk, self.daconfig, self.loglevel)
                 self.daconfig.flashtype = config["flashtype"]

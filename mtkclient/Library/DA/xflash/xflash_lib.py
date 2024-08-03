@@ -1245,9 +1245,6 @@ class DAXFlash(metaclass=LogBase):
                             if status == 0x0 and unpack("<I", ret)[0] == 0xA1A2A3A4:
                                 self.info("DA Extensions successfully added")
                                 self.daext = True
-                                self.config.hwparam = HwParam(self.mtk.config, self.mtk.config.meid,
-                                                              self.mtk.config.hwparam_path)
-                                self.config.hwparam.writesetting("hwcode", hex(self.config.hwcode))
                         if not self.daext:
                             self.warning("DA Extensions failed to enable")
 

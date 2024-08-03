@@ -11,6 +11,7 @@ from binascii import hexlify
 from Cryptodome.Util.number import size
 from mtkclient.Library.Auth.sla_keys import brom_sla_keys
 from mtkclient.Library.Auth.sla import generate_brom_sla_challenge
+from mtkclient.Library.settings import HwParam
 from mtkclient.Library.utils import LogBase, logsetup
 from mtkclient.Library.error import ErrorHandler
 from mtkclient.config.brom_config import DAmodes
@@ -224,6 +225,8 @@ class Preloader(metaclass=LogBase):
             self.info("\tSW Ver:\t\t\t" + hex(self.config.swver))
         meid = self.get_meid()
         if meid is not None:
+            self.config.hwparam = HwParam(self.mtk.config, self.config.meid.hex(), self.mtk.config.hwparam_path)
+            self.config.hwparam.writesetting("hwcode", hex(self.config.hwcode))
             self.config.set_meid(meid)
             if self.display:
                 self.info("ME_ID:\t\t\t" + hexlify(meid).decode('utf-8').upper())
@@ -234,6 +237,8 @@ class Preloader(metaclass=LogBase):
                 if self.display:
                     if socid != b"":
                         self.info("SOC_ID:\t\t\t" + hexlify(socid).decode('utf-8').upper())
+                        self.config.hwparam.writesetting("socid", hexlify(socid).decode('utf-8'))
+
         if self.config.auth is not None and self.config.is_brom and self.config.target_config["daa"]:
             if os.path.exists(self.config.auth):
                 authdata = open(self.config.auth, "rb").read()

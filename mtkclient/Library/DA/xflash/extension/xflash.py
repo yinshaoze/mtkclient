@@ -127,6 +127,7 @@ class XFlashExt(metaclass=LogBase):
             ufshcd_queuecommand_ptr = daextdata.find(b"\x55\x55\x55\x55")
             ufshcd_get_free_tag_ptr = daextdata.find(b"\x66\x66\x66\x66")
             ptr_g_ufs_hba_ptr = daextdata.find(b"\x77\x77\x77\x77")
+            efuse_addr_ptr = daextdata.find(b"\x88\x88\x88\x88")
 
             if register_ptr != -1 and mmc_get_card_ptr != -1:
                 if register_devctrl:
@@ -159,6 +160,8 @@ class XFlashExt(metaclass=LogBase):
                 if g_ufs_hba is None:
                     g_ufs_hba = 0
 
+                efuse_addr = self.config.chipconfig.efuse_addr
+
                 # Patch the addr
                 daextdata[register_ptr:register_ptr + 4] = pack("<I", register_devctrl)
                 daextdata[mmc_get_card_ptr:mmc_get_card_ptr + 4] = pack("<I", mmc_get_card)
@@ -167,6 +170,7 @@ class XFlashExt(metaclass=LogBase):
                 daextdata[ufshcd_get_free_tag_ptr:ufshcd_get_free_tag_ptr + 4] = pack("<I", ufshcd_get_free_tag)
                 daextdata[ufshcd_queuecommand_ptr:ufshcd_queuecommand_ptr + 4] = pack("<I", ufshcd_queuecommand)
                 daextdata[ptr_g_ufs_hba_ptr:ptr_g_ufs_hba_ptr + 4] = pack("<I", g_ufs_hba)
+                daextdata[efuse_addr_ptr:efuse_addr_ptr+4]=pack("<I", efuse_addr)
 
                 # print(hexlify(daextdata).decode('utf-8'))
                 # open("daext.bin","wb").write(daextdata)
@@ -315,10 +319,10 @@ class XFlashExt(metaclass=LogBase):
     def custom_read(self, addr, length):
         data = bytearray()
         pos = 0
-        while pos<length:
+        while pos < length:
             if self.cmd(XCmd.CUSTOM_READ):
-                self.xsend(data=addr+pos, is64bit=True)
-                sz = min(length,0x10000)
+                self.xsend(data=addr + pos, is64bit=True)
+                sz = min(length, 0x10000)
                 self.xsend(sz)
                 tmp = self.xread()
                 data.extend(tmp)
@@ -443,7 +447,8 @@ class XFlashExt(metaclass=LogBase):
             if meid != b"\x00" * 16:
                 # self.config.set_meid(meid)
                 self.info("Generating sej rpmbkey...")
-                rpmbkey = hwc.aes_hwcrypt(mode="rpmb", data=meid, btype="sej", otp=otp)
+                #rpmbkey = hwc.aes_hwcrypt(mode="rpmb", data=meid, btype="sej", otp=otp)
+                rpmbkey = hwc.aes_hwcrypt(btype="dxcc", mode="rpmb")
                 if rpmbkey is not None:
                     if self.cmd(XCmd.CUSTOM_SET_RPMB_KEY):
                         self.xsend(rpmbkey)
@@ -461,6 +466,8 @@ class XFlashExt(metaclass=LogBase):
             cmd = XCmd.CUSTOM_INIT_UFS_RPMB
         if self.cmd(cmd):
             derivedrpmb = self.xread()
+            # rpmb_frame = self.xread()
+            # hash = self.xread()
             if int.from_bytes(derivedrpmb[:4], 'little') != 0xff:
                 status = self.status()
                 if status == 0:

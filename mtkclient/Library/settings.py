@@ -26,7 +26,9 @@ class HwParam:
             self.paramsetting = {}
             if os.path.exists(os.path.join(path, self.paramfile)):
                 try:
-                    self.paramsetting = json.loads(open(os.path.join(path, self.paramfile), "r").read())
+                    tmp = json.loads(open(os.path.join(path, self.paramfile), "r").read())
+                    if tmp["meid"] == meid:
+                        self.paramsetting = tmp
                 except Exception:
                     # json file invalid, load nothing.
                     pass
