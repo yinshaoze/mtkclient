@@ -40,7 +40,8 @@ cmds = {
     "script": "Run multiple commands using text script",
 }
 
-if __name__ == '__main__':
+
+def main():
     print(info)
     print("")
     parser = argparse.ArgumentParser(description=info)
@@ -101,7 +102,8 @@ if __name__ == '__main__':
 
     da_vbmeta = da_cmds.add_parser("vbmeta", help="Patch vbmeta partition")
     da_vbmeta.add_argument('--preloader', help='Set the preloader filename for dram config')
-    da_vbmeta.add_argument("vbmode", type=str, help="vbmeta mode (0=locked, 1=disable_verity, 2=disable_verification, 3=disable verity+verification)")
+    da_vbmeta.add_argument("vbmode", type=str,
+                           help="vbmeta mode (0=locked, 1=disable_verity, 2=disable_verification, 3=disable verity+verification)")
 
     da_rpmb = da_cmds.add_parser("rpmb", help="RPMB Tools")
 
@@ -1008,3 +1010,7 @@ if __name__ == '__main__':
         exit(0)
 
     mtk = Main(args).run(parser)
+
+
+if __name__ == '__main__':
+    main()

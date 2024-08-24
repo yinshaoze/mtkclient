@@ -501,7 +501,7 @@ class MainWindow(QMainWindow):
         self.ui.spinner_pic.setHidden(True)
 
 
-if __name__ == '__main__':
+def main():
     # Enable nice 4K Scaling
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 
@@ -551,3 +551,7 @@ if __name__ == '__main__':
     # Prevent thread from not being closed and call error end codes
     thread.terminate()
     thread.wait()
+
+
+if __name__ == '__main__':
+    main()
