@@ -764,7 +764,7 @@ class DaHandler(metaclass=LogBase):
             partitions = partitionname.split(",")
             self.da_es(partitions=partitions, parttype=parttype, sectors=sectors)
         elif cmd == "ess":
-            sector = args.startsector
+            sector = getint(args.startsector)
             parttype = args.parttype
             sectors = getint(args.sectors)
             if args.sectors is None:
