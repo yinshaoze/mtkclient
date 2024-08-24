@@ -199,7 +199,8 @@ class XmlFlashExt(metaclass=LogBase):
                 daextdata[ufshcd_get_free_tag_ptr:ufshcd_get_free_tag_ptr + 4] = pack("<I", ufshcd_get_free_tag)
                 daextdata[ufshcd_queuecommand_ptr:ufshcd_queuecommand_ptr + 4] = pack("<I", ufshcd_queuecommand)
                 daextdata[ptr_g_ufs_hba_ptr:ptr_g_ufs_hba_ptr + 4] = pack("<I", g_ufs_hba)
-                daextdata[efuse_addr_ptr:efuse_addr_ptr + 4] = pack("<I", efuse_addr)
+                if efuse_addr_ptr != -1:
+                    daextdata[efuse_addr_ptr:efuse_addr_ptr + 4] = pack("<I", efuse_addr)
 
                 # print(hexlify(daextdata).decode('utf-8'))
                 # open("daext.bin","wb").write(daextdata)
