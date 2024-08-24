@@ -37,7 +37,7 @@ cmds = {
     "stage": "Run stage2 payload via boot rom mode (kamakiri)",
     "plstage": "Run stage2 payload via preloader mode (send_da)",
     "da": "Run da xflash/legacy special commands",
-    "script": "Run multiple commands using text script",
+    "script": "Run multiple commands using text script"
 }
 
 

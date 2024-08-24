@@ -259,6 +259,16 @@ Example:
 python mtk.py payload --metamode FASTBOOT
 ```
 
+### Dump preloader
+```
+mtk.py r preloader preloader.bin --parttype boot1
+```
+
+### Dump serialnumber / special partition
+```
+mtk.py r preloader preloader.bin --parttype boot2
+```
+
 ### Read efuses
 
 Example:
