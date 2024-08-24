@@ -946,7 +946,7 @@ class DALegacy(metaclass=LogBase):
                 return True
         return True
 
-    def writeflash(self, addr, length, filename, offset=0, parttype=None, wdata=None, display=True):
+    def writeflash(self, addr, length, filename: str = "", offset=0, parttype=None, wdata=None, display=True):
         self.mtk.daloader.progress.clear()
         return self.sdmmc_write_data(addr=addr, length=length, filename=filename, offset=offset, parttype=parttype,
                                      wdata=wdata, display=display)

@@ -37,7 +37,7 @@ cmds = {
     "stage": "Run stage2 payload via boot rom mode (kamakiri)",
     "plstage": "Run stage2 payload via preloader mode (send_da)",
     "da": "Run da xflash/legacy special commands",
-    "script": "Run multiple commands using text script"
+    "script": "Run multiple commands using text script",
 }
 
 if __name__ == '__main__':
@@ -99,28 +99,38 @@ if __name__ == '__main__':
     da_meta.add_argument('--preloader', help='Set the preloader filename for dram config')
     da_meta.add_argument("metamode", type=str, help="metamode to use [off,usb,uart]")
 
+    da_vbmeta = da_cmds.add_parser("vbmeta", help="Patch vbmeta partition")
+    da_vbmeta.add_argument('--preloader', help='Set the preloader filename for dram config')
+    da_vbmeta.add_argument("vbmode", type=str, help="vbmeta mode (0=locked, 1=disable_verity, 2=disable_verification, 3=disable verity+verification)")
+
     da_rpmb = da_cmds.add_parser("rpmb", help="RPMB Tools")
 
     da_rpmb_cmds = da_rpmb.add_subparsers(dest='rpmb_subcmd', help='Commands: r w')
     da_rpmb_r = da_rpmb_cmds.add_parser("r", help="Read rpmb")
-    da_rpmb_r.add_argument('--filename', type=str, help="Filename to write data into")
+    da_rpmb_r.add_argument('filename', type=str, help="Filename to write data into", default="rpmb.bin", nargs="?")
     da_rpmb_r.add_argument('--preloader', help='Set the preloader filename for dram config')
     da_rpmb_r.add_argument('--loader', type=str, help='Use specific loader, disable autodetection')
     da_rpmb_r.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
     da_rpmb_r.add_argument('--cert', type=str, help="Use cert file")
+    da_rpmb_r.add_argument('--sector', help='Start sector (offset/0x100 bytes)')
+    da_rpmb_r.add_argument('--sectors', help='Sector count')
 
     da_rpmb_w = da_rpmb_cmds.add_parser("w", help="Write rpmb")
-    da_rpmb_w.add_argument('filename', type=str, help="Filename to write from")
+    da_rpmb_w.add_argument('filename', type=str, help="Filename to write from", default="rpmb.bin", nargs="?")
     da_rpmb_w.add_argument('--preloader', help='Set the preloader filename for dram config')
     da_rpmb_w.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
     da_rpmb_w.add_argument('--cert', type=str, help="Use cert file")
     da_rpmb_w.add_argument('--loader', type=str, help='Use specific loader, disable autodetection')
+    da_rpmb_w.add_argument('--sector', help='Start sector (offset/0x100 bytes)')
+    da_rpmb_w.add_argument('--sectors', help='Sector count')
 
     da_rpmb_e = da_rpmb_cmds.add_parser("e", help="Erase rpmb")
     da_rpmb_e.add_argument('--preloader', help='Set the preloader filename for dram config')
     da_rpmb_e.add_argument('--auth', type=str, help="Use auth file (auth_sv5.auth)")
     da_rpmb_e.add_argument('--cert', type=str, help="Use cert file")
     da_rpmb_e.add_argument('--loader', type=str, help='Use specific loader, disable autodetection')
+    da_rpmb_e.add_argument('--sector', help='Start sector (offset/0x100 bytes)')
+    da_rpmb_e.add_argument('--sectors', help='Sector count')
 
     da_peek = da_cmds.add_parser("peek", help="Read memory")
     da_peek.add_argument('--preloader', help='Set the preloader filename for dram config')

@@ -296,8 +296,27 @@ class XmlFlashExt(metaclass=LogBase):
         # "wb").write(da2patched)
         return da2patched
 
+    def custom_set_storage(self, ufs: bool = False):
+        xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMSTORAGE")
+        if self.xsend(xmlcmd):
+            result = self.xflash.get_response()
+            if result == "OK":
+                if ufs:
+                    self.xsend(int.to_bytes(1, 4, 'little'))
+                else:
+                    # EMMC
+                    self.xsend(int.to_bytes(0, 4, 'little'))
+                # CMD:END
+                result = self.xflash.get_response()
+                self.xflash.ack()
+                # CMD:START
+                result = self.xflash.get_response()
+                self.xflash.ack()
+                return True
+        return False
+
     def custom_rpmb_read(self, sector, ufs=False):
-        data = b''
+        data = bytearray()
         xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMRPMBR")
         if ufs:
             xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMURPMBR")
@@ -318,11 +337,15 @@ class XmlFlashExt(metaclass=LogBase):
                 self.xflash.ack()
         return data
 
-    def custom_rpmb_write(self, sector, data: bytes, ufs=False):
-        if len(data) != 0x100:
+    def custom_rpmb_write(self, sector, data: bytes):
+        if len(data) % 0x100 != 0:
             self.error("Incorrect rpmb frame length. Aborting")
             return False
         xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMRPMBW")
+        if self.xflash.emmc is not None:
+            ufs = False
+        else:
+            ufs = True
         if ufs:
             xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMURPMBW")
         if self.xsend(xmlcmd):
@@ -347,12 +370,12 @@ class XmlFlashExt(metaclass=LogBase):
                 result = self.xflash.get_response()
                 self.xflash.ack()
                 return True
-            # CMD:END
-            result = self.xflash.get_response()
-            self.xflash.ack()
-            # CMD:START
-            result = self.xflash.get_response()
-            self.xflash.ack()
+        # CMD:END
+        result = self.xflash.get_response()
+        self.xflash.ack()
+        # CMD:START
+        result = self.xflash.get_response()
+        self.xflash.ack()
         return False
 
     def custom_rpmb_init(self):
@@ -363,8 +386,7 @@ class XmlFlashExt(metaclass=LogBase):
             if meid != b"\x00" * 16:
                 # self.config.set_meid(meid)
                 self.info("Generating sej rpmbkey...")
-                rpmbkey = hwc.aes_hwcrypt(btype="dxcc", mode="rpmb")
-                #rpmbkey = hwc.aes_hwcrypt(mode="rpmb", data=meid, btype="sej", otp=otp)
+                rpmbkey = hwc.aes_hwcrypt(mode="rpmb", data=meid, btype="sej", otp=otp)
                 if rpmbkey is not None:
                     xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMRPMBKEY")
                     if self.xsend(xmlcmd):
@@ -418,34 +440,43 @@ class XmlFlashExt(metaclass=LogBase):
             otp = 32 * b"\x00"
         hwc.sej.sej_set_otp(otp)
 
-    def read_rpmb(self, filename=None, display=True):
+    def read_rpmb(self, filename=None, sector: int = None, sectors: int = None, display=True):
+        # self.custom_rpmb_prog(b"vutsrqponmlkjihgfedcba9876543210")
+        # self.custom_rpmb_init()
         progressbar = Progress(1, self.mtk.config.guiprogress)
-        sectors = 0
         # val = self.custom_rpmb_init()
-        ufs = False
         if self.xflash.emmc is not None:
-            sectors = self.xflash.emmc.rpmb_size // 0x100
             ufs = False
-        elif self.xflash.ufs.lu1_size != 0:
-            sectors = (512 * 256)
+        else:
             ufs = True
+        if sectors == 0:
+            if not ufs:
+                sectors = self.xflash.emmc.rpmb_size // 0x100
+            elif self.xflash.ufs.lu1_size != 0:
+                sectors = (512 * 256)
         if filename is None:
             filename = "rpmb.bin"
         if sectors > 0:
             with open(filename, "wb") as wf:
-                for sector in range(sectors):
+                pos = 0
+                toread = sectors
+                while toread > 0:
                     if display:
-                        progressbar.show_progress("RPMB read", sector * 0x100, sectors * 0x100, display)
-                    data = self.custom_rpmb_read(sector=sector, ufs=ufs)
+                        progressbar.show_progress("RPMB read", pos * 0x100, sectors * 0x100, display)
+                    data = self.custom_rpmb_read(sector=sector + pos, ufs=ufs)
                     if data == b"":
                         self.error("Couldn't read rpmb.")
                         return False
                     wf.write(data)
+                    pos += 0x1
+                    toread -= 0x1
+            if display:
+                progressbar.show_progress("RPMB read", sectors * 0x100, sectors * 0x100, display)
             self.info(f"Done reading rpmb to {filename}")
             return True
         return False
 
-    def write_rpmb(self, filename=None, display=True):
+    def write_rpmb(self, filename=None, sector: int = None, sectors: int = None, display=True):
         progressbar = Progress(1, self.mtk.config.guiprogress)
         if filename is None:
             self.error("Filename has to be given for writing to rpmb")
@@ -453,41 +484,57 @@ class XmlFlashExt(metaclass=LogBase):
         if not os.path.exists(filename):
             self.error(f"Couldn't find {filename} for writing to rpmb.")
             return False
-        ufs = False
-        sectors = 0
-        if self.xflash.emmc.rpmb_size != 0:
-            sectors = self.xflash.emmc.rpmb_size // 0x100
-        elif self.xflash.ufs.block_size != 0:
-            sectors = (512 * 256)
+        if sectors == 0:
+            max_sector_size = (512 * 256)
+            if self.xflash.emmc is not None:
+                max_sector_size = self.xflash.emmc.rpmb_size // 0x100
+        else:
+            max_sector_size = sectors
+        filesize = os.path.getsize(filename)
+        sectors = min(filesize // 256, max_sector_size)
         if self.custom_rpmb_init():
             if sectors > 0:
                 with open(filename, "rb") as rf:
-                    for sector in range(sectors):
+                    pos = 0
+                    towrite = sectors
+                    while towrite > 0:
                         if display:
-                            progressbar.show_progress("RPMB written", sector * 0x100, sectors * 0x100, display)
-                        if not self.custom_rpmb_write(sector=sector, data=rf.read(0x100), ufs=ufs):
-                            self.error(f"Couldn't write rpmb at sector {sector}.")
+                            progressbar.show_progress("RPMB written", pos * 0x100, sectors * 0x100, display)
+                        if not self.custom_rpmb_write(sector=pos + sector, data=rf.read(0x100)):
+                            self.error(f"Couldn't write rpmb at sector {sector + pos}.")
                             return False
+                        pos += 0x1
+                        towrite -= 0x1
+                if display:
+                    progressbar.show_progress("RPMB written", sectors * 0x100, sectors * 0x100, display)
                 self.info(f"Done reading writing {filename} to rpmb")
                 return True
         return False
 
-    def erase_rpmb(self, display=True):
+    def erase_rpmb(self, sector: int = None, sectors: int = None, display=True):
         progressbar = Progress(1, self.mtk.config.guiprogress)
-        ufs = False
-        sectors = 0
-        if self.xflash.emmc.rpmb_size != 0:
-            sectors = self.xflash.emmc.rpmb_size // 0x100
-        elif self.xflash.ufs.block_size != 0:
-            sectors = (512 * 256)
+        if sector is None:
+            sector = 0
+        if sectors is None:
+            if self.xflash.emmc is not None:
+                sectors = self.xflash.emmc.rpmb_size // 0x100
+            elif self.xflash.ufs.block_size != 0:
+                sectors = (512 * 256)
+
         if self.custom_rpmb_init():
             if sectors > 0:
-                for sector in range(sectors):
+                pos = 0
+                towrite = sectors
+                while towrite > 0:
                     if display:
-                        progressbar.show_progress("RPMB erased", sector * 0x100, sectors * 0x100, display)
-                    if not self.custom_rpmb_write(sector=sector, data=b"\x00" * 0x100, ufs=ufs):
-                        self.error(f"Couldn't erase rpmb at sector {sector}.")
+                        progressbar.show_progress("RPMB erased", pos * 0x100, sectors * 0x100, display)
+                    if not self.custom_rpmb_write(sector=pos + sector, data=b"\x00" * 0x100):
+                        self.error(f"Couldn't erase rpmb at sector {sector + pos}.")
                         return False
+                    pos += 0x1
+                    towrite -= 0x1
+                if display:
+                    progressbar.show_progress("RPMB erased", sectors * 0x100, sectors * 0x100, display)
                 self.info("Done erasing rpmb")
                 return True
         return False

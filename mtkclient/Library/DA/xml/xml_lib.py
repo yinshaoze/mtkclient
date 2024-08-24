@@ -632,6 +632,8 @@ class DAXML(metaclass=LogBase):
                             sla_signature = generate_da_sla_signature(data=self.dev_info["rnd"], key=rsakey.key)
                             if not self.handle_sla(data=sla_signature):
                                 print("SLA Key wasn't accepted.")
+            self.reinit(True)
+            self.check_lifecycle()
             if self.patch:
                 xmlcmd = self.Cmd.create_cmd("CUSTOM")
                 if self.xsend(xmlcmd):
@@ -654,14 +656,13 @@ class DAXML(metaclass=LogBase):
                         if self.xmlft.ack():
                             self.info("DA XML Extensions successfully loaded.")
                             self.daext = True
+                            # self.xmlft.custom_set_storage(ufs=self.daconfig.flashtype == "ufs")
                         else:
                             self.error("DA XML Extensions failed.")
                             self.daext = False
                     else:
                         self.error("DA XML Extensions failed.")
                         self.daext = False
-                self.reinit(True)
-                self.check_lifecycle()
                 # parttbl = self.read_partition_table()
                 self.config.hwparam.writesetting("hwcode", hex(self.config.hwcode))
                 return True
@@ -926,8 +927,7 @@ class DAXML(metaclass=LogBase):
     def writeflash(self, addr, length, filename, offset=0, parttype=None, wdata=None, display=True):
         self.mtk.daloader.progress.clear()
         fh = None
-        fill = 0
-        if filename is not None:
+        if filename != "":
             if os.path.exists(filename):
                 fsize = os.stat(filename).st_size
                 length = min(fsize, length)

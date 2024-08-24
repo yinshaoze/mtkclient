@@ -237,9 +237,10 @@ mv [displayed magisk patched boot filename here] boot.patched
 
 7. Do the steps needed in section "Unlock bootloader below"
 
-8. Flash magisk-patched boot and empty vbmeta
+8. Flash magisk-patched boot and disable verity + verification on vbmeta
 ```
-python mtk.py w boot,vbmeta boot.patched,vbmeta.img.empty
+python mtk.py da vbmeta 3
+python mtk.py w boot boot.patched
 ```
 
 9. Reboot the phone

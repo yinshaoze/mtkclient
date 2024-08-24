@@ -882,7 +882,7 @@ class DAXFlash(metaclass=LogBase):
                 if display:
                     self.mtk.daloader.progress.show_progress("Read", total, total, display)
                 return buffer
-        if not filename:
+        if filename != b"":
             return b""
         return False
 
@@ -930,11 +930,11 @@ class DAXFlash(metaclass=LogBase):
         part_info = self.partitiontype_and_size(storage, parttype, length)
         return part_info
 
-    def writeflash(self, addr, length, filename, offset=0, parttype=None, wdata=None, display=True):
+    def writeflash(self, addr, length, filename: str = "", offset=0, parttype=None, wdata=None, display=True):
         self.mtk.daloader.progress.clear()
         fh = None
         fill = 0
-        if filename is not None:
+        if filename != "":
             if os.path.exists(filename):
                 fsize = os.stat(filename).st_size
                 length = min(fsize, length)
@@ -1245,6 +1245,7 @@ class DAXFlash(metaclass=LogBase):
                             if status == 0x0 and unpack("<I", ret)[0] == 0xA1A2A3A4:
                                 self.info("DA Extensions successfully added")
                                 self.daext = True
+                                self.xft.custom_set_storage(ufs=self.daconfig.flashtype == "ufs")
                         if not self.daext:
                             self.warning("DA Extensions failed to enable")
 

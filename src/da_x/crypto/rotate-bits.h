@@ -1,3 +1,5 @@
+// Copyright 2024 (c) B.Kerler
+// Use of this source code is governed by a GPLv3 license, see LICENSE.txt.
 
 
 #ifndef __ROTATE_DEFS_H

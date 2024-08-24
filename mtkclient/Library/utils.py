@@ -186,9 +186,9 @@ class Progress:
             if self.guiprogress is not None:
                 self.guiprogress(pos // self.pagesize)
             print_progress(prog, 100, prefix='Done',
-                           suffix=prefix + ' (Sector 0x%X of 0x%X) %0.2f MB/s' % (pos // self.pagesize,
+                           suffix=prefix + ' (0x%X/0x%X) %0.2f MB/s' % (pos // self.pagesize,
                                                                                   total // self.pagesize,
-                                                                                  0), bar_length=50)
+                                                                                  0), bar_length=10)
 
         if prog > self.prog:
             if self.guiprogress is not None:
@@ -221,10 +221,10 @@ class Progress:
                         hinfo = "%02ds left" % sec
 
                 print_progress(prog, 100, prefix='Progress:',
-                               suffix=prefix + f' (Sector 0x%X of 0x%X, {hinfo}) %0.2f MB/s' % (pos // self.pagesize,
+                               suffix=prefix + f' (0x%X/0x%X, {hinfo}) %0.2f MB/s' % (pos // self.pagesize,
                                                                                                 total // self.pagesize,
                                                                                                 throughput),
-                               bar_length=50)
+                               bar_length=10)
                 self.prog = prog
                 self.progpos = pos
                 self.progtime = t0
