@@ -560,3 +560,4 @@ For dxcc, you need to use plstage instead of stage
 ### Chip details / configs
 - Go to config/brom_config.py
 - Unknown usb vid/pids for autodetection go to config/usb_ids.py
+# [LEARNING_RESOURCES](https://github.com/bkerler/mtkclient/blob/main/learning_resources.md)
