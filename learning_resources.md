@@ -1,4 +1,6 @@
 ## Learning Resources 
+[MTK CLIENT IN DEPTH VIDEO](https://youtu.be/NulWJo2RSKE) 
+
 [MTK Preloader](https://o0xmuhe.github.io/2022/03/05/MTK-Preloader-踩坑/)
 
 [MOSEC-2022](https://o0xmuhe.github.io/2022/11/23/议题解读-MOSEC2022-MediAttack-break-the-boot-chain-of-MediaTek-SoC/)
