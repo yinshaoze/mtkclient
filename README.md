@@ -66,6 +66,7 @@ sudo usermod -a -G plugdev $USER
 sudo usermod -a -G dialout $USER
 sudo cp mtkclient/Setup/Linux/*.rules /etc/udev/rules.d
 sudo udevadm control -R
+sudo udevadm trigger
 ```
 Make sure to reboot after adding the user to dialout/plugdev. If the device
 has a vendor interface 0xFF (like LG), make sure to add "blacklist qcaux" to
