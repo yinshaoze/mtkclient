@@ -133,9 +133,12 @@ class Port(metaclass=LogBase):
         i = 0
         startcmd = b"\xa0\x0a\x50\x05"
         length = len(startcmd)
+        # On preloader, send 0xa0 first
+        if self.cdc.pid!=0x3:
+            ep_out(startcmd[0:1])
         try:
             while i < length:
-                if ep_out(int.to_bytes(startcmd[i], 1, 'little')):
+                if ep_out(startcmd[i:i+1]):
                     if ep_in(maxinsize)[-1] == ~(startcmd[i]) & 0xFF:
                         i += 1
                     else:
