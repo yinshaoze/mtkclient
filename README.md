@@ -52,6 +52,11 @@ or
 yay -S python python-pip git libusb fuse2
 ```
 
+#### For Fedora
+```
+sudo dnf install python3 git libusb1 fuse
+```
+
 #### Grab files 
 ```
 git clone https://github.com/bkerler/mtkclient
