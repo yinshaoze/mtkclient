@@ -251,7 +251,7 @@ class SerialClass(DeviceClass):
                     return b""
 
         if loglevel == logging.DEBUG:
-            self.debug(inspect.currentframe().f_back.f_code.co_name + ":" + hex(resplen))
+            self.debug("SERIAL "+inspect.currentframe().f_back.f_code.co_name + ": length(" + hex(resplen)+")")
             if self.loglevel == logging.DEBUG:
                 self.verify_data(res[:resplen], "RX:")
         return res[:resplen]
@@ -290,7 +290,7 @@ class SerialClass(DeviceClass):
                     return b""
 
         if loglevel == logging.DEBUG:
-            self.debug(inspect.currentframe().f_back.f_code.co_name + ":" + hex(resplen))
+            self.debug("SERIAL "+inspect.currentframe().f_back.f_code.co_name + ": length(" + hex(resplen)+")")
             if self.loglevel == logging.DEBUG:
                 self.verify_data(res[:resplen], "RX:")
         return res[:resplen]

@@ -9,7 +9,6 @@ from binascii import hexlify
 from struct import pack, unpack
 
 from mtkclient.Library.Auth.sla import generate_da_sla_signature
-from mtkclient.Library.Auth.sla_keys import da_sla_keys
 from mtkclient.Library.DA.xflash.xflash_flash_param import NandExtension
 from mtkclient.Library.DA.xflash.xflash_param import Cmd, ChecksumAlgorithm, FtSystemOSE, DataType
 from mtkclient.Library.utils import LogBase, logsetup
@@ -1141,6 +1140,7 @@ class DAXFlash(metaclass=LogBase):
 
     def handle_sla(self, da2):
         rsakey = None
+        from mtkclient.Library.Auth.sla_keys import da_sla_keys
         for key in da_sla_keys:
             if da2.find(bytes.fromhex(key.n)) != -1:
                 rsakey = key

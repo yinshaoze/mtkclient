@@ -68,6 +68,8 @@ class Partition(metaclass=LogBase):
 
     def get_gpt(self, gpt_settings, parttype: str = "user") -> tuple:
         data = self.readflash(addr=0, length=2 * self.config.pagesize, filename="", parttype=parttype, display=False)
+        if not data:
+            return None, None
         if data[:4] == b"BPI\x00":
             guid_gpt = GPT(
                 num_part_entries=gpt_settings.gpt_num_part_entries,

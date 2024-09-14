@@ -110,12 +110,8 @@ class DeviceClass(metaclass=LogBase):
 
     def rword(self, count=1, little=False):
         rev = "<" if little else ">"
-        data = []
-        for _ in range(count):
-            v = self.usbread(2)
-            if len(v) == 0:
-                return data
-            data.append(unpack(rev + "H", v)[0])
+        value = self.usbread(2*count)
+        data = unpack(rev + "H" * count, value)
         if count == 1:
             return data[0]
         return data
