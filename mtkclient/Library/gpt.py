@@ -267,7 +267,7 @@ class GPT(metaclass=LogBase):
     def tostring(self):
         mstr = "\nGPT Table:\n-------------\n"
         for _partition in self.partentries:
-            mstr += ("{:20} Offset 0x{:016x}, Length 0x{:016x}, Flags 0x{:08x}, UUID {}, Type {}\n".format(
+            mstr += ("{:20} Offset 0x{:016x}, Length 0x{:016x}\n                     Flags 0x{:08x}, UUID {}, Type {}\n".format(
                 _partition.name + ":", _partition.sector * self.sectorsize, _partition.sectors * self.sectorsize,
                 _partition.flags, _partition.unique, _partition.type))
         mstr += ("\nTotal disk size:0x{:016x}, sectors:0x{:016x}\n".format(self.totalsectors * self.sectorsize,
