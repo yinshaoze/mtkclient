@@ -195,7 +195,7 @@ class LegacyExt(metaclass=LogBase):
             return False, writedata
         if self.legacy.writeflash(addr=partition.sector * self.mtk.daloader.daconfig.pagesize,
                                   length=len(writedata),
-                                  filename=None, wdata=writedata, parttype="user", display=True):
+                                  filename="", wdata=writedata, parttype="user", display=True):
             return True, "Successfully wrote seccfg."
         return False, "Error on writing seccfg config to flash."
 

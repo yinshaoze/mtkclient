@@ -540,7 +540,7 @@ class DaHandler(metaclass=LogBase):
                 wsize = min(sectorsize, 0x200000)
                 if self.mtk.daloader.writeflash(addr=sector * self.config.pagesize,
                                                 length=wsize,
-                                                filename=None,
+                                                filename="",
                                                 wdata=wipedata[:wsize],
                                                 parttype="user"):
                     print(
@@ -584,7 +584,7 @@ class DaHandler(metaclass=LogBase):
                         wsize = min(sectorsize, 0x200000)
                         if self.mtk.daloader.writeflash(addr=sector * self.config.pagesize,
                                                         length=wsize,
-                                                        filename=None,
+                                                        filename="",
                                                         wdata=wipedata[:wsize],
                                                         parttype=parttype):
                             print(
