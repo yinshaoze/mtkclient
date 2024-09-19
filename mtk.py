@@ -37,7 +37,8 @@ cmds = {
     "stage": "Run stage2 payload via boot rom mode (kamakiri)",
     "plstage": "Run stage2 payload via preloader mode (send_da)",
     "da": "Run da xflash/legacy special commands",
-    "script": "Run multiple commands using text script"
+    "script": "Run multiple commands using text script",
+    "multi": 'Run multiple commands using a comma-separated list (enclose list in quotes)'
 }
 
 
@@ -52,6 +53,10 @@ def main():
                                             'gettargetconfig, peek, stage, plstage, da, script\n')
 
     parser_script = subparsers.add_parser("script", help="Run text script")
+    parser_multi = subparsers.add_parser("multi", help='Run multiple commands using a comma-separated list (enclose list in quotes)')
+    parser_multi.add_argument('commands', help='Comma-separated list of commands to run')
+
+
     parser_printgpt = subparsers.add_parser("printgpt", help="Print GPT Table information")
     parser_gpt = subparsers.add_parser("gpt", help="Save gpt table to given directory")
     parser_r = subparsers.add_parser("r", help="Read flash to filename")
