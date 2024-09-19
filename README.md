@@ -204,6 +204,10 @@ python mtk.py --stock
 ```bash
 python mtk.py script run.example
 ```
+or
+```
+python mtk.py multi "cmd1;cmd2"
+```
 See the file "[run.example](https://github.com/bkerler/mtkclient/blob/main/run.example)" on how to structure the script file
 
 ### Root the phone (Tested with android 9 - 12)
