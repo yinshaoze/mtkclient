@@ -7,6 +7,7 @@ from struct import pack, unpack
 from queue import Queue
 from threading import Thread
 
+from Cryptodome.Util.number import long_to_bytes
 from Cryptodome.Cipher import PKCS1_OAEP
 from Cryptodome.Hash import SHA256
 from Cryptodome.PublicKey import RSA
@@ -624,7 +625,7 @@ class DAXML(metaclass=LogBase):
                         from mtkclient.Library.Auth.sla_keys import da_sla_keys, SlaKey
                         for key in da_sla_keys:
                             if isinstance(key, SlaKey):
-                                if da2.find(bytes.fromhex(key.n)) != -1:
+                                if da2.find(long_to_bytes(key.n)) != -1:
                                     rsakey = key
                         if rsakey is None:
                             print("No valid sla key found, using dummy auth ....")

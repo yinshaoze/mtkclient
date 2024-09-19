@@ -8,6 +8,8 @@ import sys
 from binascii import hexlify
 from struct import pack, unpack
 
+from Cryptodome.Util.number import long_to_bytes
+
 from mtkclient.Library.Auth.sla import generate_da_sla_signature
 from mtkclient.Library.DA.xflash.xflash_flash_param import NandExtension
 from mtkclient.Library.DA.xflash.xflash_param import Cmd, ChecksumAlgorithm, FtSystemOSE, DataType
@@ -1142,7 +1144,7 @@ class DAXFlash(metaclass=LogBase):
         rsakey = None
         from mtkclient.Library.Auth.sla_keys import da_sla_keys
         for key in da_sla_keys:
-            if da2.find(bytes.fromhex(key.n)) != -1:
+            if da2.find(long_to_bytes(key.n)) != -1:
                 rsakey = key
                 break
         if rsakey is None:
