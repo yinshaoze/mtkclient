@@ -42,7 +42,7 @@ class ArgHandler(metaclass=LogBase):
                 config.pid = getint(args.pid)
         except AttributeError:
             pass
-        config.stock = True
+        config.stock = False
         try:
             if args.stock is not None:
                 config.stock = args.stock
@@ -682,8 +682,8 @@ class Main(metaclass=LogBase):
             mtk = da_handler.configure_da(mtk, preloader)
             if mtk is not None:
                 da_handler.handle_da_cmds(mtk, cmd, self.args)
-            else:
-                self.close()
+                mtk.port.close()
+            self.close()
 
     def cmd_log(self, mtk, filename):
         if mtk.preloader.init():
