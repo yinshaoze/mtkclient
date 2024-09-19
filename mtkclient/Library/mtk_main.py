@@ -415,7 +415,7 @@ class Main(metaclass=LogBase):
                 self.close()
         elif cmd == "multi":
             # Split the commands in the multi argument
-            commands = self.args.commands.split(',')
+            commands = self.args.commands.split(';')
             # DA / Flash commands start here
             try:
                 preloader = self.args.preloader
