@@ -521,6 +521,8 @@ class DALegacy(metaclass=LogBase):
         self.emmc = EmmcInfo(self.config, self.usbread(0x5C))
         self.sdc = SdcInfo(self.config, self.usbread(0x1C))
         self.flashconfig = ConfigInfo(self.usbread(0x26))
+        if self.config.hwcode == 0x8163:
+            status=self.usbread(4)
         pi = PassInfo(self.usbread(0xA))
         if pi.ack == 0x5A:
             return True

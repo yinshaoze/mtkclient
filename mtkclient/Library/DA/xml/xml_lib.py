@@ -798,7 +798,9 @@ class DAXML(metaclass=LogBase):
         return None
 
     def change_usb_speed(self):
-        return self.send_command(self.Cmd.cmd_can_higher_usb_speed())
+        resp = self.send_command(self.Cmd.cmd_can_higher_usb_speed())
+        if "Unsupported" in resp:
+            return False
 
     def read_partition_table(self) -> tuple:
         self.send_command(self.Cmd.cmd_read_partition_table(), noack=True)

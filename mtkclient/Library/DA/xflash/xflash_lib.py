@@ -8,7 +8,7 @@ import sys
 from binascii import hexlify
 from struct import pack, unpack
 
-from Cryptodome.Util.number import long_to_bytes
+from Cryptodome.Util.number import bytes_to_long, long_to_bytes
 
 from mtkclient.Library.Auth.sla import generate_da_sla_signature
 from mtkclient.Library.DA.xflash.xflash_flash_param import NandExtension

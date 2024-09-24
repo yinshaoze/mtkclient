@@ -266,7 +266,7 @@ class GCpu(metaclass=LogBase):
             self.reg.GCPU_REG_MSC = 0x80FF1800
             self.reg.GCPU_AXI = 0x887F
             self.reg.GCPU_UNK2 = 0
-        elif self.hwcode == [0x8163, 0x8176]:
+        elif self.hwcode == [0x8163, 0x8176, 0x8168]:
             self.write32(CLR_CLK_GATING_CTRL2, self.read32(CLR_CLK_GATING_CTRL2) | 0x8000000)
             self.reg.GCPU_REG_CTL &= 0xFFFFFFF0
             self.reg.GCPU_REG_CTL |= 0xF
