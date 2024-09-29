@@ -355,6 +355,7 @@ hwconfig = {
         # cqdma_base
         # ap_dma_mem
         # blacklist
+        efuse_addr=0x11EC0000,
         damode=DAmodes.XFLASH,
         dacode=0x0992,
         name="MT6890"),
