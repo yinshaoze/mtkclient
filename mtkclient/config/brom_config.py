@@ -346,7 +346,7 @@ hwconfig = {
         dacode=0x0598,
         name="ELBRUS/MT0598"),
     0x992: Chipconfig(  # var1
-        # watchdog
+        watchdog=0x10007000,
         # uart
         # brom_payload_addr
         # da_payload_addr
