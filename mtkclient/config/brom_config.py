@@ -357,7 +357,7 @@ hwconfig = {
         # blacklist
         damode=DAmodes.XFLASH,
         dacode=0x0992,
-        name="MT0992"),
+        name="MT6890"),
     0x2601: Chipconfig(
         var1=0xA,  # Smartwatch, confirmed
         watchdog=0x10007000,
