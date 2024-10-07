@@ -101,7 +101,7 @@ class PLTools(metaclass=LogBase):
             return False
         else:
             self.error(f"Error on sending payload: {filename}")
-            self.error(f"Error, payload answered instead: {hexlify(ack).decode('utf-8')}")
+            self.error(f"Error, payload answered instead: {hexlify(response_ack).decode('utf-8')}")
             return False
 
     def runbrute(self, args):
