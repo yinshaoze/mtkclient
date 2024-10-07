@@ -346,7 +346,7 @@ hwconfig = {
         dacode=0x0598,
         name="ELBRUS/MT0598"),
     0x992: Chipconfig(  # var1
-        # watchdog
+        watchdog=0x10007000,
         # uart
         # brom_payload_addr
         # da_payload_addr
@@ -355,9 +355,10 @@ hwconfig = {
         # cqdma_base
         # ap_dma_mem
         # blacklist
+        efuse_addr=0x11EC0000,
         damode=DAmodes.XFLASH,
         dacode=0x0992,
-        name="MT0992"),
+        name="MT6880/MT6890"),
     0x2601: Chipconfig(
         var1=0xA,  # Smartwatch, confirmed
         watchdog=0x10007000,
