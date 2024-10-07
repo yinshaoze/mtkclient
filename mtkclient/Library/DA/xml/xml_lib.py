@@ -967,7 +967,10 @@ class DAXML(metaclass=LogBase):
             self.ack_value(length)
             cmd, result = self.get_command_result()
             if type(result) is DwnFile:
-                data = fh.read(length)
+                if fh:
+                    data = fh.read(length)
+                else:
+                    data = wdata
                 if not self.upload(result, data, raw=True):
                     self.error("Error on writing flash at 0x%08X" % addr)
                     return False
