@@ -1,3 +1,4 @@
+import json
 import os
 import time
 import sys
@@ -184,27 +185,28 @@ class DaHandler(metaclass=LogBase):
 
     def da_vbmeta(self, vbmode:int=3):
         gpttable = self.mtk.daloader.get_partition_data(parttype="user")
-        for partition in ["vbmeta","vbmeta_a"]:
-            rpartition = None
-            for gptentry in gpttable:
-                if gptentry.name.lower() == partition.lower():
-                    rpartition = gptentry
-                    break
-            if rpartition is not None:
-                self.info(f'Dumping partition "{rpartition.name}"')
-                vbmeta=self.mtk.daloader.readflash(addr=rpartition.sector * self.config.pagesize,
-                                               length=rpartition.sectors * self.config.pagesize,
-                                               filename="", parttype="user")
-                if vbmeta!=b"":
-                    self.info(f'Patching vbmeta"')
-                    patched_vbmeta = self.patch_vbmeta(vbmeta,vbmode)
-                    self.info(f'Writing partition "{rpartition.name}"')
-                    if self.mtk.daloader.writeflash(addr=rpartition.sector * self.config.pagesize,
-                                               length=rpartition.sectors * self.config.pagesize,
-                                               wdata=patched_vbmeta, parttype="user"):
-                        self.info("Successfully patched vbmeta :)")
-                    else:
-                        self.error("Error on patching vbmeta :(")
+        slot = self.get_current_slot()
+        partition="vbmeta"+slot
+        rpartition = None
+        for gptentry in gpttable:
+            if gptentry.name.lower() == partition.lower():
+                rpartition = gptentry
+                break
+        if rpartition is not None:
+            self.info(f'Dumping partition "{rpartition.name}"')
+            vbmeta=self.mtk.daloader.readflash(addr=rpartition.sector * self.config.pagesize,
+                                           length=rpartition.sectors * self.config.pagesize,
+                                           filename="", parttype="user")
+            if vbmeta!=b"":
+                self.info(f'Patching {partition}"')
+                patched_vbmeta = self.patch_vbmeta(vbmeta,vbmode)
+                self.info(f'Writing partition "{rpartition.name}"')
+                if self.mtk.daloader.writeflash(addr=rpartition.sector * self.config.pagesize,
+                                           length=rpartition.sectors * self.config.pagesize,
+                                           wdata=patched_vbmeta, parttype="user"):
+                    self.info("Successfully patched vbmeta :)")
+                else:
+                    self.error("Error on patching vbmeta :(")
 
     def da_gpt(self, directory: str):
         if directory is None:
@@ -224,6 +226,36 @@ class DaHandler(metaclass=LogBase):
             with open(sfilename, "wb") as wf:
                 wf.write(data[self.mtk.daloader.daconfig.pagesize:])
             print(f"Dumped Backup GPT to {sfilename}")
+
+    def da_read_partition(self, partitionname, parttype="user"):
+        rpartition = None
+        gpttable = self.mtk.daloader.get_partition_data(parttype=parttype)
+        for gptentry in gpttable:
+            if gptentry.name.lower() == partitionname.lower():
+                rpartition = gptentry
+                break
+        if rpartition is not None:
+            self.info(f'Dumping partition "{rpartition.name}"')
+            data=self.mtk.daloader.readflash(addr=rpartition.sector * self.config.pagesize,
+                                           length=rpartition.sectors * self.config.pagesize,
+                                           filename="", parttype=parttype)
+            return data
+        return None
+
+    def da_write_partition(self, partitionname, data:bytes=None, parttype="user"):
+        rpartition = None
+        gpttable = self.mtk.daloader.get_partition_data(parttype=parttype)
+        for gptentry in gpttable:
+            if gptentry.name.lower() == partitionname.lower():
+                rpartition = gptentry
+                break
+        if rpartition is not None:
+            self.info(f'Writing partition "{rpartition.name}"')
+            res=self.mtk.daloader.writeflash(addr=rpartition.sector * self.config.pagesize,
+                                           length=rpartition.sectors * self.config.pagesize,
+                                           filename="", parttype=parttype, wdata=data)
+            return res
+        return None
 
     def da_read(self, partitionname, parttype, filename):
         filenames = filename.split(",")
@@ -638,6 +670,16 @@ class DaHandler(metaclass=LogBase):
                 else:
                     data = bytearray(self.mtk.daloader.peek(addr=addr, length=4))
                 self.info(f"EFuse Idx {hex(idx)}: {data.hex()}")
+
+    def get_current_slot(self):
+        tmp = self.da_read_partition("misc")
+        if tmp == b"":
+            tmp = self.da_read_partition("para")
+        if tmp != b"":
+            slot = tmp[0x800:0x802].decode('utf-8')
+        else:
+            slot = ""
+        return slot
 
     def da_brom(self, filename: str):
         return self.mtk.daloader.dump_brom(filename)

@@ -290,6 +290,12 @@ class DALegacy(metaclass=LogBase):
             return False
         errorcode = int.from_bytes(buffer, 'big')
         if errorcode == 0x0:
+            if hwcode == 0x6592:
+                tmp1=self.usbread(4)
+                tmp2=self.usbread(4)
+                tmp3=self.usbread(4)
+                tmp4 = self.usbread(4)
+                tmp5 = self.usbread(4)
             return True
         if errorcode != 0xBC3:
             self.error(self.eh.status(errorcode))

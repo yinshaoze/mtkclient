@@ -288,7 +288,7 @@ class DAXML(metaclass=LogBase):
             da2sig_len = self.daconfig.da_loader.region[2].m_sig_len
             bootldr.seek(da2offset)
             da2 = bootldr.read(self.daconfig.da_loader.region[2].m_len)
-            if self.patch or not self.config.target_config["sbc"]:
+            if self.patch or not self.config.target_config["sbc"] and not self.config.stock:
                 da1, da2 = self.patch_da(da1, da2)
                 self.patch = True
                 self.daconfig.da2 = da2
@@ -453,9 +453,10 @@ class DAXML(metaclass=LogBase):
             if display:
                 self.mtk.daloader.progress.clear()
             resp = self.get_response()
-            byteswritten = 0
+            pos = 0
+            bytestowrite=length
             if resp == "OK":
-                for pos in range(0, length, packet_length):
+                while bytestowrite>0:
                     self.ack_value(0)
                     resp = self.get_response()
                     if "OK" not in resp:
@@ -470,9 +471,10 @@ class DAXML(metaclass=LogBase):
                     if "OK" not in resp:
                         self.error(f"Error on writing stage2 at pos {hex(pos)}")
                         return False
-                    byteswritten += tmplen
+                    pos += tmplen
                     if display:
-                        self.mtk.daloader.progress.show_progress("Written", byteswritten, length, display)
+                        self.mtk.daloader.progress.show_progress("Written", pos, length, display)
+                    bytestowrite-=packet_length
                 if raw:
                     self.ack()
                 cmd, result = self.get_command_result()
@@ -597,8 +599,8 @@ class DAXML(metaclass=LogBase):
             self.info("Stage 1 successfully loaded.")
             da2 = self.daconfig.da2
             da2offset = self.daconfig.da_loader.region[2].m_start_addr
-            if not self.mtk.daloader.patch:
-                if self.carbonara is not None:
+            if not self.mtk.daloader.patch and not self.mtk.config.stock:
+                if self.carbonara is not None and self.mtk.config.target_config["sbc"]:
                     loaded = self.boot_to(da2offset, da2)
                     if loaded:
                         self.patch = True
@@ -798,8 +800,9 @@ class DAXML(metaclass=LogBase):
         return None
 
     def change_usb_speed(self):
-        return self.send_command(self.Cmd.cmd_can_higher_usb_speed())
-
+        resp = self.send_command(self.Cmd.cmd_can_higher_usb_speed())
+        if not resp:
+            return False
 
     def read_partition_table(self) -> tuple:
         self.send_command(self.Cmd.cmd_read_partition_table(), noack=True)

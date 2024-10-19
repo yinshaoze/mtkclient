@@ -278,6 +278,11 @@ class XmlFlashExt(metaclass=LogBase):
                     da2patched[idx2:idx2 + 8] = b"\x00\x00\xA0\xE3\x1E\xFF\x2F\xE1"
                     self.info("Patched Vivo Remote SLA authentification.")
                 else:
+                    idx=da2patched.find(b"DA.SLA\x00ENABLED")
+                    if idx!=-1:
+                        patch = b"DA.SLA\x00DISABLE"
+                        da2patched[idx:idx+len(patch)] = patch
+                    """
                     n = "9BB734774443D77557A76E24B10733787750D90D09C869CD606D54F28978EA6220DC9948B3C9E89284F8551D6166F3754B6A3B890AC9CDA9E37DFAA0C1317E351CE5107C4273795949C6CCE638314AB1A345385D7642CB8D055A1F410C7D7E24A6F0A2AAB8184E773D21B3754A947541680F2C1A8D6BA5BEFD3B6E1FC28EC0B61D55B1454383F2C3E8BD27170A25978608F6788B90A2FC34F0CE35056BF7520795C8C60232CBBC0B0399367AF937869CA45CF737A8A066127893E93166C433298DD6FD009E6790E743B3392ACA8EA99F61DFC77BD99416DDA4B8A9D7E4DA24217427F3584119A4932016F1735CC63B12650FDDDA73C8FCFBC79E058F36219D3D"
                     pubkey = bytes.fromhex(n)
                     # Generic SLA patch, just replace the public key with a known one
@@ -291,7 +296,7 @@ class XmlFlashExt(metaclass=LogBase):
                         if idx2 is not None:
                             da2patched[idx2 - 0x100:idx2] = pubkey
                         self.warning("SLA authentification not patched.")
-
+                    """
         # open("da.patched.bin",
         # "wb").write(da2patched)
         return da2patched
@@ -341,12 +346,11 @@ class XmlFlashExt(metaclass=LogBase):
         if len(data) % 0x100 != 0:
             self.error("Incorrect rpmb frame length. Aborting")
             return False
-        xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMRPMBW")
         if self.xflash.emmc is not None:
             ufs = False
+            xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMRPMBW")
         else:
             ufs = True
-        if ufs:
             xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMURPMBW")
         if self.xsend(xmlcmd):
             result = self.xflash.get_response()
@@ -405,14 +409,20 @@ class XmlFlashExt(metaclass=LogBase):
         ufs = False
         if self.xflash.emmc is None:
             ufs = True
-        xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMMMCINIT")
-        if ufs:
             xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMUFSINIT")
+        else:
+            xmlcmd = self.xflash.Cmd.create_cmd("CUSTOMMMCINIT")
         if self.xsend(xmlcmd):
             result = self.xflash.get_response()
             if result == "OK":
                 derivedrpmb = self.xflash.get_response(raw=True)
                 if int.from_bytes(derivedrpmb[:4], 'little') != 0xff:
+                    # rpmb frame
+                    result = self.xflash.get_response(raw=True)
+                    self.xflash.ack()
+                    # hash
+                    result = self.xflash.get_response(raw=True)
+                    self.xflash.ack()
                     # CMD:END
                     result = self.xflash.get_response()
                     self.xflash.ack()
@@ -450,7 +460,7 @@ class XmlFlashExt(metaclass=LogBase):
         else:
             ufs = True
         if sectors == 0:
-            if not ufs:
+            if self.xflash.emmc is not None:
                 sectors = self.xflash.emmc.rpmb_size // 0x100
             elif self.xflash.ufs.lu1_size != 0:
                 sectors = (512 * 256)
@@ -507,7 +517,7 @@ class XmlFlashExt(metaclass=LogBase):
                         towrite -= 0x1
                 if display:
                     progressbar.show_progress("RPMB written", sectors * 0x100, sectors * 0x100, display)
-                self.info(f"Done reading writing {filename} to rpmb")
+                self.info(f"Done writing {filename} to rpmb")
                 return True
         return False
 

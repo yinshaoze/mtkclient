@@ -275,6 +275,8 @@ class Structhelper:
 
     def bytes(self, rlen=1):
         dat = self.data[self.pos:self.pos + rlen]
+        if dat==b"":
+            return b""
         self.pos += rlen
         if rlen == 1:
             return dat[0]
