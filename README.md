@@ -215,7 +215,7 @@ python mtk.py multi "cmd1;cmd2"
 ```
 See the file "[run.example](https://github.com/bkerler/mtkclient/blob/main/examples/run.example)" on how to structure the script file
 
-### Using in on ARCH BTW
+### Using in on ARCH (BTW)
 Basically, you created a venv folder, so you need to use it to python find the right packages, and don't have any conflicts
 
 Example comands below...
