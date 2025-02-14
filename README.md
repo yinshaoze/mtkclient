@@ -68,8 +68,8 @@ python3 -m venv ~/.venv
 git clone https://github.com/bkerler/mtkclient
 cd mtkclient
 . ~/.venv/bin/activate
-pip3 install -r requirements.txt
-
+pip install -r requirements.txt
+pip install .
 ```
 
 #### Install rules
