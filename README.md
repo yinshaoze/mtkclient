@@ -42,7 +42,7 @@ sudo apt install python3 git libusb-1.0-0 python3-pip libfuse2
 ```
 #### For ArchLinux
 ```
-(sudo) pacman -S  python python-pip git libusb fuse2
+(sudo) pacman -S  python python-pip python-pipenv git libusb fuse2
 ```
 or
 ```
@@ -61,13 +61,15 @@ cd mtkclient
 pip3 install -r requirements.txt
 pip3 install .
 ```
-### Grab files on Arch Linux
+
+### Using venv
 ```
+python3 -m venv ~/.venv
 git clone https://github.com/bkerler/mtkclient
 cd mtkclient
-python -m venv ~/.venv
-~/.venv/bin/python install -r requirements.txt
-~/.venv/bin/python install .
+. ~/.venv/bin/activate
+pip3 install -r requirements.txt
+
 ```
 
 #### Install rules
@@ -215,22 +217,29 @@ python mtk.py multi "cmd1;cmd2"
 ```
 See the file "[run.example](https://github.com/bkerler/mtkclient/blob/main/examples/run.example)" on how to structure the script file
 
-### Using in on ARCH (BTW)
+### Using in on venv
 Basically, you created a venv folder, so you need to use it to python find the right packages, and don't have any conflicts
+```
+. ~/.venv/bin/activate
+```
+You should see something like this...
+```
+(.venv) [user@hostname]$ 
+```
+This means you are on venv folder!
 
-Example comands below...
-```
-~/.venv/bin/python mtk.py bruteforce
-~/.venv/bin/python mtk_gui.py
-~/.venv/bin/python mtk.py script examples/run.example
-~/.venv/bin/python mtk.py r boot,vbmeta boot.img,vbmeta.img
-~/.venv/bin/python mtk.py payload
-~/.venv/bin/python mtk.py reset
-```
+* Example comands below...
 
-If you gonna run any command, you NEED to use this prefix...
 ```
-~/.venv/bin/python mtk.py ...
+./mtk.py r boot,vbmeta boot.img,vbmeta.img
+./mtk.py payload
+./mtk.py reset
+```
+or simply
+```
+mtk r boot,vbmeta boot.img,vbmeta.img
+mtk payload
+mtk reset
 ```
 
 ### Root the phone (Tested with android 9 - 12)
