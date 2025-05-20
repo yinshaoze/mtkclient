@@ -130,7 +130,7 @@ pip3 install -r requirements.txt
 #### Install Winfsp (for fuse)
 Download and install [here](https://winfsp.dev/rel/)
 
-#### Install OpenSSL (for python scrypt dependency)
+#### Install OpenSSL 1.1.1 (for python scrypt dependency)
 Download and install [here](https://sourceforge.net/projects/openssl-for-windows/files/)
 
 #### Grab files and install
